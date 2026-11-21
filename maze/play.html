@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0d1819">
+<title>迷宮尋寶・角色冒險｜SWT MindFlow</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230d1819'/%3E%3Cpath d='M8 8h16v16H8zM13 13h6v6h-6z' fill='none' stroke='%238fd9b8' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../character/css/controls.css">
+<link rel="stylesheet" href="css/adventure.css">
+</head>
+<body>
+<div id="stage" class="mfc-ui">
+  <canvas id="cv"></canvas>
+  <header class="ahud">
+    <a class="abtn" href="index.html" data-mfc-pass>‹ 關卡</a>
+    <span class="achip" id="aLvChip" hidden></span>
+    <span class="achip" id="aGems">寶石 0/0</span>
+    <span class="achip held" id="aHeld" hidden></span>
+    <span class="achip clock" id="aClock">0:00.0</span>
+    <span class="aspacer"></span>
+    <button class="abtn" id="aChar" data-mfc-pass>🧑 男生背包客</button>
+    <button class="abtn" id="aEnv" data-mfc-pass>竹林</button>
+    <button class="abtn" id="aLevel" data-mfc-pass>入門</button>
+  </header>
+  <canvas id="aMap" class="amap" data-mfc-pass title="小地圖（點一下放大）"></canvas>
+  <div id="aToast" class="atoast" aria-live="polite"></div>
+  <div class="akeys desk-only">W A S D／方向鍵 移動　Shift 衝刺　Space 跳躍　E 抓取／放下　滑鼠拖曳 轉動鏡頭</div>
+  <div id="aOv" class="aov" data-mfc-pass hidden></div>
+  <div id="aBoot" class="aboot">載入 3D 迷宮中…</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="js/config.js"></script>
+<script src="js/game.js"></script>
+<script src="../character/js/core.js"></script>
+<script src="../character/js/MultiTouchManager.js"></script>
+<script src="../character/js/VirtualJoystick.js"></script>
+<script src="../character/js/MobileActionController.js"></script>
+<script src="../character/js/InputManager.js"></script>
+<script src="../character/js/CharacterController.js"></script>
+<script src="../character/js/InteractionManager.js"></script>
+<script src="../character/js/CharacterStateMachine.js"></script>
+<script src="../character/js/ClayCharacterFactory.js"></script>
+<script src="../character/js/AnimationLibrary.js"></script>
+<script src="../character/js/CharacterAnimationManager.js"></script>
+<script src="../character/js/CharacterSystem.js"></script>
+<script src="../character/js/GLBCharacterLoader.js"></script>
+<script src="../character/models/models.js"></script>
+<script src="js/maze-levels.js"></script>
+<script src="js/adventure-art.js"></script>
+<script src="js/adventure.js"></script>
+</body>
+</html>
