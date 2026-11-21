@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>角色模型檢視｜四視角</title>
+<style>
+  html, body { margin: 0; background: #fff; font-family: system-ui, sans-serif; }
+  #cv { display: block; width: 100vw; height: 100vh; }
+  .bar { position: fixed; left: 10px; top: 10px; display: flex; gap: 6px; }
+  .bar button { padding: 8px 12px; border-radius: 10px; border: 1px solid #ddd; background: #fff; cursor: pointer; }
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div class="bar" id="bar"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="js/core.js"></script>
+<script src="js/ClayCharacterFactory.js"></script>
+<script src="js/AnimationLibrary.js"></script>
+<script src="js/GLBCharacterLoader.js"></script>
+<script src="models/models.js"></script>
+<script>
+// 以設定圖相同的四個角度（正面、斜側、背面、側面）並排呈現模型，方便和設定圖比對
+{
+  const q = new URLSearchParams(location.search);
+  const THREE = window.THREE, NS = window.MFChar;
+  const cv = document.getElementById("cv");
+  const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.setClearColor(0xffffff, 1);
+  const scene = new THREE.Scene();
+  NS.ClayLook && NS.ClayLook.addStudioLights(THREE, scene);
+  if (!NS.ClayLook) { scene.add(new THREE.HemisphereLight(0xffffff, 0xd9d2c5, 0.9)); const s = new THREE.DirectionalLight(0xffffff, 1.0); s.position.set(1.5, 3, 4); scene.add(s); }
+  const cam = new THREE.OrthographicCamera(-2.4, 2.4, 0.66, -0.66, 0.1, 50);
+  const id = q.get("char") || "boy-ai";
+  const m = (window.MFCHAR_MODELS || []).find(x => x.id === id);
+  const yaws = [0, 0.62, Math.PI, Math.PI / 2 + Math.PI];   // 正面、斜側（看向右）、背面、側面（面向左）
+  window.__studio = { ready: false };
+  const zoom = q.get("zoom") === "head";   // ?zoom=head：頭部特寫
+  const cy = zoom ? 0.8 : 0.52, hh = zoom ? 0.28 : 0.62;
+  cam.position.set(0, cy, 10); cam.lookAt(0, cy, 0);
+  function resize() { const W = innerWidth, H = innerHeight, a = W / H, h = hh; cam.left = -h * a; cam.right = h * a; cam.top = h; cam.bottom = -h; cam.updateProjectionMatrix(); renderer.setSize(W, H, false); }
+  addEventListener("resize", () => { resize(); renderer.render(scene, cam); });
+  resize();
+  Promise.all(yaws.map(() => NS.GLBCharacterLoader.load(THREE, m.url, Object.assign({ height: 1 }, m)))).then(rigs => {
+    const span = (cam.right - cam.left) / 4, sp = zoom ? 0.25 : span;
+    rigs.forEach((rig, i) => {
+      rig.root.rotation.y = yaws[i];
+      rig.root.position.x = (i - 1.5) * sp;
+      scene.add(rig.root);
+    });
+    renderer.render(scene, cam);
+    window.__studio = { ready: true, rigs };
+  }).catch(e => { document.body.insertAdjacentHTML("beforeend", "<p>" + e.message + "</p>"); });
+  const bar = document.getElementById("bar");
+  (window.MFCHAR_MODELS || []).forEach(x => { const b = document.createElement("button"); b.textContent = x.label; b.onclick = () => location.search = "?char=" + x.id; bar.appendChild(b); });
+}
+</script>
+</body>
+</html>

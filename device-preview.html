@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>裝置預覽｜身心智慧學院</title>
+<style>
+  /* 在電腦上用真實尺寸預覽手機、平板的雙手觸控介面（滑鼠可以拖搖桿、點技能鈕） */
+  :root { --bg: #1c2a30; --ink: #eaf6f1; --muted: #9db3ad; --accent: #7ee0c3; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: radial-gradient(circle at 50% 40%, #2a3f46, var(--bg) 70%); color: var(--ink); font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif; overflow: hidden; }
+  .bar { position: fixed; left: 0; right: 0; top: 0; height: 58px; display: flex; align-items: center; gap: 10px; padding: 0 14px; background: rgba(12, 22, 26, .6); backdrop-filter: blur(8px); z-index: 5; flex-wrap: nowrap; overflow-x: auto; }
+  .bar b { font-size: 15px; white-space: nowrap; margin-right: 4px; }
+  .seg { display: flex; background: rgba(255,255,255,.08); border-radius: 12px; padding: 3px; flex: none; }
+  .seg button { font: 600 14px/1 inherit; font-family: inherit; color: var(--muted); background: none; border: 0; padding: 9px 13px; border-radius: 9px; cursor: pointer; white-space: nowrap; min-height: 36px; }
+  .seg button.on { background: var(--accent); color: #12302a; }
+  .btn { font: 600 14px/1 inherit; font-family: inherit; color: var(--ink); background: rgba(255,255,255,.1); border: 0; border-radius: 10px; padding: 10px 14px; cursor: pointer; white-space: nowrap; flex: none; min-height: 36px; }
+  .btn:hover, .seg button:hover:not(.on) { background: rgba(255,255,255,.16); }
+  .sp { flex: 1; }
+  .hint { position: fixed; left: 0; right: 0; bottom: 10px; text-align: center; font-size: 13px; color: var(--muted); z-index: 5; padding: 0 12px; }
+  .stage { position: fixed; left: 0; right: 0; top: 58px; bottom: 36px; }
+  .device { position: absolute; left: 50%; top: calc(50% - 12px); transform-origin: center center; }
+  .device iframe { display: block; border: 0; width: 100%; height: 100%; background: #cfe6d6; }
+  .device.desk iframe { border-radius: 10px; box-shadow: 0 20px 60px rgba(0,0,0,.45); }
+  .device.mobile { padding: 14px; border-radius: 52px; background: linear-gradient(145deg, #3b4448, #15191b); box-shadow: 0 30px 80px rgba(0,0,0,.55), inset 0 0 0 2px #505a5e; }
+  .device.mobile iframe { border-radius: 40px; }
+  .device.tablet { padding: 22px; border-radius: 40px; }
+  .device.tablet iframe { border-radius: 20px; }
+  .notch { position: absolute; z-index: 2; background: #0b0d0e; border-radius: 20px; pointer-events: none; }
+  .homebar { position: absolute; z-index: 2; background: rgba(20,20,20,.55); border-radius: 3px; pointer-events: none; }
+  .size { position: absolute; left: 50%; bottom: -28px; transform: translateX(-50%); font-size: 12px; color: var(--muted); white-space: nowrap; }
+</style>
+</head>
+<body>
+  <div class="bar">
+    <button class="btn" id="back" title="回到一般畫面">← 返回</button>
+    <b>裝置預覽</b>
+    <div class="seg" id="page">
+      <button data-page="main" class="on">🏝️ 主畫面</button>
+      <button data-page="lab">🎮 角色動作</button>
+    </div>
+    <div class="seg" id="dev">
+      <button data-dev="phone" class="on">📱 手機</button>
+      <button data-dev="tablet">📲 平板</button>
+      <button data-dev="desktop">💻 電腦</button>
+    </div>
+    <div class="seg" id="ori">
+      <button data-ori="land" class="on">橫向</button>
+      <button data-ori="port">直向</button>
+    </div>
+    <div class="seg" id="model">
+      <button data-model="iphone" class="on">iPhone</button>
+      <button data-model="android">Android</button>
+    </div>
+    <span class="sp"></span>
+    <button class="btn" id="reload" title="重新載入">↻ 重新整理</button>
+    <button class="btn" id="close" hidden>✕ 關閉</button>
+  </div>
+  <div class="stage"><div class="device" id="device"><iframe id="frame" title="角色動作測試" allow="fullscreen; vibrate"></iframe></div></div>
+  <div class="hint" id="hint"></div>
+
+<script>
+{
+  const q = new URLSearchParams(location.search);
+  const embedded = q.get("embed") === "1" && window.parent !== window;
+  const charId = /^[a-z-]+$/.test(q.get("char") || "") ? q.get("char") : "boy-ai";
+  // 各裝置的實際 CSS 尺寸與安全區域（上、右、下、左）
+  const DEV = {
+    iphone:  { phone: { w: 393, h: 852, safePort: [59, 0, 34, 0], safeLand: [0, 59, 21, 59], notch: true, ua: "iPhone" } },
+    android: { phone: { w: 412, h: 915, safePort: [24, 0, 16, 0], safeLand: [0, 24, 16, 0], notch: false, ua: "Android" } },
+    tablet:  { iphone: { w: 820, h: 1180, safePort: [24, 0, 20, 0], safeLand: [24, 0, 20, 0], name: "iPad Air" }, android: { w: 800, h: 1280, safePort: [24, 0, 0, 0], safeLand: [24, 0, 0, 0], name: "Android 平板" } }
+  };
+  const st = { dev: "phone", ori: "land", model: "iphone", page: q.get("page") === "lab" ? "lab" : "main" };
+  const inChar = location.pathname.indexOf("/character/") >= 0;
+  const base = inChar ? "" : "character/";            // 從根目錄或 character/ 開啟都能用
+  const $ = s => document.querySelector(s);
+  const frame = $("#frame"), device = $("#device");
+
+  function spec() {
+    if (st.dev === "phone") return Object.assign({ name: st.model === "iphone" ? "iPhone 15" : "Android 手機" }, DEV[st.model].phone);
+    if (st.dev === "tablet") return DEV.tablet[st.model];
+    return null;
+  }
+  function load() {
+    const s = spec(), land = st.ori === "land";
+    const main = st.page === "main";
+    let url = main ? (inChar ? "../" : "") + "index.html?preview=1" : base + "lab.html?preview=1&char=" + encodeURIComponent(charId);
+    device.className = "device " + (st.dev === "phone" ? "mobile" : st.dev === "tablet" ? "mobile tablet" : "desk");
+    device.querySelectorAll(".notch,.homebar,.size").forEach(e => e.remove());
+    if (s) {
+      const w = land ? s.h : s.w, h = land ? s.w : s.h, safe = land ? s.safeLand : s.safePort;
+      if (!main) url += "&ui=touch&device=" + st.dev + "&safe=" + safe.join(",");
+      device.style.width = w + (st.dev === "phone" ? 28 : 44) + "px";
+      device.style.height = h + (st.dev === "phone" ? 28 : 44) + "px";
+      device.dataset.w = w; device.dataset.h = h;
+      if (s.notch && !main) {   // 動態島（主畫面在真機上會自動避開，預覽中無法模擬，所以不畫）
+        const n = document.createElement("div"); n.className = "notch";
+        if (land) Object.assign(n.style, { left: "26px", top: "50%", width: "34px", height: "120px", transform: "translateY(-50%)" });
+        else Object.assign(n.style, { top: "26px", left: "50%", width: "120px", height: "34px", transform: "translateX(-50%)" });
+        device.appendChild(n);
+      }
+      if (st.dev === "phone" && st.model === "iphone") {
+        const hb = document.createElement("div"); hb.className = "homebar";
+        Object.assign(hb.style, { left: "50%", bottom: (land ? 20 : 22) + "px", width: land ? "200px" : "134px", height: "5px", transform: "translateX(-50%)" });
+        device.appendChild(hb);
+      }
+      const sz = document.createElement("div"); sz.className = "size"; sz.textContent = s.name + "・" + w + " × " + h; device.appendChild(sz);
+      $("#hint").textContent = main ? "以手機／平板的實際畫面大小檢查主畫面版面；滑鼠可以點選、拖曳轉動島嶼。觸控手勢（雙指縮放）請在真機上試。" : "用滑鼠拖曳左下角搖桿移動、點右下角技能鈕；滑鼠一次只能操作一指，真正的「左右手同時」請在手機或平板上試。";
+    } else {
+      url += "&ui=desktop";
+      device.style.width = "1280px"; device.style.height = "760px"; device.dataset.w = 1280; device.dataset.h = 760;
+      $("#hint").textContent = main ? "電腦模式：1280 × 760 的一般筆電畫面。" : "電腦模式：W A S D／方向鍵移動、Shift 衝刺、Space 跳躍、E 抓取／放下、C 慶祝（先點一下畫面）。";
+    }
+    $("#ori").style.display = $("#model").style.display = s ? "" : "none";
+    frame.src = url;
+    fit();
+  }
+  function fit() {   // 等比例縮小放進視窗，維持裝置的真實 CSS 尺寸
+    const area = $(".stage").getBoundingClientRect();
+    const W = device.offsetWidth, H = device.offsetHeight + 40;
+    const k = Math.min(1, (area.width - 24) / W, (area.height - 12) / H);
+    device.style.transform = "translate(-50%, -50%) scale(" + k + ")";
+  }
+  function seg(id, key) {
+    $(id).addEventListener("click", e => {
+      const b = e.target.closest("button"); if (!b) return;
+      st[key] = b.dataset[key];
+      $(id).querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+      load();
+    });
+  }
+  seg("#dev", "dev"); seg("#ori", "ori"); seg("#model", "model"); seg("#page", "page");
+  document.querySelectorAll("#page button").forEach(x => x.classList.toggle("on", x.dataset.page === st.page));
+  addEventListener("resize", fit);
+  frame.addEventListener("load", () => { try { frame.contentWindow.focus(); } catch (e) {} });
+  $("#reload").onclick = load;
+  $("#back").onclick = () => {
+    if (q.get("from") === "lab") { location.href = base + "lab.html?char=" + encodeURIComponent(charId) + (embedded ? "&embed=1" : ""); return; }
+    if (embedded) return parent.postMessage({ type: "mfc-lab-close" }, "*");
+    location.href = (inChar ? "../" : "") + "index.html";
+  };
+  if (embedded) {
+    $("#close").hidden = false;
+    $("#close").onclick = () => parent.postMessage({ type: "mfc-lab-close" }, "*");
+    addEventListener("keydown", e => { if (e.key === "Escape") parent.postMessage({ type: "mfc-lab-close" }, "*"); });
+  }
+  load();
+}
+</script>
+</body>
+</html>

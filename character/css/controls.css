@@ -1,0 +1,85 @@
+/* SWT MindFlow 共用觸控介面：左手搖桿＋右手技能鈕（簡潔、現代、科技感） */
+:root {
+  --mfc-accent: #7ee0c3;
+  --mfc-accent2: #ffd36b;
+  --mfc-glass: rgba(18, 32, 40, .34);
+  --mfc-line: rgba(255, 255, 255, .55);
+  --mfc-safe-l: var(--sa-l, env(safe-area-inset-left, 0px));
+  --mfc-safe-r: var(--sa-r, env(safe-area-inset-right, 0px));
+  --mfc-safe-b: var(--sa-b, env(safe-area-inset-bottom, 0px));
+  /* 依螢幕自動縮放：手機、平板、直向、橫向都適用；最小尺寸照顧兒童與長輩 */
+  --mfc-joy: clamp(118px, 30vmin, 176px);
+  --mfc-btn: clamp(58px, 15.5vmin, 80px);
+  --mfc-main: clamp(76px, 20vmin, 104px);
+  --mfc-gap: clamp(10px, 2.6vmin, 18px);
+  --mfc-pad: clamp(14px, 4vmin, 34px);
+}
+[data-mfc-device="tablet"] { --mfc-joy: clamp(150px, 24vmin, 200px); --mfc-btn: clamp(70px, 10.5vmin, 88px); --mfc-main: clamp(92px, 14vmin, 118px); }
+
+.mfc-ui { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; touch-action: none; }
+
+/* ---------- 左手搖桿 ---------- */
+.mfc-joy {
+  position: absolute; z-index: 20; pointer-events: none;
+  left: calc(var(--mfc-pad) + var(--mfc-safe-l)); bottom: calc(var(--mfc-pad) + var(--mfc-safe-b));
+  width: var(--mfc-joy); height: var(--mfc-joy);
+}
+.mfc-joy-base {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, rgba(255,255,255,.10), rgba(255,255,255,.02) 62%, transparent 63%), var(--mfc-glass);
+  border: 1.5px solid var(--mfc-line);
+  box-shadow: 0 6px 22px rgba(0,0,0,.18), inset 0 0 18px rgba(126,224,195,.18);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  opacity: .62; transition: opacity .18s, transform .12s;
+}
+.mfc-joy.on .mfc-joy-base { opacity: 1; transition: opacity .1s; }
+.mfc-joy-knob {
+  position: absolute; left: 50%; top: 50%; width: 44%; height: 44%; border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle at 38% 32%, #ffffff, #dff7ef 45%, #9fe3cf);
+  box-shadow: 0 4px 12px rgba(0,0,0,.28), 0 0 0 4px rgba(126,224,195,.25);
+}
+.mfc-joy.on .mfc-joy-knob { box-shadow: 0 4px 14px rgba(0,0,0,.3), 0 0 0 6px rgba(126,224,195,.38), 0 0 22px rgba(126,224,195,.6); }
+.mfc-joy-arrow { position: absolute; width: 0; height: 0; border: 7px solid transparent; opacity: .55; transition: opacity .12s, filter .12s; }
+.mfc-joy-arrow.u { left: 50%; top: 7%; transform: translateX(-50%); border-bottom: 9px solid #fff; border-top: 0; }
+.mfc-joy-arrow.d { left: 50%; bottom: 7%; transform: translateX(-50%); border-top: 9px solid #fff; border-bottom: 0; }
+.mfc-joy-arrow.l { top: 50%; left: 7%; transform: translateY(-50%); border-right: 9px solid #fff; border-left: 0; }
+.mfc-joy-arrow.r { top: 50%; right: 7%; transform: translateY(-50%); border-left: 9px solid #fff; border-right: 0; }
+.mfc-joy-arrow.lit { opacity: 1; filter: drop-shadow(0 0 5px var(--mfc-accent)); }
+
+/* ---------- 右手技能鈕（以主按鈕為圓心排成弧形，預留擴充欄位） ---------- */
+.mfc-actions {
+  position: absolute; z-index: 20; pointer-events: none;
+  right: calc(var(--mfc-pad) + var(--mfc-safe-r)); bottom: calc(var(--mfc-pad) + var(--mfc-safe-b));
+  width: var(--mfc-main); height: var(--mfc-main);
+  --ring: calc((var(--mfc-main) * .5 + var(--mfc-btn) * .5 + var(--mfc-gap)) * 1.08);
+}
+.mfc-btn {
+  position: absolute; left: 50%; top: 50%; pointer-events: auto;
+  width: var(--mfc-btn); height: var(--mfc-btn); border-radius: 50%; padding: 0;
+  transform: translate(-50%, -50%) translate(calc(var(--ring) * var(--dx, 0)), calc(var(--ring) * var(--dy, 0)));
+  border: 1.5px solid var(--mfc-line); color: #fff; cursor: pointer;
+  background: radial-gradient(circle at 50% 30%, rgba(255,255,255,.22), rgba(255,255,255,0) 60%), var(--mfc-glass);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 6px 18px rgba(0,0,0,.2); font-family: "Noto Sans TC", system-ui, sans-serif;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  transition: background .15s, box-shadow .15s, opacity .15s, border-color .15s;
+  touch-action: none; -webkit-tap-highlight-color: transparent; outline: none;
+}
+.mfc-btn.main { width: var(--mfc-main); height: var(--mfc-main); border-width: 2px; }
+.mfc-btn-ic { font-size: calc(var(--mfc-btn) * .36); line-height: 1; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,.35); }
+.mfc-btn.main .mfc-btn-ic { font-size: calc(var(--mfc-main) * .36); }
+.mfc-btn-lb { font-size: clamp(11px, 2.6vmin, 14px); font-weight: 700; letter-spacing: .06em; text-shadow: 0 1px 3px rgba(0,0,0,.45); }
+.mfc-btn.pressed { background: radial-gradient(circle at 50% 35%, rgba(126,224,195,.65), rgba(126,224,195,.25) 70%), var(--mfc-glass); box-shadow: 0 0 0 4px rgba(126,224,195,.35), 0 0 24px rgba(126,224,195,.55); border-color: #c9fff0; }
+.mfc-btn.pressed .mfc-btn-ic { transform: scale(.9); }
+.mfc-btn.id-sprint.pressed { background: radial-gradient(circle at 50% 35%, rgba(255,211,107,.75), rgba(255,170,60,.35) 70%), var(--mfc-glass); box-shadow: 0 0 0 4px rgba(255,211,107,.35), 0 0 24px rgba(255,190,80,.6); border-color: #ffe9b0; }
+.mfc-btn.mode-release { border-color: #ffe08a; background: radial-gradient(circle at 50% 35%, rgba(255,214,120,.5), rgba(255,180,80,.15) 70%), var(--mfc-glass); }
+.mfc-btn.ready { border-color: #c9fff0; box-shadow: 0 0 0 3px rgba(126,224,195,.4), 0 0 18px rgba(126,224,195,.55); animation: mfc-pulse 1.4s ease-in-out infinite; }
+.mfc-btn.dim { opacity: .58; }
+.mfc-btn.locked { opacity: .45; filter: grayscale(.4); }
+.mfc-btn.shake { animation: mfc-shake .3s; }
+@keyframes mfc-pulse { 50% { box-shadow: 0 0 0 6px rgba(126,224,195,.18), 0 0 26px rgba(126,224,195,.7); } }
+@keyframes mfc-shake { 25% { margin-left: -4px; } 75% { margin-left: 4px; } }
+
+/* 電腦模式不顯示觸控介面 */
+html:not(.mfc-touch) .mfc-joy, html:not(.mfc-touch) .mfc-actions { display: none !important; }

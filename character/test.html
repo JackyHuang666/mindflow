@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>MFChar 自動化測試</title>
+<link rel="stylesheet" href="css/controls.css">
+<style>html,body{margin:0;height:100%;overflow:hidden;background:#20333a;color:#fff;font:13px system-ui}#stage{position:fixed;inset:0}#log{position:absolute;left:8px;top:8px;white-space:pre;font:12px ui-monospace,monospace;pointer-events:none}</style>
+</head>
+<body>
+<div id="stage" class="mfc-ui"><canvas id="cv" style="position:absolute;inset:0;width:100%;height:100%"></canvas><div id="log"></div></div>
+<script src="js/core.js"></script>
+<script src="js/MultiTouchManager.js"></script>
+<script src="js/VirtualJoystick.js"></script>
+<script src="js/MobileActionController.js"></script>
+<script src="js/InputManager.js"></script>
+<script src="js/CharacterController.js"></script>
+<script src="js/InteractionManager.js"></script>
+<script src="js/CharacterStateMachine.js"></script>
+<script>
+// 不依賴 Three.js 的邏輯測試台：真實的輸入、移動、物品與狀態機模組，動畫以紀錄器代替
+(function () {
+  var NS = MFChar, stage = document.getElementById("stage");
+  NS.lockBrowserGestures(stage);
+  var input = new NS.InputManager({ root: stage, uiParent: stage, actionKeys: { KeyC: "celebrate" } });
+  input.actions.addButton({ id: "celebrate", label: "慶祝", icon: "🎉", mode: "tap", slot: 3 });
+  var inter = new NS.InteractionManager();
+  inter.obstacles.push({ x: 0, z: -3, r: 0.4 });
+  var crate = inter.addItem({ id: "crate", name: "木箱", icon: "📦", radius: 0.15, height: 0.24, weight: 2, pos: { x: 0, y: 0, z: 0.7 } });
+  var ball = inter.addItem({ id: "ball", name: "球", icon: "⚽", radius: 0.12, height: 0.24, weight: 1, pos: { x: 3, y: 0, z: 0 } });
+  inter.surfaces.push({ id: "goal", x: 0, z: 2, r: 0.75, h: 0, kind: "goal" });
+  var ctrl = new NS.CharacterController();
+  ctrl.obstacles = inter.obstacles;
+  var DUR = { grab: 1, release: 0.9, celebrate: 1.7, jumpStart: 0.32, jumpLand: 0.36, jumpAir: 1, idle: 6, walk: 1, run: 0.66, turn: 0.7, carryArms: 2 };
+  var anim = { log: [], arms: false, ts: 1, cur: null,
+    play: function (n, o) { this.cur = n; this.log.push(n); }, setArms: function (on) { this.arms = !!on; },
+    setTimeScale: function (s) { this.ts = s; }, duration: function (n) { return DUR[n] || 1; }, strideSpeed: function (n) { return { walk: 0.56, run: 1.5 }[n] || 0; } };
+  var sm = new NS.CharacterStateMachine({ controller: ctrl, interaction: inter, animation: anim });
+  var events = [], actions = [];
+  sm.on("state", function (e) { events.push(e.from + ">" + e.to); });
+  ["attach", "grabDone", "detach", "placed", "grabStart", "releaseStart"].forEach(function (t) { inter.on(t, function () { events.push("inter:" + t); }); });
+
+  function step(dt, sample) {
+    var s = sample || input.sample(dt);
+    ctrl.setMoveInput(s.moveX, -s.moveY, s.mag, s.sprint);   // 測試台：鏡頭固定，螢幕上 = -Z
+    s.actions.forEach(function (a) { var r = sm.request(a.type); actions.push({ type: a.type, ok: r.ok, reason: r.reason, src: a.source, moving: a.moving }); });
+    ctrl.update(dt); sm.update(dt); inter.scan(ctrl.pos, ctrl.yaw);
+    input.actions.setActionMode(inter.uiState());
+    return s;
+  }
+  var running = true, last = performance.now();
+  function loop(now) { requestAnimationFrame(loop); if (!running) { last = now; return; } var dt = Math.min(0.05, (now - last) / 1000); last = now; var s = step(dt);
+    document.getElementById("log").textContent = sm.state + "  v=" + ctrl.speed().toFixed(2) + "  ptr=" + s.pointers + "  held=" + (inter.held ? inter.held.id : "-") + "  ui=" + inter.uiState().mode; }
+  requestAnimationFrame(loop);
+  window.__t = { NS: NS, input: input, inter: inter, ctrl: ctrl, sm: sm, anim: anim, events: events, actions: actions, step: step,
+    pause: function () { running = false; }, resume: function () { running = true; },
+    reset: function () { events.length = 0; actions.length = 0; anim.log.length = 0; } };
+})();
+</script>
+</body>
+</html>

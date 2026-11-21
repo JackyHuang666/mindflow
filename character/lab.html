@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#cfe6d6">
+<title>角色控制測試場｜SWT MindFlow</title>
+<link rel="stylesheet" href="css/controls.css">
+<link rel="stylesheet" href="css/lab.css">
+</head>
+<body>
+<div id="stage" class="mfc-ui">
+  <canvas id="cv"></canvas>
+
+  <header class="hud-top">
+    <div class="hud-title">
+      <b>角色控制測試場</b>
+      <span id="st-state" class="chip">IDLE</span>
+      <span id="st-held" class="chip held" hidden></span>
+      <span id="st-goal" class="chip goal">目標 0/3</span>
+    </div>
+    <nav class="hud-tools">
+      <button data-cmd="close" class="embed-only" title="返回角色檔案">✕ 返回</button>
+      <button data-cmd="char" title="切換角色">👦 男生</button>
+      <button data-cmd="outfit" title="換裝">🎨 換裝</button>
+      <button data-cmd="preview" class="preview-only" title="在電腦上預覽手機、平板畫面">📱 裝置預覽</button>
+      <button data-cmd="views" title="四視角轉身">🔄 轉身</button>
+      <button data-cmd="celebrate" class="desk-only" title="慶祝（C）">🎉 慶祝</button>
+      <button data-cmd="check" title="驗收清單">✅ 驗收</button>
+      <button data-cmd="debug" title="除錯資訊">⚙️</button>
+    </nav>
+  </header>
+
+  <div id="views" class="pop views" data-mfc-pass hidden>
+    <b>四視角轉身（連續旋轉）</b>
+    <div class="row">
+      <button data-view="front">正面</button><button data-view="left">左側</button><button data-view="back">背面</button><button data-view="right">右側</button>
+    </div>
+    <label class="row"><input type="checkbox" id="spin"> 自動轉一圈</label>
+  </div>
+
+  <div id="debug" class="pop debug" data-mfc-pass hidden>
+    <div id="dbg-txt"></div>
+    <div class="row">
+      <span>幀率</span>
+      <button data-fps="0" class="on">自動</button><button data-fps="60">60</button><button data-fps="30">30</button>
+    </div>
+    <div class="row"><span>介面</span><button data-ui="touch">觸控</button><button data-ui="desktop">電腦</button></div>
+    <div class="row"><span>衝刺</span><input id="tune-run" type="range" min="2" max="4.5" step="0.1"><em id="tune-run-v"></em></div>
+    <div class="row"><span>跳高</span><input id="tune-jump" type="range" min="0.4" max="1.2" step="0.05"><em id="tune-jump-v"></em></div>
+  </div>
+
+  <aside id="check" class="pop check" data-mfc-pass data-mfc-scroll hidden>
+    <div class="check-hd"><b>最終驗收清單</b><small id="check-dev"></small><button data-cmd="check-reset">重置</button><button data-cmd="check">✕</button></div>
+    <div id="check-list"></div>
+  </aside>
+
+  <div id="toast" class="toast" aria-live="polite"></div>
+  <div class="keyhint desk-only">W A S D／方向鍵 移動　Shift 衝刺　Space 跳躍　E 抓取／放下　C 慶祝　滑鼠拖曳 轉動鏡頭</div>
+  <div id="boot" class="boot">載入 3D 引擎中…</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="js/core.js"></script>
+<script src="js/MultiTouchManager.js"></script>
+<script src="js/VirtualJoystick.js"></script>
+<script src="js/MobileActionController.js"></script>
+<script src="js/InputManager.js"></script>
+<script src="js/CharacterController.js"></script>
+<script src="js/InteractionManager.js"></script>
+<script src="js/CharacterStateMachine.js"></script>
+<script src="js/ClayCharacterFactory.js"></script>
+<script src="js/AnimationLibrary.js"></script>
+<script src="js/CharacterAnimationManager.js"></script>
+<script src="js/CharacterSystem.js"></script>
+<script src="js/GLBCharacterLoader.js"></script>
+<script src="models/models.js"></script>
+<script src="js/lab.js"></script>
+</body>
+</html>
