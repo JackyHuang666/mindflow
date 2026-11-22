@@ -2417,6 +2417,18 @@
   function giftChips(g) { return GF_KIND.filter(function (k) { return +g[k[0]] > 0; }).map(function (k) { return "<span>" + (k[0] === "xp" ? "+" + fmt(g[k[0]]) + " XP" : k[2] + " +" + fmt(g[k[0]])) + "</span>"; }).join("") +
     giftGoods(g).map(function (x) { return "<span>" + x[0] + " " + x[1] + "×" + x[2] + "</span>"; }).join(""); }
   function giftGoodsHTML(g) { var gs = giftGoods(g); return gs.length ? '<div class="gf-goods">' + gs.map(function (x) { var ns = x[3]; return x[0] + " " + esc(ns.length > 8 ? ns.slice(0, 8).join("、") + " 等 " + ns.length + " 項" : ns.join("、")); }).join("<br>") + "</div>" : ""; }
+  // 商品入帳（禮物、活動共用）：照購買的方式放進收藏與背包；已經擁有的改發商店價格的智慧幣
+  function giveGoods(p, x) {
+    var newFig = [], newPl = [], dupe = 0, refund = 0, extra = [];
+    (x.fig || []).forEach(function (id) { var f = FIGS.figs[id]; if (!f) return; if (figOwned(p)[id]) { dupe++; refund += +f.price || 0; return; } figOwned(p)[id] = 1; newFig.push(id); });
+    (x.plant || []).forEach(function (id) { var f = PLANTS.plants[id]; if (!f) return; if (plOwned(p)[id]) { dupe++; refund += +f.price || 0; return; } plOwned(p)[id] = 1; newPl.push(id); });
+    var fn = giftFoodN(x); if (fn) { petInit(p); Object.keys(x.food).forEach(function (k) { var q = +x.food[k] || 0; if (q > 0 && foodById(k)) p.food[k] = (p.food[k] || 0) + q; }); extra.push("寵物食物 " + fn + " 份"); }
+    if (newFig.length) extra.push("公仔 " + newFig.length + " 尊");
+    if (newPl.length) extra.push("植物 " + newPl.length + " 種");
+    if (dupe) extra.push(dupe + " 項已擁有" + (refund ? "，補償智慧幣 " + refund : ""));
+    setTimeout(function () { newFig.forEach(function (id) { checkSeries(p, id); }); newPl.forEach(function (id) { plCheck(p, id); }); }, 0);   // 集滿系列或圖鑑時給稱號
+    return { extra: extra, refund: refund, dupe: dupe, note: dupe ? "（其中 " + dupe + " 項你已經擁有" + (refund ? "，改發 🪙 " + fmt(refund) + " 智慧幣補償" : "") + "）" : "" };
+  }
   function giftText(g) { return GF_KIND.filter(function (k) { return +g[k[0]] > 0; }).map(function (k) { return k[1] + " +" + fmt(g[k[0]]); }).concat(giftGoods(g).map(function (x) { return x[1] + " " + x[2] + " " + x[4]; })).join("、"); }
   function renderGiftBadge() {
     var b = document.querySelector("#act-gift .act-badge"); if (!b) return;
@@ -2445,18 +2457,11 @@
     var extra = [];
     if (+g.star > 0) { starProg(p, "maze"); p.stars += +g.star; extra.push("智慧星星 +" + g.star); }
     if (+g.energy > 0) { var e = energyOf(p); if (e.v >= EN.max) e.t = Date.now(); e.v += +g.energy; extra.push("能量 +" + g.energy); }
-    var newFig = [], newPl = [], dupe = 0;
-    (g.fig || []).forEach(function (id) { if (!FIGS.figs[id]) return; if (figOwned(p)[id]) { dupe++; return; } figOwned(p)[id] = 1; newFig.push(id); });
-    (g.plant || []).forEach(function (id) { if (!PLANTS.plants[id]) return; if (plOwned(p)[id]) { dupe++; return; } plOwned(p)[id] = 1; newPl.push(id); });
-    var fn = giftFoodN(g); if (fn) { petInit(p); Object.keys(g.food).forEach(function (k) { var q = +g.food[k] || 0; if (q > 0 && foodById(k)) p.food[k] = (p.food[k] || 0) + q; }); extra.push("寵物食物 " + fn + " 份"); }
-    if (newFig.length) extra.push("公仔 " + newFig.length + " 尊");
-    if (newPl.length) extra.push("植物 " + newPl.length + " 種");
-    if (dupe) extra.push(dupe + " 項已經擁有");
-    var text = "禮物「" + g.title + "」" + (extra.length ? "（" + extra.join("、") + "）" : "");
-    setTimeout(function () { newFig.forEach(function (id) { checkSeries(p, id); }); newPl.forEach(function (id) { plCheck(p, id); }); }, 0);   // 集滿系列或圖鑑時給稱號
-    if (+g.xp > 0 || +g.coin > 0) grant(p, +g.xp || 0, +g.coin || 0, text, { from: btn, noPet: true });   // noPet：不套用寵物技能與活動加成，給多少就是多少
+    var gd = giveGoods(p, g); extra = extra.concat(gd.extra);
+    var text = "禮物「" + g.title + "」" + (extra.length ? "（" + extra.join("、") + "）" : ""), coin = (+g.coin || 0) + gd.refund;
+    if (+g.xp > 0 || coin > 0) grant(p, +g.xp || 0, coin, text, { from: btn, noPet: true });   // noPet：不套用寵物技能與活動加成，給多少就是多少
     else { plog(p, 0, 0, text, "gift"); saveP(); }
-    if (!quiet) toast("🎁 已領取「" + g.title + "」：" + giftText(g) + (dupe ? "（其中 " + dupe + " 項你已經擁有）" : ""));
+    if (!quiet) toast("🎁 已領取「" + g.title + "」：" + giftText(g) + gd.note);
     return true;
   }
   gfEl.addEventListener("click", function (e) {
@@ -2487,17 +2492,7 @@
       '<label style="grid-column:1/-1">給玩家的話（可空白）<input type="text" id="gfa-msg" maxlength="80" placeholder="例如：謝謝大家這週認真學習！"></label>' +
       GF_KIND.map(function (k) { return "<label>" + k[1] + '<input type="number" id="gfa-' + k[0] + '" min="0" step="1" value="0"></label>'; }).join("") +
       '<label>領取期限（可空白＝永久）<input type="date" id="gfa-end"></label></div>' +
-      '<h4 style="margin-top:12px">商店商品（可複選，點類別展開）</h4><div class="gfa-shop">' +
-      '<details><summary>🎎 公仔<em data-gfa-cnt="fig">未選</em></summary>' + FIGS.series.filter(function (sr) { return !sr.retired; }).map(function (sr) {
-        return '<div class="gfa-grp"><div class="gfa-gh">' + esc(sr.name) + '<button type="button" class="a-btn sm" data-gfa-pick="fig:' + sr.id + ':1">全選</button><button type="button" class="a-btn sm" data-gfa-pick="fig:' + sr.id + ':0">清除</button></div><div class="gfa-items">' +
-          sr.ids.map(function (id) { var f = FIGS.figs[id]; return '<label><input type="checkbox" data-gfa-fig="' + id + '" data-grp="fig:' + sr.id + '"><span>' + esc(f.name) + "</span><small>" + (f.price ? f.price + " 幣" : f.lv ? "Lv." + f.lv : f.ach ? "成就" : "免費") + "</small></label>"; }).join("") + "</div></div>";
-      }).join("") + "</details>" +
-      '<details><summary>🌿 植物<em data-gfa-cnt="plant">未選</em></summary>' + PLANTS.cats.map(function (c) {
-        return '<div class="gfa-grp"><div class="gfa-gh">' + c.ico + " " + esc(c.name) + '<button type="button" class="a-btn sm" data-gfa-pick="plant:' + c.id + ':1">全選</button><button type="button" class="a-btn sm" data-gfa-pick="plant:' + c.id + ':0">清除</button></div><div class="gfa-items">' +
-          c.ids.filter(function (id) { return PLANTS.plants[id]; }).map(function (id) { var f = PLANTS.plants[id]; return '<label title="' + esc(PL_RAR[f.rar] ? PL_RAR[f.rar][0] : "") + '"><input type="checkbox" data-gfa-plant="' + id + '" data-grp="plant:' + c.id + '"><span>' + esc(f.name) + "</span><small>" + (PL_RAR[f.rar] ? PL_RAR[f.rar][0] : "") + "</small></label>"; }).join("") + "</div></div>";
-      }).join("") + "</details>" +
-      '<details><summary>🍖 寵物食物（填數量）<em data-gfa-cnt="food">未選</em></summary><div class="gfa-food">' + PETS.map(function (pt) { return FOODS[pt.id].map(function (f) {
-        return '<label>' + f[2] + " " + esc(f[1]) + ' <small class="muted">' + pt.zh + '</small><input type="number" min="0" max="999" step="1" value="0" data-gfa-food="' + f[0] + '"></label>'; }).join(""); }).join("") + "</div></details></div>" +
+      shopPicker("gfa") +
       '<h4 style="margin-top:12px">發放對象</h4><div class="gfa-to">' +
       [["all", "全體玩家"], ["acad", "某個學院的學員"], ["ids", "指定玩家"]].map(function (x) { return '<label><input type="radio" name="gfa-to" value="' + x[0] + '"' + (gfaTo === x[0] ? " checked" : "") + "> " + x[1] + "</label>"; }).join("") +
       '<select id="gfa-acad"' + (gfaTo === "acad" ? "" : ' hidden') + ">" + ACADS.map(function (a) { return '<option value="' + a.id + '">' + a.zh + "</option>"; }).join("") + "</select></div>" +
@@ -2511,22 +2506,46 @@
       '<p class="muted small">「收回」會讓還沒領取的玩家看不到這份禮物；已經領取的不會被扣回。</p></div>';
     return h;
   }
-  function gfaCount() {
-    var c = function (sel) { return authEl.querySelectorAll(sel).length; }, fn = 0;
-    authEl.querySelectorAll("[data-gfa-food]").forEach(function (x) { fn += Math.max(0, +x.value || 0); });
-    var set = function (k, t) { var el = authEl.querySelector('[data-gfa-cnt="' + k + '"]'); if (el) el.textContent = t; };
-    set("fig", c("[data-gfa-fig]:checked") ? "已選 " + c("[data-gfa-fig]:checked") + " 尊" : "未選");
-    set("plant", c("[data-gfa-plant]:checked") ? "已選 " + c("[data-gfa-plant]:checked") + " 種" : "未選");
+  // ---- 商店商品選擇器（禮物發放、活動管理共用）----
+  function shopPicker(key) {
+    return '<h4 style="margin-top:12px">商店商品（可複選，點類別展開）</h4><div class="gfa-shop" data-shop="' + key + '">' +
+      '<details><summary>🎎 公仔<em data-sp-cnt="fig">未選</em></summary>' + FIGS.series.filter(function (sr) { return !sr.retired; }).map(function (sr) {
+        return '<div class="gfa-grp"><div class="gfa-gh">' + esc(sr.name) + '<button type="button" class="a-btn sm" data-sp-pick="fig:' + sr.id + ':1">全選</button><button type="button" class="a-btn sm" data-sp-pick="fig:' + sr.id + ':0">清除</button></div><div class="gfa-items">' +
+          sr.ids.map(function (id) { var f = FIGS.figs[id]; return '<label><input type="checkbox" data-sp-fig="' + id + '" data-grp="fig:' + sr.id + '"><span>' + esc(f.name) + "</span><small>" + (f.price ? f.price + " 幣" : f.lv ? "Lv." + f.lv : f.ach ? "成就" : "免費") + "</small></label>"; }).join("") + "</div></div>";
+      }).join("") + "</details>" +
+      '<details><summary>🌿 植物<em data-sp-cnt="plant">未選</em></summary>' + PLANTS.cats.map(function (c) {
+        return '<div class="gfa-grp"><div class="gfa-gh">' + c.ico + " " + esc(c.name) + '<button type="button" class="a-btn sm" data-sp-pick="plant:' + c.id + ':1">全選</button><button type="button" class="a-btn sm" data-sp-pick="plant:' + c.id + ':0">清除</button></div><div class="gfa-items">' +
+          c.ids.filter(function (id) { return PLANTS.plants[id]; }).map(function (id) { var f = PLANTS.plants[id], rr = PL_RAR[f.rar] ? PL_RAR[f.rar][0] : ""; return '<label title="' + rr + (f.price ? "・" + f.price + " 幣" : "") + '"><input type="checkbox" data-sp-plant="' + id + '" data-grp="plant:' + c.id + '"><span>' + esc(f.name) + "</span><small>" + (f.price ? f.price + " 幣" : rr) + "</small></label>"; }).join("") + "</div></div>";
+      }).join("") + "</details>" +
+      '<details><summary>🍖 寵物食物（填數量）<em data-sp-cnt="food">未選</em></summary><div class="gfa-food">' + PETS.map(function (pt) { return FOODS[pt.id].map(function (f) {
+        return '<label>' + f[2] + " " + esc(f[1]) + ' <small class="muted">' + pt.zh + '</small><input type="number" min="0" max="999" step="1" value="0" data-sp-food="' + f[0] + '"></label>'; }).join(""); }).join("") + "</div></details>" +
+      '<p class="muted small">玩家已經擁有的公仔或植物，會改發等值的智慧幣（依商店價格；免費或靠等級、成就解鎖的沒有補償）。</p></div>';
+  }
+  function shopCount(box) {
+    if (!box) return; var c = function (sel) { return box.querySelectorAll(sel).length; }, fn = 0;
+    box.querySelectorAll("[data-sp-food]").forEach(function (x) { fn += Math.max(0, +x.value || 0); });
+    var set = function (k, t) { var el = box.querySelector('[data-sp-cnt="' + k + '"]'); if (el) el.textContent = t; };
+    set("fig", c("[data-sp-fig]:checked") ? "已選 " + c("[data-sp-fig]:checked") + " 尊" : "未選");
+    set("plant", c("[data-sp-plant]:checked") ? "已選 " + c("[data-sp-plant]:checked") + " 種" : "未選");
     set("food", fn ? "共 " + fn + " 份" : "未選");
   }
-  authEl.addEventListener("input", function (e) { if (e.target.dataset && (e.target.dataset.gfaFood != null)) gfaCount(); });
+  function shopRead(key, x) {   // 把選到的商品寫進 x.fig／x.plant／x.food，回傳是否有選
+    var box = authEl.querySelector('[data-shop="' + key + '"]'); if (!box) return false;
+    var figs = [], pls = [], food = {};
+    box.querySelectorAll("[data-sp-fig]:checked").forEach(function (el) { figs.push(el.dataset.spFig); });
+    box.querySelectorAll("[data-sp-plant]:checked").forEach(function (el) { pls.push(el.dataset.spPlant); });
+    box.querySelectorAll("[data-sp-food]").forEach(function (el) { var q = Math.max(0, Math.min(999, Math.round(+el.value || 0))); if (q) food[el.dataset.spFood] = q; });
+    if (figs.length) x.fig = figs; if (pls.length) x.plant = pls; if (Object.keys(food).length) x.food = food;
+    return !!(figs.length || pls.length || Object.keys(food).length);
+  }
+  authEl.addEventListener("input", function (e) { if (e.target.dataset && e.target.dataset.spFood != null) shopCount(e.target.closest("[data-shop]")); });
   authEl.addEventListener("click", function (e) {
-    var t = e.target.closest("[data-gfa-pick]"); if (!t) return; e.preventDefault();
-    var a = t.dataset.gfaPick.split(":"), on = a[2] === "1";
-    authEl.querySelectorAll('[data-grp="' + a[0] + ":" + a[1] + '"]').forEach(function (x) { x.checked = on; }); gfaCount();
+    var t = e.target.closest("[data-sp-pick]"); if (!t) return; e.preventDefault();
+    var a = t.dataset.spPick.split(":"), on = a[2] === "1", box = t.closest("[data-shop]");
+    box.querySelectorAll('[data-grp="' + a[0] + ":" + a[1] + '"]').forEach(function (x) { x.checked = on; }); shopCount(box);
   });
+  authEl.addEventListener("change", function (e) { if (e.target.dataset && (e.target.dataset.spFig || e.target.dataset.spPlant)) shopCount(e.target.closest("[data-shop]")); });
   authEl.addEventListener("change", function (e) {
-    if (e.target.dataset && (e.target.dataset.gfaFig || e.target.dataset.gfaPlant)) return gfaCount();
     if (e.target.name !== "gfa-to") return; gfaTo = e.target.value;
     authEl.querySelector("#gfa-acad").hidden = gfaTo !== "acad"; authEl.querySelector("#gfa-mem").hidden = gfaTo !== "ids";
   });
@@ -2540,11 +2559,7 @@
     var gv = function (id) { return (authEl.querySelector("#" + id) || {}).value || ""; };
     var g = { id: "gf" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title: gv("gfa-title").trim().slice(0, 24), msg: gv("gfa-msg").trim().slice(0, 80), end: gv("gfa-end"), by: a.name, at: nowISO() };
     var any = false; GF_KIND.forEach(function (k) { var v = Math.max(0, Math.min(1000000, Math.round(+gv("gfa-" + k[0]) || 0))); if (v) { g[k[0]] = v; any = true; } });
-    var figs = [], pls = [], food = {};
-    authEl.querySelectorAll("[data-gfa-fig]:checked").forEach(function (x) { figs.push(x.dataset.gfaFig); });
-    authEl.querySelectorAll("[data-gfa-plant]:checked").forEach(function (x) { pls.push(x.dataset.gfaPlant); });
-    authEl.querySelectorAll("[data-gfa-food]").forEach(function (x) { var q = Math.max(0, Math.min(999, Math.round(+x.value || 0))); if (q) food[x.dataset.gfaFood] = q; });
-    if (figs.length) { g.fig = figs; any = true; } if (pls.length) { g.plant = pls; any = true; } if (Object.keys(food).length) { g.food = food; any = true; }
+    if (shopRead("gfa", g)) any = true;
     if (!g.title) return toast("請輸入禮物標題。");
     if (!any) return toast("請至少選一種獎勵：經驗值、智慧幣、智慧星星、能量，或商店商品。");
     if (g.end && g.end < todayStr()) return toast("領取期限不能早於今天。");
@@ -2607,7 +2622,7 @@
         return '<div class="gf-item' + (got ? "" : " new") + '"><div class="gf-ico">' + (got ? "✅" : ACT_ICO[acCat]) + "</div><div><b>" + esc(x.title) + "</b>" + (x.msg ? "<p>" + esc(x.msg) + "</p>" : "") +
           '<div class="gf-pt">🎯 ' + actCondText(x) + ((c.type === "play" || c.type === "med") ? "（" + pr.cur + " / " + pr.need + "）" : "") + "</div>" +
           ((c.type === "play" || c.type === "med") && !got ? '<div class="gf-prog"><span style="width:' + Math.round(pr.cur / pr.need * 100) + '%"></span></div>' : "") +
-          '<div class="gf-rw" style="margin-top:6px">' + giftChips(x) + '</div><div class="gf-meta">活動期間：' + (x.start || "即日起") + " ～ " + (x.end || "不限") + "</div></div>" + btn + "</div>";
+          '<div class="gf-rw" style="margin-top:6px">' + giftChips(x) + "</div>" + giftGoodsHTML(x) + '<div class="gf-meta">活動期間：' + (x.start || "即日起") + " ～ " + (x.end || "不限") + "</div></div>" + btn + "</div>";
       }).join("") : '<div class="gf-empty">目前沒有' + ACT_CAT[acCat] + '活動。<br>學院推出新活動時，按鈕右上角會出現紅色數字。</div>') + "</div></div>";
   }
   function openAct(cat) { acCat = cat; renderAct(); acEl.hidden = false; document.body.classList.add("shop-open"); if (window.MFOrg) Promise.resolve(MFOrg.pull()).then(function () { if (!acEl.hidden) renderAct(); renderActBadges(); }); }
@@ -2619,9 +2634,10 @@
     var extra = [];
     if (+x.star > 0) { starProg(p, "maze"); p.stars += +x.star; extra.push("智慧星星 +" + x.star); }
     if (+x.energy > 0) { var e = energyOf(p); if (e.v >= EN.max) e.t = Date.now(); e.v += +x.energy; extra.push("能量 +" + x.energy); }
-    var text = "活動「" + x.title + "」獎勵" + (extra.length ? "（" + extra.join("、") + "）" : "");
-    if (+x.xp > 0 || +x.coin > 0) grant(p, +x.xp || 0, +x.coin || 0, text, { from: btn, noPet: true }); else { plog(p, 0, 0, text, "gift"); saveP(); }
-    toast("🎉 完成活動「" + x.title + "」" + (giftText(x) ? "：" + giftText(x) : ""));
+    var gd = giveGoods(p, x); extra = extra.concat(gd.extra);
+    var text = "活動「" + x.title + "」獎勵" + (extra.length ? "（" + extra.join("、") + "）" : ""), coin = (+x.coin || 0) + gd.refund;
+    if (+x.xp > 0 || coin > 0) grant(p, +x.xp || 0, coin, text, { from: btn, noPet: true }); else { plog(p, 0, 0, text, "gift"); saveP(); }
+    toast("🎉 完成活動「" + x.title + "」" + (giftText(x) ? "：" + giftText(x) : "") + gd.note);
   }
   acEl.addEventListener("click", function (e) {
     if (e.target === acEl) return closeAct();
@@ -2648,7 +2664,7 @@
       '<label id="aca-game-l" hidden>哪一款遊戲<select id="aca-game" class="rw-in" style="width:100%;text-align:left"><option value="0">任一款遊戲</option>' + games.map(function (g) { return '<option value="' + g.num + '">' + (g.num < 10 ? "0" : "") + g.num + " " + esc(g.name) + "</option>"; }).join("") + "</select></label>" +
       '<label id="aca-n-l" hidden><span id="aca-n-t">場數</span><input type="number" id="aca-n" min="1" step="1" value="3"></label>' +
       GF_KIND.map(function (k) { return "<label>獎勵：" + k[1] + '<input type="number" id="aca-' + k[0] + '" min="0" step="1" value="0"></label>'; }).join("") +
-      '</div><div class="rw-act" style="margin-top:12px"><button class="a-btn gold" data-aca="add">推出活動</button></div></div>';
+      "</div>" + shopPicker("aca") + '<div class="rw-act" style="margin-top:12px"><button class="a-btn gold" data-aca="add">推出活動</button></div></div>';
     var list = actAll().slice().sort(function (a, b) { return a.at < b.at ? 1 : -1; });
     h += '<div class="rw-sec"><h4>活動列表（' + list.length + "）</h4>" + (list.length ? '<div class="gfa-list">' + list.map(function (x) {
       var st = actLive(x) ? "進行中" : (x.start && todayStr() < x.start ? "尚未開始" : "已結束");
@@ -2675,6 +2691,7 @@
       start: gv("aca-start"), end: gv("aca-end"), by: a.name, at: nowISO() };
     var ty = gv("aca-type"); x.cond = ty === "play" ? { type: "play", game: +gv("aca-game") || 0, n: Math.max(1, Math.round(+gv("aca-n") || 1)) } : ty === "med" ? { type: "med", n: Math.max(1, Math.round(+gv("aca-n") || 1)) } : { type: "none" };
     GF_KIND.forEach(function (k) { var v = Math.max(0, Math.min(1000000, Math.round(+gv("aca-" + k[0]) || 0))); if (v) x[k[0]] = v; });
+    shopRead("aca", x);   // 獎勵也可以是商店商品
     if (!ACT_CAT[x.cat]) return toast("請選擇活動要放在哪個按鈕。");
     if (!x.title) return toast("請輸入活動名稱。");
     if (x.start && x.end && x.end < x.start) return toast("結束日期不能早於開始日期。");
