@@ -270,6 +270,8 @@
       gs.sort(function (a, b) { return (b.i.url ? 1 : 0) - (a.i.url ? 1 : 0) || (a.i.plays || 0) - (b.i.plays || 0) || a.g.num - b.g.num; });
       gs.slice(0, 2).forEach(function (x) { used[x.g.num] = 1; picks.push({ A: A, g: x.g, i: x.i }); });
     });
+    picks.forEach(function (x, i) { x.o = i; });
+    picks.sort(function (a, b) { return (b.i.url ? 1 : 0) - (a.i.url ? 1 : 0) || a.o - b.o; });   // 可以玩的關卡排前面
     var h = '<div class="gr-card"><div class="gr-head"><h3>' + (title || "推薦關卡") + "</h3><small>依需要加強與尚待探索的能力挑選</small></div>";
     if (!picks.length) return h + '<p class="gr-empty">目前沒有可推薦的關卡。</p></div>';
     return h + '<div class="q-reco">' + picks.slice(0, 4).map(function (x) {
@@ -321,9 +323,9 @@
     ["basic", "advanced"].forEach(function (gid) {
       var G = GROUPS[gid]; h += '<h4 style="color:' + G.c + '">' + G.zh + "</h4>";
       D.selfItems.filter(function (it) { return G.list.indexOf(it.code) >= 0; }).forEach(function (it) {
-        h += '<fieldset><legend><span class="q-tag">' + it.code + "</span>" + esc(it.q) + '</legend><div class="q-scale">' + D.scale.map(function (lab, i) {
-          var v = i + 1; return '<label><input type="radio" name="' + it.code + '" value="' + v + '"' + (last && last.a[it.code] === v ? " checked" : "") + "><span><b>" + v + "</b>" + lab + "</span></label>";
-        }).join("") + "</div></fieldset>";
+        h += '<div class="q-item"><p class="q-qtext" id="qq-' + it.code + '"><span class="q-tag">' + it.code + '</span><span>' + esc(it.q) + '</span></p><div class="q-scale" role="radiogroup" aria-labelledby="qq-' + it.code + '">' + D.scale.map(function (lab, i) {
+          var v = i + 1; return '<label><input type="radio" name="' + it.code + '" value="' + v + '"' + (last && last.a[it.code] === v ? " checked" : "") + "><span><b>" + v + "</b><small>" + lab + "</small></span></label>";
+        }).join("") + "</div></div>";
       });
     });
     h += '<p class="gr-note">' + (last ? "已帶入你上次（" + md(dayOf(last.t)) + "）的答案，可以直接修改。" : "建議施測時間：第一次登入、每完成 10 款遊戲、每個月一次。") + '</p><div class="gr-row"><button type="submit" class="gr-btn gold">送出評量</button><button type="button" class="gr-btn" data-q="mclose">取消</button></div></form>';
