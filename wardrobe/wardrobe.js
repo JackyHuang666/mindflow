@@ -17,22 +17,22 @@
  */
 (function (global) {
   "use strict";
-  var VER = "7";
+  var VER = "8";
   var BASE = (function () { var s = document.currentScript && document.currentScript.src; return s ? s.replace(/[^/]*$/, "") : "wardrobe/"; })();
 
   // 套裝：id、名稱、分類、價格（智慧星星）、g：MF＝分男女版、U＝男女共用；d：男／女的［斜側、側面］臉朝右＝1、朝左＝-1
   var OUT = [
     { id: "bp", zh: "背包客", cat: "冒險", price: 0, g: "MF", d: [[1, -1], [1, -1]] },
-    { id: "yoga", zh: "瑜伽運動", cat: "運動", price: 18, g: "MF", d: [[-1, 1], [-1, 1]] },
-    { id: "ball", zh: "籃球健將", cat: "運動", price: 20, g: "MF", d: [[1, -1], [-1, 1]] },
-    { id: "story", zh: "冬日說書人", cat: "休閒", price: 24, g: "MF", d: [[-1, 1], [1, -1]] },
-    { id: "swim", zh: "夏日泳裝", cat: "休閒", price: 22, g: "MF", d: [[-1, 1], [-1, 1]] },
-    { id: "school", zh: "校園制服", cat: "學院", price: 12, g: "MF", d: [[-1, -1], [-1, -1]] },
-    { id: "sci", zh: "小小科學家", cat: "學院", price: 24, g: "U", d: [[1, -1], [-1, -1]] },
-    { id: "sage", zh: "古風學者", cat: "學院", price: 28, g: "U", d: [[-1, 1], [-1, 1]] },
-    { id: "teach", zh: "溫柔老師", cat: "職業", price: 24, g: "MF", d: [[-1, 1], [1, -1]] },
-    { id: "biz", zh: "職場菁英", cat: "職業", price: 26, g: "MF", d: [[1, -1], [-1, 1]] },
-    { id: "wiz", zh: "星空魔法師", cat: "奇幻", price: 36, g: "MF", d: [[-1, 1], [1, -1]] }
+    { id: "yoga", zh: "瑜伽運動", cat: "運動", price: 90, g: "MF", d: [[-1, 1], [-1, 1]] },
+    { id: "ball", zh: "籃球健將", cat: "運動", price: 100, g: "MF", d: [[1, -1], [-1, 1]] },
+    { id: "story", zh: "冬日說書人", cat: "休閒", price: 120, g: "MF", d: [[-1, 1], [1, -1]] },
+    { id: "swim", zh: "夏日泳裝", cat: "休閒", price: 110, g: "MF", d: [[-1, 1], [-1, 1]] },
+    { id: "school", zh: "校園制服", cat: "學院", price: 60, g: "MF", d: [[-1, -1], [-1, -1]] },
+    { id: "sci", zh: "小小科學家", cat: "學院", price: 120, g: "U", d: [[1, -1], [-1, -1]] },
+    { id: "sage", zh: "古風學者", cat: "學院", price: 140, g: "U", d: [[-1, 1], [-1, 1]] },
+    { id: "teach", zh: "溫柔老師", cat: "職業", price: 120, g: "MF", d: [[-1, 1], [1, -1]] },
+    { id: "biz", zh: "職場菁英", cat: "職業", price: 130, g: "MF", d: [[1, -1], [-1, 1]] },
+    { id: "wiz", zh: "星空魔法師", cat: "奇幻", price: 180, g: "MF", d: [[-1, 1], [1, -1]] }
   ];
   var CATS = ["全部", "冒險", "運動", "休閒", "學院", "職業", "奇幻"];
   // 縮圖範圍（以單格 820×1150 為準）
@@ -131,7 +131,7 @@
       var buyable = !full && ps.length, got = buyable && hasPart(p, cid, G.id), pick = buyable && !got && S.pick === G.id;
       var tag = !buyable ? "" : got ? '<b class="wd-own" aria-hidden="true">✓</b>' : '<b class="wd-pr" aria-hidden="true">' + (H.testMode() ? "免費" : "⭐" + partPrice(cid, g, G.id)) + "</b>";
       var lab = G.zh + (ps.length ? "：" + ps.map(function (x) { return x[0]; }).join("、") : "：未裝備") + (!buyable ? "" : got ? "（已購買）" : "（未購買，⭐ " + partPrice(cid, g, G.id) + "）");
-      return '<button type="button" class="wd-slot' + (pick ? " pick" : S.tab === G.id && full ? " on" : "") + (buyable && !got ? " lock" : "") + (got ? " got" : "") + '" data-wd="' + (buyable && !got ? "pick" : "tab") + '" data-v="' + G.id + '" aria-label="' + lab + '"' + (pick ? ' aria-pressed="true"' : "") + ">" +
+      return '<button type="button" class="wd-slot' + (pick ? " pick" : S.tab === G.id && full ? " on" : "") + (buyable && !got ? " lock" : "") + (got ? " got" : "") + '" data-wd="' + (buyable && !got ? "pick" : "slot") + '" data-v="' + G.id + '" aria-label="' + lab + '"' + (pick ? ' aria-pressed="true"' : "") + ">" +
         '<span class="wd-sbox">' + tag + (ps.length ? thumb(cid, g, ps[0][5], 44, ps[0][0]) : '<i class="wd-plus" aria-hidden="true"></i>') + (ps.length > 1 ? '<b class="wd-more">+' + (ps.length - 1) + "</b>" : "") + "</span><span class=\"wd-sl\">" + G.zh + "</span></button>";
     }
     if (!full) { S.frame = 0; S.auto = false; }
@@ -151,7 +151,8 @@
       '<div class="wd-ang"><b>' + (full ? "360°・" + ANG[S.frame][0] + "・" + ANG[S.frame][1] + "°" : "🔒 360° 解鎖進度 " + pg[0] + "/" + pg[1]) + '</b><span>' + ANG.map(function (a, i) { return '<button type="button" data-wd="fr" data-v="' + i + '" aria-label="' + a[0] + '"' + (i === S.frame ? ' class="on"' : "") + (full ? "" : " disabled") + "></button>"; }).join("") + "</span></div>" +
       '<button type="button" class="wd-arw" data-wd="turn" data-v="1" aria-label="往右轉"' + (full ? "" : " disabled") + '><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button></div></div>';
     // 清單
-    var tabs = [{ id: "set", zh: "整套造型" }].concat(GROUPS);
+    S.tab = "set";   // 清單只保留「整套造型」，裝備分類分頁已移除
+    var tabs = [{ id: "set", zh: "整套造型" }];
     h += '<div class="wd-tabs" role="tablist">' + tabs.map(function (t) { return '<button type="button" role="tab" aria-selected="' + (S.tab === t.id) + '" data-wd="tab" data-v="' + t.id + '"' + (S.tab === t.id ? ' class="on"' : "") + ">" + t.zh + "</button>"; }).join("") + "</div>";
     var chips = "", cards = [];
     if (S.tab === "set") {
@@ -251,7 +252,7 @@
     if (a === "turn") { S.auto = false; S.last = Date.now(); syncAuto(); return setFrame(S.frame + (+v)); }
     if (a === "auto") { S.auto = !S.auto; S.last = 0; }
     else if (a === "g") { wd(p).g = v === "f" ? "f" : "m"; H.save(); S.msg = ""; }
-    else if (a === "tab") { S.tab = v; S.sub = 0; }
+    else if (a === "slot") { return; }   // 已擁有或已購買的裝備格只是顯示，不切換分頁
     else if (a === "sub") S.sub = +v;
     else if (a === "cat") S.cat = v;
     else if (a === "wear") wear(p, v);
