@@ -260,7 +260,11 @@
   }
   window.MFOrg = { changed: orgChanged, newCode: newCode, pull: pullOrg, me: function () { return org.me; } };
 
-  window.MFCloud = { render: render, push: push, logout: logout, user: function () { return sess && sess.user; } };
+  // 閃退紀錄（diag.js）用：有登入就帶身分，沒登入用匿名寫入
+  function sbPost(path, body) { var a = !!sess; return (a ? fresh().catch(function () {}) : Promise.resolve()).then(function () { return api(path, { method: "POST", auth: a && !!sess, headers: { Prefer: "return=minimal" }, body: body, keepalive: true }); }); }
+  function sbGet(path) { return fresh().then(function () { return api(path, { auth: true }); }); }
+  function sbDelete(path) { return fresh().then(function () { return api(path, { method: "DELETE", auth: true, headers: { Prefer: "return=minimal" } }); }); }
+  window.MFCloud = { render: render, push: push, logout: logout, user: function () { return sess && sess.user; }, sbPost: sbPost, sbGet: sbGet, sbDelete: sbDelete };
 
   // 開啟時：已登入就檢查雲端有沒有比較新的進度
   if (sess && sess.user) pull(false);

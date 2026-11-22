@@ -36,7 +36,8 @@
 
   /* ===== 場景 ===== */
   const renderer = new THREE.WebGLRenderer({ canvas: $('cv'), antialias: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, device.kind === 'phone' ? 1.5 : 2));   // 手機上限 1.5 倍（v112 防閃退）
+  if (window.MFGLGuard) MFGLGuard.watch(renderer);
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.92;
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
