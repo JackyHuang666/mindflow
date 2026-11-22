@@ -636,6 +636,7 @@
   .al-slots{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .al-slot{display:grid;justify-items:center;align-content:start;gap:6px;padding:8px;border:0;border-radius:12px;background:transparent;color:#5a3a1e;font:inherit;cursor:pointer;-webkit-appearance:none;appearance:none;transition:transform .15s}
   .al-slot:hover{transform:translateY(-2px)}
+  .al-slot.al-soon{cursor:default;opacity:.6}.al-slot.al-soon:hover{transform:none}.al-soon .al-frame span{font-size:34px;color:#c9a46a}
   .al-frame{width:100%;aspect-ratio:1/1;display:grid;place-items:center;border-radius:10px;background:radial-gradient(ellipse at 50% 45%,#fffaf0,#efe3c9);border:2px dashed rgba(150,110,60,.35);overflow:hidden}
   .al-slot.own .al-frame{border-style:solid;border-color:#d8b46a;box-shadow:0 3px 8px rgba(120,80,30,.18)}
   .al-frame img{width:86%;height:86%;object-fit:contain;filter:brightness(0) opacity(.42)}
@@ -755,6 +756,11 @@
   .sx-sl{display:grid;font-size:11px;gap:2px}.sx-sl input{width:90px}
   .sx-pic .muted{grid-column:1/-1;margin:0}
   .sx-sform{margin-top:10px}
+  .sx-alg{display:grid;gap:6px;margin:8px 0 12px}.sx-alg>b small{margin-left:6px;font-weight:400}
+  .sx-alp{display:grid;grid-template-columns:auto minmax(0,1fr) 9em 9em;gap:8px;align-items:center;font-size:13px}
+  .sx-alc{font:600 12px var(--fun);padding:2px 8px;border-radius:999px;background:#5f8f4e;color:#fff}.sx-alc.part{background:#b07a1a}
+  .sx-aln{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sx-alp input{min-width:0}
+  @media (max-width:640px){.sx-alp{grid-template-columns:auto 1fr 1fr}.sx-aln{grid-column:2/-1;grid-row:1}.sx-alp input:first-of-type{grid-column:1/3}}
   .sx-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:0}
   .sx-kb{float:right;font:400 12px var(--round);color:#6f8a5a}.sx-kb.warn{color:#c0392b}
   .sx-list{display:grid;gap:8px}
@@ -2529,8 +2535,29 @@
   }
   // ---- 🛍️ 商店上架（最高管理者）：新增「套裝公仔系列」與「時裝」商品；圖片在瀏覽器裡自動去邊、縮圖、壓縮後存進雲端 ----
   var SX_H = 640, SX_MAX_ITEMS = 150, SX_WARN_KB = 1500, sxImg = null, sxSel = "";
-  function sxSave(msg, detail) { DB.rw = DB.rw || { v: {}, ev: {} }; var s = shopExt(); DB.rw.s = { fo: !!s.fo, series: s.series || [], items: s.items || [] }; shopExtApply(); log(msg, null, detail || ""); saveDB(); }
-  function sxSetRaw(fn) { DB.rw = DB.rw || { v: {}, ev: {} }; var s = shopExt(); var o = { fo: !!s.fo, series: (s.series || []).slice(), items: (s.items || []).slice() }; fn(o); DB.rw.s = o; }
+  function sxSave(msg, detail) { DB.rw = DB.rw || { v: {}, ev: {} }; var s = shopExt(); DB.rw.s = { fo: !!s.fo, series: s.series || [], items: s.items || [], pg: s.pg || {} }; shopExtApply(); log(msg, null, detail || ""); saveDB(); }
+  function sxSetRaw(fn) { DB.rw = DB.rw || { v: {}, ev: {} }; var s = shopExt(); var o = { fo: !!s.fo, series: (s.series || []).slice(), items: (s.items || []).slice(), pg: JSON.parse(JSON.stringify(s.pg || {})) }; fn(o); DB.rw.s = o; }
+  // ---- 圖片存到 GitHub（figs/<商品 id>.webp），雲端只存文字設定 ----
+  //   需要最高管理者在這台裝置貼一次 GitHub 存取權杖（只存在這個瀏覽器的 swt-gh-token，不會上傳雲端）
+  var GH = { owner: "JackyHuang666", repo: "mindflow", branch: "main" }, GH_KEY = "swt-gh-token", sxBusy = false;
+  function ghToken() { try { return localStorage.getItem(GH_KEY) || ""; } catch (e) { return ""; } }
+  function ghApi(path, opt) {
+    opt = opt || {};
+    return fetch("https://api.github.com/repos/" + GH.owner + "/" + GH.repo + path, { method: opt.method || "GET", headers: { Authorization: "Bearer " + ghToken(), Accept: "application/vnd.github+json" }, body: opt.body ? JSON.stringify(opt.body) : undefined })
+      .then(function (r) { return r.text().then(function (t) { var j = null; try { j = t ? JSON.parse(t) : null; } catch (e) {} if (!r.ok) { var e = new Error((j && j.message) || "HTTP " + r.status); e.status = r.status; throw e; } return j; }); });
+  }
+  function ghErr(e) { return e.status === 401 ? "權杖無效或已過期，請重新設定" : e.status === 403 || e.status === 404 ? "權杖沒有這個倉庫的寫入權限（Contents: Read and write）" : e.message || "連線失敗"; }
+  function ghPut(id, dataUrl, msg) { return ghApi("/contents/figs/" + id + ".webp", { method: "PUT", body: { message: msg, content: dataUrl.split(",")[1], branch: GH.branch } }); }
+  function ghDel(id, msg) {
+    if (!ghToken()) return Promise.resolve();
+    return ghApi("/contents/figs/" + id + ".webp?ref=" + GH.branch).then(function (j) { return ghApi("/contents/figs/" + id + ".webp", { method: "DELETE", body: { message: msg, sha: j.sha, branch: GH.branch } }); }).catch(function () {});
+  }
+  // 剛上傳的圖片 GitHub Pages 要 1–2 分鐘才部署好；這段時間改讀 raw.githubusercontent.com
+  document.addEventListener("error", function (e) {
+    var im = e.target; if (!im || im.tagName !== "IMG" || im.dataset.ghr) return;
+    var m = /(?:^|\/)figs\/(x[a-z0-9]+\.webp)(?:$|\?)/.exec(im.getAttribute("src") || ""); if (!m) return;
+    im.dataset.ghr = 1; im.src = "https://raw.githubusercontent.com/" + GH.owner + "/" + GH.repo + "/" + GH.branch + "/figs/" + m[1];
+  }, true);
   function sxKB() { try { return Math.round(JSON.stringify(shopExt()).length / 1024); } catch (e) { return 0; } }
   function sxNewId(pre) { return pre + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36); }
   function sxSeriesOpts(sel) {   // 可上架的系列：內建（未下架）公仔系列＋自訂公仔系列＋自訂時裝系列
@@ -2552,7 +2579,13 @@
       "<li><b>價格</b>：公仔用 🪙 智慧幣（現有公仔 80–700）；時裝用 ⭐ 智慧星星（目前全部遊戲最多可拿 243 顆，建議 5–60）。填 0 代表免費。</li>" +
       "<li><b>等級限制</b>（可選）：達到幾等才能購買。</li>" +
       "<li><b>NEW 顯示天數</b>：預設 14 天，到期自動消失；玩家擁有後也不再顯示。</li></ol>" +
-      '<p class="muted small">上傳後系統會自動裁掉透明邊、縮成高 ' + SX_H + ' 像素的 webp（每件約 30–50 KB），並從頭部自動裁出玩家頭像，可用滑桿微調。時裝是「同一個角色換一整套衣服」的全身圖，玩家兌換後可以像公仔一樣設成自己的造型。</p></div>';
+      '<p class="muted small">上傳後系統會自動裁掉透明邊、縮成高 ' + SX_H + ' 像素的 webp（每件約 30–50 KB），存到 GitHub 的 figs 資料夾，並從頭部自動裁出玩家頭像，可用滑桿微調。時裝是「同一個角色換一整套衣服」的全身圖，玩家兌換後可以像公仔一樣設成自己的造型。</p></div>';
+    var tk = ghToken(), legacy = items.filter(function (it) { return it.src; }).length;
+    h += '<div class="rw-sec"><h4>🐙 GitHub 圖片倉庫 <span class="sx-kb' + (tk ? "" : " warn") + '">' + (tk ? "這台裝置已設定" : "這台裝置尚未設定") + "</span></h4>" +
+      '<p class="muted small">商品圖片會上傳到 GitHub（' + GH.owner + "/" + GH.repo + " 的 figs 資料夾），不佔雲端容量。每台要用來上架的裝置都要設定一次權杖；權杖只存在這個瀏覽器，不會上傳雲端。上架後約 1–2 分鐘所有玩家都能看到圖片（這段時間會先從 GitHub 原始檔讀取）。</p>" +
+      '<div class="rw-grid"><label style="grid-column:1/-1">GitHub 存取權杖（Fine-grained token）<input type="password" id="sx-tk" autocomplete="off" placeholder="' + (tk ? "已設定（重新貼上可更換）" : "github_pat_…") + '"></label>' +
+      '<div class="rw-act" style="grid-column:1/-1"><button class="a-btn gold" data-sx="tk">儲存並測試</button>' + (tk ? '<button class="a-btn" data-sx="tkdel">清除這台裝置的權杖</button>' : "") +
+      (legacy ? '<button class="a-btn" data-sx="mig">把 ' + legacy + " 件存在雲端的圖片搬到 GitHub</button>" : "") + "</div></div></div>";
     // 時裝開放
     h += '<div class="rw-sec"><h4>👗 時裝兌換</h4><label class="sx-tog"><input type="checkbox" data-sx="fo"' + (sx.fo ? " checked" : "") + "> 開放玩家用智慧星星兌換時裝</label>" +
       '<p class="muted small">未開放時，玩家看不到商店的「時裝」分頁；你（最高管理者）看得到「時裝（未開放）」分頁可以先預覽。</p></div>';
@@ -2567,7 +2600,14 @@
       '<label><span id="sx-pl">' + (fas ? "價格（⭐ 智慧星星）" : "價格（🪙 智慧幣）") + '</span><input type="number" id="sx-price" min="0" step="1" value="' + (fas ? 20 : 300) + '"></label>' +
       '<label>等級限制（0＝不限）<input type="number" id="sx-lv" min="0" max="99" step="1" value="0"></label>' +
       '<label>NEW 顯示天數（0＝不顯示）<input type="number" id="sx-nd" min="0" max="365" step="1" value="' + SX_NEW_DAYS + '"></label>' +
-      '<div class="rw-act" style="grid-column:1/-1"><button class="a-btn gold" data-sx="add">上架</button></div></div></div></div>';
+      '<div class="rw-act" style="grid-column:1/-1"><button class="a-btn gold" data-sx="add"' + (tk ? "" : " disabled") + ">上架</button>" + (tk ? "" : '<span class="muted small">請先在上方設定 GitHub 權杖</span>') + "</div></div></div></div>";
+    // 收藏圖鑑頁面
+    var alS = FIG_BASE.filter(function (x) { return !x.retired; }).map(function (x) { return { id: x.id, name: x.name, base: 1 }; }).concat(sers.filter(function (x) { return x.kind !== "fashion" || sx.fo; }).map(function (x) { return { id: x.id, name: x.name, fashion: x.kind === "fashion" }; }))
+      .map(function (x) { var c = AL_CH.filter(function (y) { return y.id === x.id; })[0]; x.pages = c ? c.pages.filter(function (pg) { return pg.need; }) : []; return x; }).filter(function (x) { return x.pages.length; });
+    h += '<div class="rw-sec"><h4>📖 收藏圖鑑頁面</h4><p class="muted small">圖鑑每頁收 4 個，集滿一頁得一個小稱號。<b>同系列新增的公仔</b>會依上架順序每 4 件組成新的一頁，接在原本頁面後面（原本的頁面和玩家已拿到的小稱號都不變）；<b>新系列</b>會在圖鑑目錄新增一個分頁（時裝系列在開放兌換後才出現）。每一頁需要「頁名」和「小稱號」，沒填會用預設名稱。新頁未滿 4 件時玩家會看到「敬請期待」，推齊 4 件並全部收集才拿得到小稱號。</p>' +
+      (alS.length ? alS.map(function (x) { return '<div class="sx-alg"><b>' + (x.fashion ? "👗 " : "🧸 ") + esc(x.name) + (x.base ? '<small class="muted">（原有系列的新頁）</small>' : '<small class="muted">（新分頁）</small>') + "</b>" + x.pages.map(function (pg) {
+        return '<div class="sx-alp"><span class="sx-alc' + (pg.ids.length < 4 ? " part" : "") + '">' + pg.ids.length + "/4</span><span class=\"sx-aln\">" + esc(pg.ids.map(function (id) { return FIGS.figs[id].name; }).join("、")) + '</span><input type="text" maxlength="10" value="' + esc(pg.name) + '" data-sx-pn="' + esc(x.id) + ":" + pg.xk + '" aria-label="頁名"><input type="text" maxlength="10" value="' + esc(pg.title) + '" data-sx-pt="' + esc(x.id) + ":" + pg.xk + '" aria-label="小稱號"></div>'; }).join("") + "</div>"; }).join("") +
+        '<div class="rw-act"><button class="a-btn" data-sx="pgsave">儲存頁名與小稱號</button><span class="muted small">左欄頁名、右欄小稱號</span></div>' : '<p class="muted small">還沒有新頁。上架新公仔後，這裡會列出它們所在的圖鑑頁面。</p>') + "</div>";
     // 系列
     h += '<div class="rw-sec"><h4>系列（' + sers.length + "）</h4>" + (sers.length ? '<div class="gfa-list">' + sers.map(function (s) {
       var n = items.filter(function (it) { return it.sid === s.id; }).length;
@@ -2580,8 +2620,8 @@
       '<div class="rw-act" style="grid-column:1/-1"><button class="a-btn" data-sx="sadd">新增系列</button></div></div></div>';
     // 已上架
     var list = items.slice().sort(function (a, b) { return a.at < b.at ? 1 : -1; });
-    h += '<div class="rw-sec"><h4>已上架（' + list.length + " / " + SX_MAX_ITEMS + '）<span class="sx-kb' + (kb > SX_WARN_KB ? " warn" : "") + '">雲端圖片容量 ' + kb + " KB / 建議 " + SX_WARN_KB + " KB</span></h4>" +
-      (kb > SX_WARN_KB ? '<p class="small" style="color:#c0392b">容量偏大，玩家開啟遊戲時下載會變慢。可以請 Claude 把圖片轉存到 GitHub 的 figs 資料夾，雲端只留文字設定。</p>' : "") +
+    h += '<div class="rw-sec"><h4>已上架（' + list.length + " / " + SX_MAX_ITEMS + '）<span class="sx-kb' + (kb > SX_WARN_KB ? " warn" : "") + '">雲端設定 ' + kb + " KB</span></h4>" +
+      (kb > SX_WARN_KB ? '<p class="small" style="color:#c0392b">雲端容量偏大，請用上方「搬到 GitHub」把舊圖片移出雲端。</p>' : "") +
       (list.length ? '<div class="sx-list">' + list.map(function (it) {
         var fs = sxIsFashion(it.sid), nw = sxIsNew(it);
         return '<div class="sx-row' + (it.off ? " off" : "") + '"><img src="' + (it.src || FIG_DIR + it.id + ".webp") + '" alt=""><div class="sx-meta"><b>' + esc(it.name) + (nw && !it.off ? ' <span class="sh-new" style="position:static">NEW</span>' : "") + (it.off ? ' <span class="muted">（已下架）</span>' : "") + "</b>" +
@@ -2646,10 +2686,43 @@
       if (!name) return toast("請填商品名稱。");
       if (!sxSerById(sid)) return toast("請選擇系列。");
       if (sxItems().length >= SX_MAX_ITEMS) return toast("已達上架上限 " + SX_MAX_ITEMS + " 件，請先刪除不用的商品。");
-      var it = { id: sxNewId("x"), sid: sid, name: name, price: price, lv: lv, nd: nd, at: new Date().toISOString(), src: sxImg.src, w: sxImg.w, h: sxImg.h, head: [Math.round(sxImg.hx), 0, Math.round(sxImg.hs * sxImg.h)] };
-      sxSetRaw(function (o) { o.items.unshift(it); }); sxSel = sid; sxImg = null;
-      sxSave("商店上架", (sxIsFashion(sid) ? "時裝" : "公仔") + "「" + name + "」・" + sxSerName(sid));
-      toast("已上架「" + name + "」" + (sxIsFashion(sid) && !fashionOpen() ? "（時裝兌換尚未開放，玩家暫時看不到）" : "，玩家商店會顯示 NEW。")); renderAuth(); return;
+      if (!ghToken()) return toast("請先設定 GitHub 權杖。");
+      if (sxBusy) return; sxBusy = true; t.disabled = true; t.textContent = "上傳到 GitHub 中…";
+      var img = sxImg, it = { id: sxNewId("x"), sid: sid, name: name, price: price, lv: lv, nd: nd, at: new Date().toISOString(), gh: 1, w: img.w, h: img.h, head: [Math.round(img.hx), 0, Math.round(img.hs * img.h)] };
+      ghPut(it.id, img.src, "商店上架：" + name + "（" + it.id + "）").then(function () {
+        sxSetRaw(function (o) { o.items.unshift(it); }); sxSel = sid; sxImg = null;
+        sxSave("商店上架", (sxIsFashion(sid) ? "時裝" : "公仔") + "「" + name + "」・" + sxSerName(sid));
+        toast("已上架「" + name + "」" + (sxIsFashion(sid) && !fashionOpen() ? "（時裝兌換尚未開放，玩家暫時看不到）" : "，玩家商店會顯示 NEW。")); renderAuth();
+      }).catch(function (e) { toast("上傳到 GitHub 失敗：" + ghErr(e)); t.disabled = false; t.textContent = "上架"; }).then(function () { sxBusy = false; });
+      return;
+    }
+    if (d.sx === "tk") {
+      var v = val("sx-tk").trim(); if (!v && !ghToken()) return toast("請貼上 GitHub 權杖。");
+      var old = ghToken(); if (v) try { localStorage.setItem(GH_KEY, v); } catch (e) {}
+      ghApi("").then(function (j) {
+        if (!j.permissions || !j.permissions.push) throw Object.assign(new Error(""), { status: 403 });
+        toast("GitHub 連線成功，可以上架了。"); renderAuth();
+      }).catch(function (e) { if (v) { try { if (old) localStorage.setItem(GH_KEY, old); else localStorage.removeItem(GH_KEY); } catch (x) {} } toast("GitHub 連線失敗：" + ghErr(e)); renderAuth(); });
+      return;
+    }
+    if (d.sx === "tkdel") { if (!confirm("清除這台裝置的 GitHub 權杖？之後要上架需要重新設定。")) return; try { localStorage.removeItem(GH_KEY); } catch (e) {} renderAuth(); return; }
+    if (d.sx === "mig") {
+      if (!ghToken()) return toast("請先設定 GitHub 權杖。"); if (sxBusy) return;
+      var todo = sxItems().filter(function (x) { return x.src; }), done = 0; sxBusy = true; t.disabled = true;
+      todo.reduce(function (pr, x) { return pr.then(function () { t.textContent = "搬移中 " + (done + 1) + " / " + todo.length + "…"; return ghPut(x.id, x.src, "商店圖片搬到 GitHub：" + x.name + "（" + x.id + "）").then(function () {
+        done++; sxSetRaw(function (o) { o.items = o.items.map(function (y) { if (y.id !== x.id) return y; y = Object.assign({}, y); delete y.src; y.gh = 1; return y; }); }); }); }); }, Promise.resolve())
+        .then(function () { toast("已把 " + done + " 件圖片搬到 GitHub。"); }).catch(function (e) { toast("搬移中斷（完成 " + done + " 件）：" + ghErr(e)); })
+        .then(function () { sxBusy = false; if (done) sxSave("商店圖片搬到 GitHub", done + " 件"); renderAuth(); });
+      return;
+    }
+    if (d.sx === "pgsave") {
+      sxSetRaw(function (o) {
+        authEl.querySelectorAll("[data-sx-pn]").forEach(function (el) {
+          var k = el.dataset.sxPn.split(":"), sid0 = k[0], i = +k[1], tl = authEl.querySelector('[data-sx-pt="' + el.dataset.sxPn + '"]');
+          o.pg[sid0] = o.pg[sid0] || []; o.pg[sid0][i] = [el.value.trim(), tl ? tl.value.trim() : ""];
+        });
+      });
+      sxSave("更新圖鑑頁名與小稱號"); toast("已儲存圖鑑頁名與小稱號。"); renderAuth(); return;
     }
     if (d.sx === "sadd") {
       var nm = val("sx-sname").trim(), kind = val("sx-skind") === "fashion" ? "fashion" : "fig";
@@ -2662,6 +2735,7 @@
     if (d.sxSdel) {
       var s0 = sxSerById(d.sxSdel), n0 = sxItems().filter(function (it) { return it.sid === d.sxSdel; }).length; if (!s0) return;
       if (!confirm("刪除系列「" + s0.name + "」？" + (n0 ? "裡面的 " + n0 + " 件商品也會一起刪除，已擁有的玩家會失去它們。" : ""))) return;
+      sxItems().filter(function (it) { return it.sid === d.sxSdel && it.gh; }).forEach(function (it) { ghDel(it.id, "刪除商店商品：" + it.name); });
       sxSetRaw(function (o) { o.series = o.series.filter(function (s) { return s.id !== d.sxSdel; }); o.items = o.items.filter(function (it) { return it.sid !== d.sxSdel; }); });
       sxSel = ""; sxSave("刪除商店系列", s0.name); renderAuth(); return;
     }
@@ -2671,6 +2745,7 @@
     if (d.sxOff) { pick(d.sxOff, function (x) { x.off = !x.off; return x; }, "商店商品上下架"); return; }
     if (d.sxDel) {
       var it1 = sxItems().filter(function (x) { return x.id === d.sxDel; })[0]; if (!it1 || !confirm("完全刪除「" + it1.name + "」？已擁有的玩家也會失去它（若只想停止販售，請用「下架」）。")) return;
+      if (it1.gh) ghDel(it1.id, "刪除商店商品：" + it1.name);
       sxSetRaw(function (o) { o.items = o.items.filter(function (x) { return x.id !== d.sxDel; }); }); sxSave("刪除商店商品", it1.name); renderAuth(); return;
     }
   });
@@ -3703,6 +3778,7 @@
     mine = mine.filter(function (s) { return s.ids.length; });
     var figM = mine.filter(function (s) { return s.kind === "fig"; }), fasM = mine.filter(function (s) { return s.kind === "fashion"; });
     FIGS.series = out.slice(0, ci).concat(figM, out.slice(ci), fasM, oldF.ids.length ? [oldF] : []);
+    if (AL_READY) alBuild();
   }
   shopExtApply();
   var shopEl = document.getElementById("shop"), shSeries = FIGS.series[0].id, shCur = null;
@@ -3868,16 +3944,50 @@
   ];
   function alHash(str) { var h = 2166136261; for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
   AL_CH.forEach(function (c) {
-    var src = c.kind === "fig" ? FIGS.series.filter(function (x) { return x.id === c.id; })[0] : PLANTS.cats.filter(function (x) { return x.id === c.id; })[0];
+    var src = c.kind === "fig" ? FIG_BASE.filter(function (x) { return x.id === c.id; })[0] : PLANTS.cats.filter(function (x) { return x.id === c.id; })[0];
     c.name = src.name; c.color = src.color || "#7a5a3a"; c.ico = c.kind === "fig" ? "🧸" : src.ico;
     var ids = src.ids.slice().sort(function (a, b) { return alHash("mf-album:" + c.id + ":" + a) - alHash("mf-album:" + c.id + ":" + b); });
     c.pages = []; for (var i = 0; i < ids.length; i += 4) { var k = c.pages.length; c.pages.push({ key: c.id + "-" + (k + 1), ids: ids.slice(i, i + 4), name: c.w[k % c.w.length] + (k >= c.w.length ? "・" + (Math.floor(k / c.w.length) + 1) : ""), title: c.w[k % c.w.length] + c.suf }); }
   });
+  // ---- 圖鑑連動商店上架 ----
+  //   同系列新增的公仔：接在原本頁面後面，依上架順序每 4 件組成一個新頁（原本的頁面不變，已拿到的小稱號不受影響）
+  //   新系列（公仔、已開放的時裝）：在圖鑑目錄新增一個分頁
+  //   頁名與小稱號：DB.rw.s.pg[系列 id][第幾個新頁] = [頁名, 小稱號]，沒設定就用預設
+  //   新頁未滿 4 件時顯示「敬請期待」，滿 4 件且全部收集才給小稱號
+  var AL_BASE = AL_CH.slice(), AL_READY = true;
+  function alExtraNames(sid, k, c) {
+    var pg = (shopExt().pg || {})[sid] || [], v = pg[k] || [];
+    if (c && c.w) { var n = c.pages0 + k, w = c.w[n % c.w.length]; return [v[0] || w + "・" + (Math.floor(n / c.w.length) + 1), v[1] || w + c.suf + (Math.floor(n / c.w.length) + 1)]; }
+    var s = sxSeries().filter(function (x) { return x.id === sid; })[0], base = s ? s.name.replace(/系列$/, "") : "收藏";
+    return [v[0] || "第 " + (k + 1) + " 頁", v[1] || base + "收藏家" + (k ? "・" + (k + 1) : "")];
+  }
+  function alExtraIds(sid) { return sxItems().filter(function (it) { return it.sid === sid && FIGS.figs[it.id]; }).sort(function (a, b) { return a.at < b.at ? -1 : 1; }).map(function (it) { return it.id; }); }
+  function alExtraPages(sid, c) {
+    var ids = alExtraIds(sid), out = [];
+    for (var i = 0, k = 0; i < ids.length; i += 4, k++) { var nm = alExtraNames(sid, k, c); out.push({ key: sid + "-x" + (k + 1), ids: ids.slice(i, i + 4), need: 4, name: nm[0], title: nm[1], xk: k }); }
+    return out;
+  }
+  function alBuild() {
+    if (!AL_READY) return;
+    var list = AL_BASE.map(function (c) {
+      if (!c.base) c.base = c.pages; c.pages0 = c.base.length;
+      return Object.assign({}, c, { pages: c.kind === "fig" ? c.base.concat(alExtraPages(c.id, c)) : c.base });
+    });
+    var figs = list.filter(function (c) { return c.kind === "fig"; }), plants = list.filter(function (c) { return c.kind === "plant"; });
+    sxSeries().forEach(function (s) {
+      if (s.kind === "fashion" && !fashionOpen()) return;
+      var pages = alExtraPages(s.id, null); if (!pages.length) return;
+      (s.kind === "fashion" ? plants : figs).push({ id: s.id, kind: "fig", x: 1, fashion: s.kind === "fashion", name: s.name, color: s.color || "#c9a36a", ico: s.kind === "fashion" ? "👗" : "🧸", pages: pages });
+    });
+    AL_CH = figs.concat(plants.filter(function (c) { return c.kind === "plant"; }), plants.filter(function (c) { return c.fashion; }));
+    if (!AL_CH.some(function (c) { return c.id === alCh; }) && alCh !== "titles") alCh = AL_CH[0].id;
+  }
+  alBuild();
   var alEl = document.getElementById("album"), alCh = AL_CH[0].id, alPg = 0, alPop = null;
   function alOwned(kind, p, id) { return kind === "fig" ? !!figOwned(p)[id] : !!plOwned(p)[id]; }
   function alImg(kind, id) { return kind === "fig" ? figSrc(id) : PL_DIR + id + ".webp"; }
   function alItem(kind, id) { return kind === "fig" ? FIGS.figs[id] : PLANTS.plants[id]; }
-  function alPageDone(c, pg, p) { return pg.ids.every(function (id) { return alOwned(c.kind, p, id); }); }
+  function alPageDone(c, pg, p) { return (!pg.need || pg.ids.length >= pg.need) && pg.ids.every(function (id) { return alOwned(c.kind, p, id); }); }
   function alGot(p) { p.albumT = p.albumT || {}; return p.albumT; }
   function albumCheck(p, quiet) {
     var got = alGot(p), fresh = [];
@@ -3886,11 +3996,11 @@
     return fresh;
   }
   function alHint(c, id, p) {
-    var where = (c.kind === "fig" ? "商店・套裝公仔・" : "商店・植物圖鑑・") + c.name, st = c.kind === "fig" ? figState(p, id) : plState(p, id), f = alItem(c.kind, id);
+    var where = (c.fashion ? "商店・時裝・" : c.kind === "fig" ? "商店・套裝公仔・" : "商店・植物圖鑑・") + c.name, st = c.kind === "fig" ? figState(p, id) : plState(p, id), f = alItem(c.kind, id);
     if (st.own) return where;
     if (st.lock) return where + "｜" + st.txt;
     if (st.free) return where + "｜" + (st.txt || "可免費領取");
-    return where + "｜🪙 " + (st.price || f.price || 0) + " 智慧幣";
+    return where + (st.star || f.cur === "star" ? "｜⭐ " + (st.price || f.price || 0) + " 智慧星星" : "｜🪙 " + (st.price || f.price || 0) + " 智慧幣");
   }
   function alCount(p) {
     var r = { fig: [0, 0], plant: [0, 0], t: [0, 0] }, got = alGot(p);
@@ -3904,15 +4014,16 @@
     return '<article class="al-page' + (got ? " done" : "") + '"><header><small>' + c.ico + " " + esc(c.name) + "・第 " + (idx + 1) + " 頁</small><h4>" + esc(pg.name) + '</h4><span class="al-dots">' + pg.ids.map(function (id) { return "<i" + (alOwned(c.kind, p, id) ? ' class="on"' : "") + "></i>"; }).join("") + "</span></header>" +
       '<div class="al-slots">' + pg.ids.map(function (id) {
         var own = alOwned(c.kind, p, id), f = alItem(c.kind, id);
-        return '<button class="al-slot' + (own ? " own" : "") + (c.kind === "fig" ? " fig" : "") + '" data-als="' + id + '" aria-label="' + (own ? esc(f.name) : "未收集的影子") + '"><span class="al-frame"><img src="' + alImg(c.kind, id) + '" alt="" loading="lazy"></span><b>' + (own ? esc(f.name) : "？？？") + "</b></button>"; }).join("") + "</div>" +
-      '<footer class="al-rib' + (got ? " got" : "") + '">' + (got ? "🎀 已獲得小稱號「" + esc(pg.title) + "」" : "集滿這頁 " + pg.ids.length + " 個（" + have + " / " + pg.ids.length + "）→ 小稱號「" + esc(pg.title) + "」") + "</footer></article>";
+        return '<button class="al-slot' + (own ? " own" : "") + (c.kind === "fig" ? " fig" : "") + '" data-als="' + id + '" aria-label="' + (own ? esc(f.name) : "未收集的影子") + '"><span class="al-frame"><img src="' + alImg(c.kind, id) + '" alt="" loading="lazy"></span><b>' + (own ? esc(f.name) : "？？？") + "</b></button>"; }).join("") +
+        (pg.need && pg.ids.length < pg.need ? new Array(pg.need - pg.ids.length + 1).join('<div class="al-slot al-soon"><span class="al-frame"><span>✦</span></span><b>敬請期待</b></div>') : "") + "</div>" +
+      '<footer class="al-rib' + (got ? " got" : "") + '">' + (got ? "🎀 已獲得小稱號「" + esc(pg.title) + "」" : pg.need && pg.ids.length < pg.need ? "新頁收集中：已推出 " + pg.ids.length + " / " + pg.need + " 個，推齊並集滿 → 小稱號「" + esc(pg.title) + "」" : "集滿這頁 " + pg.ids.length + " 個（" + have + " / " + pg.ids.length + "）→ 小稱號「" + esc(pg.title) + "」") + "</footer></article>";
   }
   function renderAlbum() {
     var p = curP(), cnt = alCount(p), got = alGot(p);
     document.getElementById("al-sum").innerHTML = "<span>🧸 公仔 <b>" + cnt.fig[0] + "/" + cnt.fig[1] + "</b></span><span>🌿 植物 <b>" + cnt.plant[0] + "/" + cnt.plant[1] + "</b></span><span>🎀 小稱號 <b>" + cnt.t[0] + "/" + cnt.t[1] + "</b></span>";
     var tocRow = function (c) { var d = c.pages.filter(function (pg) { return got[pg.key]; }).length, n = 0, m = 0; c.pages.forEach(function (pg) { pg.ids.forEach(function (id) { m++; if (alOwned(c.kind, p, id)) n++; }); });
       return '<button class="al-tab" style="--c:' + c.color + '" aria-selected="' + (alCh === c.id) + '" data-alc="' + c.id + '"><span>' + c.ico + " " + esc(c.name) + "</span><small>" + n + "/" + m + "・🎀" + d + "/" + c.pages.length + "</small></button>"; };
-    document.getElementById("al-toc").innerHTML = "<h5>套裝公仔</h5>" + AL_CH.filter(function (c) { return c.kind === "fig"; }).map(tocRow).join("") + "<h5>植物圖鑑</h5>" + AL_CH.filter(function (c) { return c.kind === "plant"; }).map(tocRow).join("") +
+    document.getElementById("al-toc").innerHTML = "<h5>套裝公仔</h5>" + AL_CH.filter(function (c) { return c.kind === "fig" && !c.fashion; }).map(tocRow).join("") + "<h5>植物圖鑑</h5>" + AL_CH.filter(function (c) { return c.kind === "plant"; }).map(tocRow).join("") + (AL_CH.some(function (c) { return c.fashion; }) ? "<h5>時裝</h5>" + AL_CH.filter(function (c) { return c.fashion; }).map(tocRow).join("") : "") +
       '<h5>收藏成果</h5><button class="al-tab" style="--c:#b8862b" aria-selected="' + (alCh === "titles") + '" data-alc="titles"><span>🎀 我的稱號</span><small>' + (cnt.t[0] + (p.titlesGot || []).length) + " 個</small></button>";
     var main = document.getElementById("al-main"), h;
     if (alCh === "titles") {
