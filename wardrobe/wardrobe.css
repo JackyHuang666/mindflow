@@ -59,3 +59,16 @@
 @media (max-width:360px){.wd-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.wd-fig{transform:scale(.9);transform-origin:50% 100%}}
 @media (prefers-reduced-motion:reduce){.wd-fr{transition:none}}
 /* 調色盤 */
+/* 分部位購買 */
+.wd-slot.lock .wd-sbox .wd-th{filter:saturate(.55) brightness(.75)}
+.wd-slot.pick .wd-sbox{border-color:#ffd36b;box-shadow:0 0 0 3px rgba(255,211,107,.35),0 0 14px rgba(255,211,107,.45);animation:wdPick 1.6s ease-in-out infinite}
+.wd-slot.got .wd-sbox{border-color:#5fd39a}
+@keyframes wdPick{50%{box-shadow:0 0 0 3px rgba(255,211,107,.15),0 0 4px rgba(255,211,107,.2)}}
+.wd-pr,.wd-own{position:absolute;left:2px;top:2px;z-index:2;font-size:10px;font-weight:800;line-height:15px;border-radius:6px;padding:0 4px;pointer-events:none}
+.wd-pr{background:rgba(13,18,34,.88);color:#ffd36b;border:1px solid rgba(255,211,107,.6)}
+.wd-own{background:#5fd39a;color:#0d2a1c;padding:0 5px}
+.wd-stage.locked .wd-fig{cursor:default}
+.wd-nav.off .wd-arw{opacity:.35;cursor:not-allowed}
+.wd-nav.off .wd-ang span button{opacity:.4;cursor:not-allowed}
+.wd-nav.off .wd-ang b{color:#ffd36b}
+@media (prefers-reduced-motion:reduce){.wd-slot.pick .wd-sbox{animation:none}}

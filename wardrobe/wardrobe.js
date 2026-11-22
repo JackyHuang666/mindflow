@@ -7,7 +7,8 @@
  * 配件（髮型、帽子、外套、鞋子、手持物…）來自各套裝，標示「男生／女生／男女共用」。
  *   切換男生／女生後，只會看到該性別能穿的時裝（含男女共用）。目前點配件 = 換上它所屬的整套（設定圖是整套畫的）。
  *
- * 玩家資料：p.wd = { g: "m"|"f", cur: 套裝 id, own: { 套裝 id: 1 } }，隨 mf-player-v1 同步雲端。
+ * 玩家資料：p.wd = { g: "m"|"f", cur: 套裝 id, own: { 套裝 id: 1 }, pt: { 套裝 id: { 裝備格 id: 1 } } }，隨 mf-player-v1 同步雲端。
+ *   own：整套擁有（預設背包客、舊版整套兌換）；pt：分部位購買的紀錄，目前性別需要的部位都買齊＝擁有。
  * 兌換：用智慧星星 p.stars（測試模式免費）。兌換一次，男生版與女生版都會收進衣櫥。
  *
  * 用法（index.html）：
@@ -16,7 +17,7 @@
  */
 (function (global) {
   "use strict";
-  var VER = "6";
+  var VER = "7";
   var BASE = (function () { var s = document.currentScript && document.currentScript.src; return s ? s.replace(/[^/]*$/, "") : "wardrobe/"; })();
 
   // 套裝：id、名稱、分類、價格（智慧星星）、g：MF＝分男女版、U＝男女共用；d：男／女的［斜側、側面］臉朝右＝1、朝左＝-1
@@ -73,7 +74,21 @@
     if (!PARTS[p.wd.cur]) p.wd.cur = "bp";
     return p.wd;
   }
-  function owns(p, id) { return !!wd(p).own[id]; }
+  // 擁有＝整套兌換過（預設背包客、舊版整套兌換），或是目前性別需要的部位都買齊了
+  function owns(p, id, g) { var w = wd(p), gs = needG(id, g || w.g); return !!w.own[id] || (gs.length > 0 && gs.every(function (G) { return hasPart(p, id, G.id); })); }
+  // ---- 分部位購買：每套依裝備格（頭部裝備、身體服裝、隨身配件、手腳裝備、手飾）分開購買，買齊才解鎖 360° 轉動
+  function partsFor(id, g) { return PARTS[id].map(function (x, k) { return x.concat([k]); }).filter(function (x) { return fits(x[2], g); }); }
+  function needG(id, g) {   // 這套在這個性別有裝備的格子
+    var ps = partsFor(id, g);
+    return GROUPS.filter(function (G) { var keys = G.subs.map(function (q) { return q[1]; }); return ps.some(function (x) { return keys.indexOf(x[1]) >= 0; }); });
+  }
+  function partPrice(id, g, gid) {   // 整套價格平均分到各部位，餘數加在前面幾個部位，合計等於整套價格
+    var gs = needG(id, g), n = gs.length, pr = outOf(id).price; if (!n) return 0;
+    var i = 0; for (; i < n; i++) if (gs[i].id === gid) break;
+    return Math.floor(pr / n) + (i < pr % n ? 1 : 0);
+  }
+  function hasPart(p, id, gid) { var w = wd(p); return !!w.own[id] || !!(w.pt && w.pt[id] && w.pt[id][gid]); }
+  function progress(p, id, g) { var gs = needG(id, g); return [gs.filter(function (G) { return hasPart(p, id, G.id); }).length, gs.length]; }
   function src(id, g) { return BASE + "img/" + id + "_" + g + ".webp?v=" + VER; }
   function fits(pg, g) { return pg === "U" || (pg === "M" && g === "m") || (pg === "F" && g === "f"); }
   function badge(pg) { return pg === "U" ? ["男女共用", "u"] : pg === "M" ? ["男生", "m"] : ["女生", "f"]; }
@@ -107,25 +122,34 @@
     var el = S.root && S.root.querySelector("#wd-card"); if (!el || !H.getP) return;
     var p = H.getP(), w = wd(p), g = w.g, cid = shown(p), o = outOf(cid), sq = seq(o, g);
     var parts = PARTS[cid].map(function (x, k) { return x.concat([k]); }).filter(function (x) { return fits(x[2], g); });
+    var full = owns(p, cid, g), need = needG(cid, g);
+    if (!full && (!S.pick || !need.some(function (G) { return G.id === S.pick && !hasPart(p, cid, G.id); }))) {
+      var nx = need.filter(function (G) { return !hasPart(p, cid, G.id); })[0]; S.pick = nx ? nx.id : null;
+    }
     function slot(G) {
       var keys = G.subs.map(function (s) { return s[1]; }), ps = parts.filter(function (x) { return keys.indexOf(x[1]) >= 0; });
-      return '<button type="button" class="wd-slot' + (S.tab === G.id ? " on" : "") + '" data-wd="tab" data-v="' + G.id + '" aria-label="' + G.zh + (ps.length ? "：" + ps.map(function (x) { return x[0]; }).join("、") : "：未裝備") + '">' +
-        '<span class="wd-sbox">' + (ps.length ? thumb(cid, g, ps[0][5], 44, ps[0][0]) : '<i class="wd-plus" aria-hidden="true"></i>') + (ps.length > 1 ? '<b class="wd-more">+' + (ps.length - 1) + "</b>" : "") + "</span><span class=\"wd-sl\">" + G.zh + "</span></button>";
+      var buyable = !full && ps.length, got = buyable && hasPart(p, cid, G.id), pick = buyable && !got && S.pick === G.id;
+      var tag = !buyable ? "" : got ? '<b class="wd-own" aria-hidden="true">✓</b>' : '<b class="wd-pr" aria-hidden="true">' + (H.testMode() ? "免費" : "⭐" + partPrice(cid, g, G.id)) + "</b>";
+      var lab = G.zh + (ps.length ? "：" + ps.map(function (x) { return x[0]; }).join("、") : "：未裝備") + (!buyable ? "" : got ? "（已購買）" : "（未購買，⭐ " + partPrice(cid, g, G.id) + "）");
+      return '<button type="button" class="wd-slot' + (pick ? " pick" : S.tab === G.id && full ? " on" : "") + (buyable && !got ? " lock" : "") + (got ? " got" : "") + '" data-wd="' + (buyable && !got ? "pick" : "tab") + '" data-v="' + G.id + '" aria-label="' + lab + '"' + (pick ? ' aria-pressed="true"' : "") + ">" +
+        '<span class="wd-sbox">' + tag + (ps.length ? thumb(cid, g, ps[0][5], 44, ps[0][0]) : '<i class="wd-plus" aria-hidden="true"></i>') + (ps.length > 1 ? '<b class="wd-more">+' + (ps.length - 1) + "</b>" : "") + "</span><span class=\"wd-sl\">" + G.zh + "</span></button>";
     }
+    if (!full) { S.frame = 0; S.auto = false; }
     var q0 = sq[S.frame], frames = '<div class="wd-fr on' + (q0[1] ? " flip" : "") + '"><i class="wd-sp" style="background-image:url(\'' + src(cid, g) + '\');background-position:' + bgx(q0[0]) + ' 0"></i></div>';
-    var tried = S.try && !owns(p, S.try), bdg = o.g === "U" ? ["男女共用", "u"] : g === "m" ? ["男生版", "m"] : ["女生版", "f"];
-    var h = '<div class="wd-head"><h3>👕 我的穿搭<small>' + (tried ? "試穿中" : "左右拖曳可以 360° 轉動") + '</small></h3>' +
+    var tried = !full, pg = progress(p, cid, g), bdg = o.g === "U" ? ["男女共用", "u"] : g === "m" ? ["男生版", "m"] : ["女生版", "f"];
+    var h = '<div class="wd-head"><h3>👕 我的穿搭<small>' + (tried ? (pg[0] ? "已購買 " + pg[0] + "/" + pg[1] + " 個部位" : "試穿中") : "左右拖曳可以 360° 轉動") + '</small></h3>' +
       '<div class="wd-seg" role="group" aria-label="角色性別"><button type="button" data-wd="g" data-v="m"' + (g === "m" ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + '>男生</button><button type="button" data-wd="g" data-v="f"' + (g === "f" ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + ">女生</button></div></div>";
-    h += '<div class="wd-stage" data-wd-stage>' + 
+    h += '<div class="wd-stage' + (full ? "" : " locked") + '"' + (full ? " data-wd-stage" : "") + ">" +
       '<div class="wd-floor" aria-hidden="true"></div><div class="wd-fig" role="img" aria-label="' + esc(o.zh + "（" + bdg[0] + "），" + ANG[S.frame][0]) + '">' + frames + "</div>" +
       '<div class="wd-name"><span class="wd-b ' + bdg[1] + '">' + bdg[0] + "</span>" + esc(o.zh) + "</div>" +
       '<div class="wd-col l">' + GROUPS.filter(function (G) { return G.side === "L"; }).map(slot).join("") + "</div>" +
       '<div class="wd-col r">' + GROUPS.filter(function (G) { return G.side === "R"; }).map(slot).join("") +
-      '<button type="button" class="wd-auto' + (S.auto ? " on" : "") + '" data-wd="auto" aria-pressed="' + S.auto + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>' + (S.auto ? "自動旋轉中" : "自動旋轉") + "</button></div>" +
-      (tried ? '<div class="wd-try"><button type="button" class="wd-buy" data-wd="buy">' + (H.testMode() ? "測試模式免費兌換" : "⭐ " + o.price + " 兌換") + '</button><button type="button" class="wd-cancel" data-wd="untry">取消試穿</button></div>' : "") +
-      '<div class="wd-nav"><button type="button" class="wd-arw" data-wd="turn" data-v="-1" aria-label="往左轉"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>' +
-      '<div class="wd-ang"><b>360°・' + ANG[S.frame][0] + "・" + ANG[S.frame][1] + '°</b><span>' + ANG.map(function (a, i) { return '<button type="button" data-wd="fr" data-v="' + i + '" aria-label="' + a[0] + '"' + (i === S.frame ? ' class="on"' : "") + "></button>"; }).join("") + "</span></div>" +
-      '<button type="button" class="wd-arw" data-wd="turn" data-v="1" aria-label="往右轉"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button></div></div>';
+      (full ? '<button type="button" class="wd-auto' + (S.auto ? " on" : "") + '" data-wd="auto" aria-pressed="' + S.auto + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>' + (S.auto ? "自動旋轉中" : "自動旋轉") + "</button>" : "") + "</div>" +
+      (tried ? '<div class="wd-try">' + (S.pick ? '<button type="button" class="wd-buy" data-wd="buy">' + (H.testMode() ? "免費購買" : "⭐ " + partPrice(cid, g, S.pick)) + "　" + GROUPS.filter(function (G) { return G.id === S.pick; })[0].zh + "</button>" : "") +
+        (S.try ? '<button type="button" class="wd-cancel" data-wd="untry">取消試穿</button>' : "") + "</div>" : "") +
+      '<div class="wd-nav' + (full ? "" : " off") + '"><button type="button" class="wd-arw" data-wd="turn" data-v="-1" aria-label="往左轉"' + (full ? "" : " disabled") + '><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>' +
+      '<div class="wd-ang"><b>' + (full ? "360°・" + ANG[S.frame][0] + "・" + ANG[S.frame][1] + "°" : "🔒 360° 解鎖進度 " + pg[0] + "/" + pg[1]) + '</b><span>' + ANG.map(function (a, i) { return '<button type="button" data-wd="fr" data-v="' + i + '" aria-label="' + a[0] + '"' + (i === S.frame ? ' class="on"' : "") + (full ? "" : " disabled") + "></button>"; }).join("") + "</span></div>" +
+      '<button type="button" class="wd-arw" data-wd="turn" data-v="1" aria-label="往右轉"' + (full ? "" : " disabled") + '><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button></div></div>';
     // 清單
     var tabs = [{ id: "set", zh: "整套造型" }].concat(GROUPS);
     h += '<div class="wd-tabs" role="tablist">' + tabs.map(function (t) { return '<button type="button" role="tab" aria-selected="' + (S.tab === t.id) + '" data-wd="tab" data-v="' + t.id + '"' + (S.tab === t.id ? ' class="on"' : "") + ">" + t.zh + "</button>"; }).join("") + "</div>";
@@ -135,7 +159,8 @@
       OUT.forEach(function (x) {
         if (S.cat !== "全部" && x.cat !== S.cat) return;
         var b = x.g === "U" ? ["男女共用", "u"] : g === "m" ? ["男生版", "m"] : ["女生版", "f"], on = x.id === cid;
-        var tag = on ? (owns(p, x.id) ? "穿戴中" : "試穿中") : owns(p, x.id) ? "已擁有" : "⭐ " + x.price;
+        var pr = progress(p, x.id, g), ow = owns(p, x.id, g);
+        var tag = on ? (ow ? "穿戴中" : "試穿中") : ow ? "已擁有" : pr[0] ? "已購 " + pr[0] + "/" + pr[1] + " 部位" : "⭐ " + x.price;
         cards.push('<button type="button" class="wd-it' + (on ? " on" : "") + '" data-wd="wear" data-v="' + x.id + '"><span class="wd-b ' + b[1] + '">' + b[0] + "</span>" + thumb(x.id, g, "whole", 76, x.zh) + "<b>" + esc(x.zh) + "</b><small>" + tag + "</small></button>");
       });
     } else {
@@ -145,7 +170,7 @@
         PARTS[x.id].forEach(function (pt, pk) {
           if (pt[1] !== key || !fits(pt[2], g)) return;
           var b = badge(pt[2]), on = x.id === cid;
-          cards.push('<button type="button" class="wd-it' + (on ? " on" : "") + '" data-wd="wear" data-v="' + x.id + '"><span class="wd-b ' + b[1] + '">' + b[0] + "</span>" + thumb(x.id, g, pk, 76, pt[0]) + "<b>" + esc(pt[0]) + "</b><small>" + (on ? "穿戴中" : "來自「" + esc(x.zh) + "」" + (owns(p, x.id) ? "" : "・⭐ " + x.price)) + "</small></button>");
+          cards.push('<button type="button" class="wd-it' + (on ? " on" : "") + '" data-wd="wear" data-v="' + x.id + '"><span class="wd-b ' + b[1] + '">' + b[0] + "</span>" + thumb(x.id, g, pk, 76, pt[0]) + "<b>" + esc(pt[0]) + "</b><small>" + (on ? "穿戴中" : "來自「" + esc(x.zh) + "」" + (owns(p, x.id, g) ? "" : "・⭐ " + x.price)) + "</small></button>");
         });
       });
     }
@@ -179,35 +204,49 @@
     var vis = visible() && !document.hidden;
     if (!vis) { if (!S.cleared && el.firstChild) { el.innerHTML = ""; S.cleared = true; } return; }
     if (S.cleared) { S.cleared = false; render(); return; }
+    var pp = H.getP && H.getP(); if (pp && !owns(pp, shown(pp))) return;
     if (S.auto && !S.drag && !document.hidden && visible() && Date.now() - S.last > 2500) setFrame(S.frame + 1);
   }
 
   function wear(p, id) {
-    var w = wd(p), o = outOf(id);
+    var w = wd(p), o = outOf(id); S.pick = null;
     if (owns(p, id)) { w.cur = id; S.try = null; S.msg = "已換上「" + o.zh + "」"; H.save(); }
-    else { S.try = id; S.msg = "試穿「" + o.zh + "」中，兌換後才會存成你的造型"; }
+    else { var pg = progress(p, id, w.g); S.try = id; S.msg = "試穿「" + o.zh + "」中：點有價格的裝備格，分別購買 " + pg[1] + " 個部位，買齊就能 360° 轉動並存成你的造型"; }
     S.frame = 0;
   }
   function buy(p) {
-    var id = S.try; if (!id) return;
-    var o = outOf(id), free = H.testMode();
+    var w = wd(p), g = w.g, id = shown(p), gid = S.pick; if (!gid || owns(p, id)) return;
+    var G = GROUPS.filter(function (q) { return q.id === gid; })[0], o = outOf(id);
+    if (!G || hasPart(p, id, gid) || !needG(id, g).some(function (q) { return q.id === gid; })) return;
+    var pr = partPrice(id, g, gid), free = H.testMode();
     if (!free) {
       if (typeof p.stars !== "number") p.stars = 0;
-      if (p.stars < o.price) { S.msg = "智慧星星不夠：需要 ⭐ " + o.price + "，目前有 ⭐ " + p.stars + "。完成迷宮尋寶、記憶星球的關卡可以獲得星星。"; return; }
-      p.stars -= o.price;
+      if (p.stars < pr) { S.msg = "智慧星星不夠：「" + G.zh + "」需要 ⭐ " + pr + "，目前有 ⭐ " + p.stars + "。完成迷宮尋寶、記憶星球的關卡可以獲得星星。"; return; }
+      p.stars -= pr;
     }
-    var w = wd(p); w.own[id] = 1; w.cur = id; S.try = null;
-    try { H.log(p, "兌換時裝「" + o.zh + "」" + (free ? "（測試模式）" : "（⭐ −" + o.price + "）")); } catch (e) {}
-    H.save();
-    S.msg = "已兌換「" + o.zh + "」，男生版和女生版都收進衣櫥了";
-    H.toast("👕 已兌換「" + o.zh + "」");
-    H.onChange();
+    if (!w.pt || typeof w.pt !== "object") w.pt = {};
+    if (!w.pt[id]) w.pt[id] = {};
+    w.pt[id][gid] = 1;
+    try { H.log(p, "購買時裝「" + o.zh + "」的" + G.zh + (free ? "（測試模式）" : "（⭐ −" + pr + "）")); } catch (e) {}
+    var pg = progress(p, id, g); S.pick = null;
+    if (owns(p, id)) {
+      w.cur = id; S.try = null; S.auto = true; S.last = 0;
+      S.msg = "「" + o.zh + "」" + pg[1] + " 個部位都買齊了！已解鎖 360° 轉動，並換上這套造型";
+      H.toast("🎉 解鎖「" + o.zh + "」360° 轉動");
+    } else {
+      S.try = id;
+      S.msg = "已購買「" + o.zh + "」的" + G.zh + "（" + pg[0] + "/" + pg[1] + "），再買 " + (pg[1] - pg[0]) + " 個部位就能解鎖 360° 轉動";
+      H.toast("👕 已購買" + G.zh + "（" + pg[0] + "/" + pg[1] + "）");
+    }
+    H.save(); H.onChange();
   }
 
   function onClick(e) {
     var b = e.target.closest("[data-wd]"); if (!b || !S.root.contains(b)) return;
     e.stopPropagation();
     var p = H.getP(), a = b.dataset.wd, v = b.dataset.v;
+    var lockd = !owns(p, shown(p));
+    if ((a === "fr" || a === "turn" || a === "auto") && lockd) { S.msg = "買齊所有部位才能 360° 轉動"; return render(); }
     if (a === "fr") { S.auto = false; S.last = Date.now(); syncAuto(); return setFrame(+v); }
     if (a === "turn") { S.auto = false; S.last = Date.now(); syncAuto(); return setFrame(S.frame + (+v)); }
     if (a === "auto") { S.auto = !S.auto; S.last = 0; }
@@ -218,6 +257,7 @@
     else if (a === "wear") wear(p, v);
     else if (a === "untry") { S.try = null; S.msg = ""; S.frame = 0; }
     else if (a === "buy") { buy(p); }
+    else if (a === "pick") { S.pick = v; if (!S.try && !owns(p, shown(p))) S.try = shown(p); }
     render();
   }
   // 拖曳轉動：水平拖曳才轉，垂直仍可捲動
