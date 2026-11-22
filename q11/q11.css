@@ -1,0 +1,110 @@
+/* 學習地圖：11Q 學習成長雷達圖（沿用成長紀錄的 gr-* 元件，這裡只放雷達圖專用樣式） */
+#q11{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;color:#eef3ff;font-family:var(--body);
+  background:radial-gradient(ellipse 70% 45% at 20% 0%,rgba(80,120,255,.35) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 90% 100%,rgba(155,92,255,.28) 0%,transparent 60%),#0c1534}
+#q11[hidden]{display:none}
+#q11 .sh-top h2::before{content:"🗺️ ";}
+.q-wrap{max-width:1000px;margin:0 auto;display:grid;gap:14px}
+
+/* 頂部：等級與總覽 */
+.q-hero{display:grid;grid-template-columns:auto 1fr;gap:12px 16px;align-items:center;position:relative;overflow:hidden}
+.q-hero::after{content:"";position:absolute;inset:-40% -10% auto auto;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(255,211,107,.18),transparent 65%);pointer-events:none}
+.q-lv{display:flex;align-items:center;gap:10px}
+.q-lv i{font-style:normal;font-size:40px;line-height:1;width:64px;height:64px;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.25),rgba(255,211,107,.12) 60%,rgba(0,0,0,.1));box-shadow:0 0 0 2px rgba(255,211,107,.6),0 0 22px rgba(255,211,107,.35)}
+.q-lv small{display:block;font-size:12px;color:#a9b8e0}.q-lv b{font:400 20px var(--round);color:#ffe7a6}
+.q-kpis{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+.q-hero-act{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap}
+.q-hero .gr-note{grid-column:1/-1;margin:0}
+@media (max-width:640px){.q-hero{grid-template-columns:1fr}}
+
+/* 雷達圖區 */
+.q-main{position:relative;box-shadow:0 0 0 1px var(--qs),0 10px 40px -20px var(--qc)}
+.q-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px;align-items:center}
+@media (max-width:760px){.q-grid{grid-template-columns:1fr}}
+.q-chart{position:relative}
+.q-radar{display:block;width:100%;max-width:470px;margin:0 auto;overflow:visible}
+.q-radar text{font-family:var(--body);fill:#eef3ff}
+.q-tick{font-size:9px;fill:#c6d0ee !important;opacity:.75;pointer-events:none}
+.q-code{font:700 15px var(--fun)}.q-val{font:600 15px var(--fun);fill:#fff}.q-name{font-size:11.5px;fill:#b9c6ea !important}
+.q-axis{cursor:pointer;outline:none}
+.q-axis:hover .q-name,.q-axis:focus .q-name{fill:#ffe7a6 !important}
+.q-axis:focus-visible rect{stroke:#ffd36b;stroke-width:1.5}
+.q-axis.none .q-val{fill:#8f9cc4}
+.q-grow{transform:scale(.05);opacity:0;transform-origin:0 0;transition:transform .9s cubic-bezier(.2,1.25,.4,1),opacity .5s}
+.q-grow.on{transform:scale(1);opacity:1}
+.q-spin{animation:qSpin 60s linear infinite;transform-origin:0 0}
+.q-twk{animation:qTwk 3.2s ease-in-out infinite;opacity:.25}
+@keyframes qSpin{to{transform:rotate(360deg)}}
+@keyframes qTwk{50%{opacity:.9}}
+@media (prefers-reduced-motion:reduce){.q-spin,.q-twk{animation:none}.q-grow{transition:none}}
+
+/* 能力清單 */
+.q-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.q-list button{width:100%;display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:auto auto;gap:4px 10px;align-items:center;text-align:left;font:inherit;color:#fff;padding:9px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(4,10,32,.38);cursor:pointer;-webkit-appearance:none;appearance:none}
+.q-list button:hover{border-color:var(--qc)}
+.q-tag{display:inline-grid;place-items:center;min-width:38px;height:26px;padding:0 6px;border-radius:8px;font:700 13px var(--fun);color:#0c1534;background:var(--qc,#ffd36b);box-shadow:0 0 12px var(--qs,transparent)}
+.q-tag.big{min-width:52px;height:40px;font-size:18px;border-radius:12px}
+.q-list button.none .q-tag{background:#4b5680;color:#c6d0ee;box-shadow:none}
+.q-nm{display:grid;font:400 15px var(--round);min-width:0}.q-nm small{font:12px var(--body);color:#9fb0d8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.q-sc{font:600 22px var(--fun);color:#fff;font-variant-numeric:tabular-nums;display:flex;align-items:baseline;gap:4px}
+.q-sc em{font:600 12px var(--body)}
+.q-list button.none .q-sc{color:#8f9cc4}
+.q-meter{grid-column:1/-1;height:5px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}
+.q-meter span{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--qc),#fff);box-shadow:0 0 8px var(--qc)}
+
+/* 進階鎖定 */
+.q-lock{position:absolute;inset:8% 6%;display:grid;place-content:center;justify-items:center;text-align:center;gap:8px;padding:16px;border-radius:24px;background:radial-gradient(circle,rgba(12,21,52,.92) 40%,rgba(12,21,52,.6));backdrop-filter:blur(2px)}
+.q-lock i{font-style:normal;font-size:40px;filter:drop-shadow(0 0 10px rgba(212,166,255,.7))}
+.q-lock b{font:400 18px var(--round);color:#ffe7a6}.q-lock p{margin:0;max-width:300px;font-size:14px;line-height:1.6;color:#dbe4ff}.q-lock small{color:#a9b8e0}
+.q-bar{width:220px;height:8px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden}
+.q-bar span{display:block;height:100%;background:linear-gradient(90deg,#9b5cff,#ffd36b)}
+
+/* 分析與推薦 */
+.q-ana{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.q-ana li{display:grid;grid-template-columns:30px 1fr;gap:8px;align-items:start;padding:10px 12px;border-radius:14px;background:rgba(4,10,32,.35);font-size:14px;line-height:1.6;color:#c6d4f5}
+.q-ana li i{font-style:normal;font-size:20px;line-height:1.3}.q-ana li b{display:block;color:#fff;font-weight:500}
+.q-reco{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.q-reco button{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center;text-align:left;font:inherit;color:#fff;padding:10px 12px;border-radius:14px;border:1px solid rgba(255,226,150,.25);background:linear-gradient(180deg,rgba(255,211,107,.10),rgba(255,211,107,.02));cursor:pointer;-webkit-appearance:none;appearance:none}
+.q-reco button:hover{border-color:#ffd36b}
+.q-num{font:700 20px var(--fun);color:#ffd36b;width:40px;height:40px;display:grid;place-items:center;border-radius:12px;background:rgba(4,10,32,.5)}
+.q-reco b{display:block;font:400 15px var(--round)}.q-reco small{display:block;font-size:12px;color:#a9b8e0}
+.q-reco em{font-style:normal;font-size:12px;color:#7fe3a0}.q-reco em.soon{color:#9fb0d8}
+.q-disc{text-align:center}
+
+/* 成長歷程 */
+.q-line{display:block;width:100%;height:auto}.q-line text{font-size:10px;fill:#8f9cc4;font-family:var(--body)}
+.q-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--c);margin:0 4px 0 6px;vertical-align:-1px}
+.q-tl{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.q-tl li{display:grid;grid-template-columns:54px 1fr auto;gap:10px;align-items:center;padding:8px 12px;border-radius:14px;background:rgba(4,10,32,.35);border:1px solid transparent}
+.q-tl li.on{border-color:#ffd36b;background:rgba(255,211,107,.1)}
+.q-tl-d{display:grid;text-align:center}.q-tl-d b{font:600 18px var(--fun);color:#ffe7a6}.q-tl-d small{font-size:11px;color:#8f9cc4}
+.q-tl-m{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:14px;color:#c6d4f5}.q-tl-m b{font:600 17px var(--fun)}.q-tl-m em{font-style:normal;font-size:12px}
+.q-tl-m small{flex-basis:100%;font-size:12px;color:#8f9cc4}
+.q-tl .gr-btn{padding:6px 12px;font-size:13px}
+.q-now{font-size:12px;color:#0c1534;background:#ffd36b;border-radius:999px;padding:4px 10px}
+
+/* 對話框 */
+.q-modal{position:absolute;inset:0;z-index:5;display:grid;place-items:center;padding:16px;background:rgba(4,8,24,.7)}
+.q-dlg{width:min(620px,100%);max-height:calc(100% - 24px);overflow-y:auto;display:grid;gap:12px}
+.q-dh{display:flex;align-items:center;gap:12px}.q-dh h3{margin:0;font:400 21px var(--round);color:#ffe7a6}.q-dh small{color:#a9b8e0;font-size:12px}.q-dh .sh-x{margin-left:auto;flex:none}
+.q-big{font:600 40px var(--fun);text-align:center}.q-big small{font-size:16px}
+.q-sec h4{margin:0 0 4px;font:400 15px var(--round);color:#ffd36b}.q-sec p{margin:0;font-size:14px;line-height:1.7;color:#dbe4ff}
+.q-chips{display:flex;flex-wrap:wrap;gap:6px}
+.q-chips button{font:inherit;font-size:13px;color:#c6d0ee;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.2);background:rgba(4,10,32,.35);cursor:pointer}
+.q-chips button.ok{color:#fff;border-color:rgba(127,227,160,.6)}
+.q-self{display:grid;gap:10px}.q-self h4{margin:6px 0 0;font:400 16px var(--round)}
+.q-self fieldset{margin:0;border:0;padding:10px 12px;border-radius:14px;background:rgba(4,10,32,.35);display:grid;gap:8px}
+.q-self legend{float:left;width:100%;padding:0;display:flex;gap:8px;align-items:center;font-size:14px;line-height:1.5}
+.q-scale{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.q-scale label{cursor:pointer}.q-scale input{position:absolute;opacity:0;pointer-events:none}
+.q-scale span{display:grid;justify-items:center;gap:1px;padding:6px 2px;border-radius:10px;border:1px solid rgba(255,255,255,.18);font-size:11px;color:#a9b8e0;text-align:center}
+.q-scale span b{font:600 16px var(--fun);color:#fff}
+.q-scale input:checked+span{background:linear-gradient(180deg,#ffe08a,#f2b33d);border-color:#ffe7a6;color:#3a2300}.q-scale input:checked+span b{color:#3a2300}
+.q-scale input:focus-visible+span{outline:2px solid #ffd36b}
+
+/* 手機：雷達圖文字放大、總覽數字改三欄 */
+@media (max-width:560px){
+  .q-code{font-size:19px}.q-val{font-size:19px}.q-name{font-size:14px}
+  .q-kpis{grid-template-columns:repeat(3,1fr);gap:6px}.q-kpis .gr-kpi{padding:8px}.q-kpis .gr-kpi b{font-size:20px}
+  .q-lv i{width:52px;height:52px;font-size:32px}
+  .q-tag.big{min-width:44px;height:36px;font-size:16px}
+}

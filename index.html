@@ -1092,7 +1092,10 @@
 <button id="hud-toggle" aria-pressed="false" aria-label="收起操作介面（H 鍵）"><span class="tip">收起介面（H）</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path id="ht-ico" d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg></button>
 <div id="warp" aria-hidden="true"></div>
 
+<link rel="stylesheet" href="q11/q11.css?v=1">
 <script src="cloud.js?v=4"></script>
+<script src="q11/q11-data.js?v=1"></script>
+<script src="q11/q11.js?v=1"></script>
 <script>
 (function () {
   "use strict";
@@ -1111,7 +1114,7 @@
     '<path fill="none" stroke="#7a4708" stroke-width="1.6" opacity=".55" d="M22 9l-2.5 14M32 9v14M42 9l2.5 14"/></svg>';
   var NAV = [["shop", "商店"], ["trophy", "成就"], ["book", "學習地圖"], ["team", "團隊"], ["gear", "設定"]];
   document.getElementById("h-nav").innerHTML = NAV.map(function (x) {
-    return '<button ' + (x[0] === "gear" ? 'id="nav-settings" aria-haspopup="dialog" aria-expanded="false"' : x[0] === "shop" ? 'id="nav-shop"' : x[0] === "trophy" ? 'id="nav-album"' : 'data-demo="' + x[1] + '"') + ' aria-label="' + x[1] + '">' + GOLD_ICONS[x[0]] + '<span>' + x[1] + "</span></button>"; }).join("");
+    return '<button ' + (x[0] === "gear" ? 'id="nav-settings" aria-haspopup="dialog" aria-expanded="false"' : x[0] === "shop" ? 'id="nav-shop"' : x[0] === "trophy" ? 'id="nav-album"' : x[0] === "book" ? 'id="nav-map"' : 'data-demo="' + x[1] + '"') + ' aria-label="' + x[1] + '">' + GOLD_ICONS[x[0]] + '<span>' + x[1] + "</span></button>"; }).join("");
   var ACTS = [["game", "遊戲挑戰", 647], ["course", "課程學習", 825], ["meditate", "冥想練習", 1001], ["team", "團隊活動", 1176], ["growth", "成長紀錄", 1352]];
   document.getElementById("h-actions").insertAdjacentHTML("beforeend", ACTS.map(function (x) {
     return '<button ' + (x[0] === "growth" ? 'id="act-growth"' : 'data-demo="' + x[1] + '"') + ' style="left:' + (x[2] - 526 - 66) + 'px"><span class="abs dome"></span>' + GOLD_ICONS[x[0] === "team" ? "team" : x[0]] + '<span class="lab">' + x[1] + "</span></button>"; }).join(""));
@@ -2103,6 +2106,7 @@
     if (r.completed && !st.cleared) { st.cleared = true; xp += RW.firstXP; coin += RW.firstCoin; notes.push("首次通關"); }
     if (valid && st.best >= 0 && ratio > st.best + 1e-6) { xp += RW.pbXP; coin += RW.pbCoin; notes.push("突破個人最佳"); }
     if (valid) st.best = Math.max(st.best, ratio);
+    if (valid && window.MFQ) MFQ.record(p, g.num, ratio * 100, dsec);   // 學習地圖：有效場次記入 11Q 評量（該遊戲的兩項主要能力）
     if (mult === 0) notes.push("今天這關已達獎勵次數");
     xp = Math.round(xp); coin = Math.round(coin);
     var text = "「" + g.name + "」成績 " + Math.round(ratio * 100) + "%" + (stars ? " " + "★★★".slice(0, stars) : "") + (notes.length ? "（" + notes.join("、") + "）" : "");
@@ -3665,6 +3669,25 @@
   grEl.addEventListener("change", function (e) { var t = e.target; if (t.dataset && t.dataset.pv) { var p = gInit(curP()); p.privacy[t.dataset.pv] = t.checked; saveP(); toast("隱私設定已更新。"); } });
   window.addEventListener("keydown", function (e) { if (e.key === "Escape" && !grEl.hidden) { e.stopImmediatePropagation(); var m = grEl.querySelector(".gr-modal"); if (m) m.remove(); else closeGrowth(); } }, true);
   document.getElementById("act-growth").addEventListener("click", function (e) { e.stopPropagation(); openGrowth(); });
+
+  // ---------------------------------------------------------------- 學習地圖：11Q 學習成長雷達圖（q11/q11.js）
+  function goStation(num) {   // 飛到某一關：不在同一個村莊就先換場景，抵達後再對準關卡
+    var st = stationOf(num); if (!st) return;
+    var sid = null; Object.keys(SCENES).forEach(function (k) { if (!sid && SCENES[k].items.indexOf(st) >= 0) sid = k; });
+    if (!sid) return;
+    if (scene.id === sid) { flyToArea(st); return; }
+    switchScene(sid, null); var t0 = Date.now();
+    (function wait() { if ((warping || scene.id !== sid) && Date.now() - t0 < 30000) return setTimeout(wait, 150); if (scene.id === sid) setTimeout(function () { flyToArea(st); }, 400); })();
+  }
+  if (window.MFQ) {
+    MFQ.init({
+      curP: curP, saveP: saveP, testMode: testMode, toast: toast, goStation: goStation,
+      gameInfo: function (num) { var g = gameByNum(num), st = stationOf(num), r = curP().res[num]; return { name: g ? g.name : st ? st.zh : "", url: g && g.url ? g.url : "", place: st ? st.place : "", plays: r ? r.plays || 0 : 0 }; },
+      who: function (p) { return '<img src="' + avatarOf(p) + '" alt=""><span><b>' + esc(p.name) + "</b><small>" + titleOf(p.level) + " Lv." + p.level + (p.demo ? "・示範資料" : "") + "</small></span>"; },
+      onClose: function () { renderPlayerHud(false); }
+    });
+    document.getElementById("nav-map").addEventListener("click", function (e) { e.stopPropagation(); MFQ.open(); });
+  }
 
   // ---- 遊戲授權中心：講師評語 ----
   function commentBox(t) {
