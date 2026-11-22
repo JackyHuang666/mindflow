@@ -4996,7 +4996,11 @@
       g.jaw.rotation.x = mouth * (g.kind === "bird" ? 0.45 : 0.55);
       g.ears.forEach(function (e, i) { e.rotation.x = e.userData.r0 + earX + Math.sin(t * 2.5 + i * 2) * 0.03; });
     }
-    function play(v, a, t) { v.anim = a; v.t0 = t == null ? now() : t; v.last = now(); }
+    function play(v, a, t) { v.anim = a; v.t0 = t == null ? now() : t; v.last = now(); wakeView(v, 8); }
+    // 手機省電（v113 防閃退）：主畫面小寵物只在剛出現、被點、做動作時動 8 秒，之後停在最後一格（外框的上下浮動動畫照常）；
+    // 畫面上沒有需要動的寵物超過 5 秒，就整個釋放寵物 3D 繪圖，需要時再自動建立
+    function isPhone() { return window.MF_TIER === "phone"; }
+    function wakeView(v, sec) { v.wakeUntil = Math.max(v.wakeUntil || 0, now() + sec); v.frozen = false; }
     function now() { return performance.now() / 1000; }
     // ---------- 畫面上的寵物位置 ----------
     function hydrate(el) {
@@ -5006,6 +5010,7 @@
       var v = st || { sp: sp, br: br, face: faceOf[role] || 1, yaw: yaw0(sp) * (faceOf[role] || 1), vel: 0, anim: "idle", t0: 0, last: now(), blink: now() + 1 + Math.random() * 2, look: [0, 0], hx: 0, hy: 0, lie: 0 };
       v.st = +el.dataset.st || 1; v.el = el; v.live = live; v.cv = document.createElement("canvas"); v.cx = v.cv.getContext("2d");
       el.appendChild(v.cv); el.classList.add("on"); el.__pv = v; if (role) roleState[role] = v;
+      wakeView(v, 4); v.nextDraw = 0;
       if (el.dataset.anim) play(v, el.dataset.anim);
       if (live) bind(el, v);
       if (role === "mini" || role === "main") { var z = document.createElement("i"); z.className = "p3-z"; z.textContent = "Z z z"; el.appendChild(z); v.zz = z; }
@@ -5013,7 +5018,7 @@
     }
     function bind(el, v) {
       var d = null;
-      el.addEventListener("pointerdown", function (e) { d = { x: e.clientX, y: e.clientY, moved: false, lx: e.clientX }; try { el.setPointerCapture(e.pointerId); } catch (er) {} });
+      el.addEventListener("pointerdown", function (e) { wakeView(v, 8); d = { x: e.clientX, y: e.clientY, moved: false, lx: e.clientX }; try { el.setPointerCapture(e.pointerId); } catch (er) {} });
       el.addEventListener("pointermove", function (e) {
         if (!d) return;
         if (Math.abs(e.clientX - d.x) > 6 || Math.abs(e.clientY - d.y) > 6) d.moved = true;
@@ -5060,11 +5065,11 @@
     function frame() {
       requestAnimationFrame(frame);
       var tt = performance.now(); if (tt - lastF < 33) return; lastF = tt;
-      if (document.body.classList.contains("mfc-lab-open")) { if (!labFreed) { labFreed = true; gcRigs(true); } return; }   // 遊戲開著時暫停，並釋放全部寵物模型
+      if (document.body.classList.contains("mfc-lab-open")) { if (!labFreed) { labFreed = true; if (R) sleepR(); else gcRigs(true); } return; }   // 遊戲開著時暫停，並釋放寵物模型與 3D 繪圖
       labFreed = false;
       if (document.hidden || petLost) return;
-      if (tt - lastGC > 5000) { lastGC = tt; gcRigs(false); }
-      var t = now();
+      if (R && tt - lastGC > 5000) { lastGC = tt; gcRigs(false); }
+      var t = now(), phone = isPhone();
       for (var i = views.length - 1; i >= 0; i--) {
         var v = views[i];
         if (!v.el.isConnected) { views.splice(i, 1); continue; }
@@ -5072,10 +5077,22 @@
         if (v.el.dataset.role === "mini" && /hud-hidden|shop-open|auth-open/.test(document.body.className)) continue;
         var r = v.el.getBoundingClientRect(); if (r.width < 4 || r.bottom < 0 || r.top > innerHeight || r.right < 0 || r.left > innerWidth) continue;
         if (!v.live && v.nextDraw && t < v.nextDraw) continue;
+        if (phone && v.live && v.el.dataset.role === "mini" && t > (v.wakeUntil || 0)) { if (v.frozen) continue; v.frozen = true; }   // 再畫最後一格就停
+        if (!R && !wakeR()) return;
+        lastBusy = tt;
         if (!v.live) v.nextDraw = v.el.dataset.anim ? t + 0.04 : Infinity;   // 靜態的寵物圖只畫一次，省電
         try { draw(v, r, t); } catch (e) { console.warn("pet3d", e); views.splice(i, 1); v.el.classList.remove("on"); if (v.cv) v.cv.remove(); }
       }
+      if (phone && R && tt - lastBusy > 5000) sleepR();
     }
+    var lastBusy = 0, sleeping = false;
+    function sleepR() {   // 釋放寵物 3D 繪圖（畫好的寵物圖留在畫面上）
+      gcRigs(true); sleeping = true;
+      try { R.dispose(); R.forceContextLoss(); } catch (e) {}
+      R = null; CW = CH = 0; sleeping = false;
+      if (window.MFDiag) MFDiag.crumb("寵物 3D 進入省電");
+    }
+    function wakeR() { try { makeR(); return !!R; } catch (e) { console.warn("pet3d wake", e); return false; } }
     function draw(v, r, t) {
       if (v.live) {
         if (Math.abs(v.vel) > 1e-4) { v.yaw += v.vel; v.vel *= 0.92; }
@@ -5100,16 +5117,9 @@
     }
     function init() {
       if (started || !window.THREE) return; T = window.THREE;
-      try { R = new T.WebGLRenderer({ antialias: true, alpha: true }); } catch (e) { console.warn("WebGL 無法使用", e); return; }
+      try { makeR(); } catch (e) { console.warn("WebGL 無法使用", e); return; }
       started = true;
       // 被系統回收時：畫好的寵物圖（2D 畫布）留在畫面上，停止更新；還回來時 three.js 會自己重建，這裡把模型清掉重新組
-      R.domElement.addEventListener("webglcontextlost", function (e) { e.preventDefault(); petLost = true; if (window.MFDiag) MFDiag.log("gl-lost", "寵物 3D 被系統回收", { where: "pet" }); });
-      R.domElement.addEventListener("webglcontextrestored", function () {
-        Object.keys(rigs).forEach(function (k) { var g = rigs[k]; scene.remove(g.root); scene.remove(g.sh); delete rigs[k]; });
-        if (FUR) FUR.needsUpdate = true; if (SHT) SHT.needsUpdate = true; Object.keys(MAT).forEach(function (k) { MAT[k].needsUpdate = true; });
-        CW = CH = 0; views.forEach(function (v) { v.nextDraw = 0; }); petLost = false;
-      });
-      R.setClearColor(0x000000, 0); R.setPixelRatio(1); R.outputEncoding = T.sRGBEncoding;
       scene = new T.Scene();
       cam = new T.PerspectiveCamera(28, 1, 0.05, 60);
       scene.add(new T.HemisphereLight(0xfff4e6, 0x6a6f8a, 0.75));
@@ -5127,6 +5137,19 @@
       new MutationObserver(scan).observe(document.body, { childList: true, subtree: true });
       scan(); requestAnimationFrame(frame);
       document.body.classList.add("pet3d-on");
+    }
+    function makeR() {
+      var r = new T.WebGLRenderer({ antialias: true, alpha: true });
+      // 被系統回收時：畫好的寵物圖（2D 畫布）留在畫面上，停止更新；還回來時 three.js 會自己重建，這裡把模型清掉重新組
+      r.domElement.addEventListener("webglcontextlost", function (e) { e.preventDefault(); if (sleeping || r !== R) return; petLost = true; if (window.MFDiag) MFDiag.log("gl-lost", "寵物 3D 被系統回收", { where: "pet" }); });
+      r.domElement.addEventListener("webglcontextrestored", function () {
+        if (r !== R) return;
+        Object.keys(rigs).forEach(function (k) { var g = rigs[k]; scene.remove(g.root); scene.remove(g.sh); delete rigs[k]; });
+        if (FUR) FUR.needsUpdate = true; if (SHT) SHT.needsUpdate = true; Object.keys(MAT).forEach(function (k) { MAT[k].needsUpdate = true; });
+        CW = CH = 0; views.forEach(function (v) { v.nextDraw = 0; }); petLost = false;
+      });
+      r.setClearColor(0x000000, 0); r.setPixelRatio(1); r.outputEncoding = T.sRGBEncoding;
+      R = r; CW = CH = 0; lastBusy = performance.now();
     }
     function scan() { if (!started) return; document.querySelectorAll(".p3:not(.on)").forEach(hydrate); }
     function byRole(role) { var v = roleState[role]; return v && v.el && v.el.isConnected ? v : null; }
@@ -6175,7 +6198,8 @@
     mid: { scale: 0.8, cap: 1.25, hint: "中：較省電，畫面略柔。" },
     high: { scale: 1, cap: 1.5, hint: "高：清晰與流暢的平衡。" },
     ultra: { scale: 1, cap: 2, hint: "超高：完整解析度，最清晰（需要較好的顯示卡）。" } };
-  var GFX_DEFAULT = { bright: 100, contrast: 100, sat: 100, quality: "ultra" }, gfx = Object.assign({}, GFX_DEFAULT);
+  // 預設畫質（v113 防閃退）：手機、平板預設「高」（解析度上限 1.5 倍），電腦維持「超高」；玩家在設定裡選過的照舊
+  var GFX_DEFAULT = { bright: 100, contrast: 100, sat: 100, quality: TIER === "desktop" ? "ultra" : "high" }, gfx = Object.assign({}, GFX_DEFAULT);
   try { var saved = JSON.parse(localStorage.getItem("mf-gfx") || "null"); if (saved && QUALITY[saved.quality]) gfx = Object.assign(gfx, saved); } catch (e) {}
   function saveGfx() { try { localStorage.setItem("mf-gfx", JSON.stringify(gfx)); } catch (e) {} }
   var GFX_INPUTS = { bright: "g-bright", contrast: "g-contrast", sat: "g-sat" };
@@ -6210,9 +6234,12 @@
   var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var t0 = performance.now(), last = t0, SUN_DIR = norm(planePoint(SUN_PX[0], SUN_PX[1]));
   var glFrames = 0, glChecked = false;
+  var pdrawEl = document.getElementById("pdraw");
   function frame(now) {
     requestAnimationFrame(frame);
     if (document.body.classList.contains("mfc-lab-open")) { last = now; return; }   // 角色動作測試開著時暫停主畫面繪製
+    // 全螢幕面板（商店、成長紀錄、學習地圖、授權中心，手機上的角色檔案）蓋住畫面時暫停繪製，畫面停在最後一格（v113 防閃退）
+    if (!fly && !warping && (/\b(shop-open|auth-open)\b/.test(document.body.className) || (pdrawEl && pdrawEl.classList.contains("show") && innerWidth < 700))) { last = now; return; }
     var dt = Math.min((now - last) / 1000, 0.05); last = now;
     var t = reduce ? 0 : (now - t0) / 1000;
     if (fly) {
