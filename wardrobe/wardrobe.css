@@ -58,3 +58,23 @@
 .wd-msg{margin:10px 0 0;font-size:11.5px;color:#ffe7a6;text-align:center;line-height:1.5}
 @media (max-width:360px){.wd-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.wd-fig{transform:scale(.9);transform-origin:50% 100%}}
 @media (prefers-reduced-motion:reduce){.wd-fr{transition:none}}
+/* 調色盤 */
+.wd-fr .wd-cv{position:absolute;top:0;width:400%;height:100%;max-width:none}
+.wd-palbtn{position:absolute;left:8px;top:9px;z-index:3;border:1.5px solid rgba(255,255,255,.28);border-radius:999px;background:rgba(13,18,34,.7);color:#fff;font:inherit;font-size:11.5px;font-weight:800;padding:5px 10px;min-height:30px;cursor:pointer}
+.wd-palbtn.on{background:#ffd36b;color:#1b2236;border-color:#ffd36b}
+.wd-pal{margin-top:10px;padding:10px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,211,107,.35)}
+.wd-sch{display:flex;gap:6px;margin-bottom:8px}
+.wd-sch button{flex:1;border:1.5px solid rgba(255,255,255,.22);border-radius:10px;background:none;color:#dfe6ff;font:inherit;font-size:12px;font-weight:700;padding:6px 0;min-height:32px;cursor:pointer}
+.wd-sch button.on{background:#ffd36b;color:#1b2236;border-color:#ffd36b}
+.wd-parts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-bottom:8px}
+.wd-parts button{display:flex;flex-direction:column;align-items:center;gap:4px;border:1.5px solid rgba(255,255,255,.16);border-radius:10px;background:rgba(13,18,34,.45);color:#dfe6ff;font:inherit;font-size:10.5px;font-weight:700;padding:6px 2px;cursor:pointer;line-height:1.2}
+.wd-parts button.on{border-color:#ffd36b;color:#ffd36b}
+.wd-parts i{display:block;width:18px;height:18px;border-radius:50%;border:1.5px solid rgba(255,255,255,.6)}
+.wd-parts i.none{background:conic-gradient(#e57373,#ffd54f,#81c784,#64b5f6,#ba68c8,#e57373)!important;opacity:.55}
+.wd-sw{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:6px}
+.wd-sw button{aspect-ratio:1;border-radius:50%;border:2px solid rgba(255,255,255,.25);padding:0;cursor:pointer;min-width:0}
+.wd-sw button.on{border-color:#fff;box-shadow:0 0 0 2px #ffd36b}
+.wd-sw0{background:linear-gradient(135deg,transparent 45%,#e05a5a 45%,#e05a5a 55%,transparent 55%),rgba(255,255,255,.12)}
+.wd-palf{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;font-size:11px;color:#b8c4e6;line-height:1.4}
+.wd-mini{flex:none;border:1px solid rgba(255,255,255,.3);border-radius:999px;background:none;color:#fff;font:inherit;font-size:11px;padding:4px 10px;cursor:pointer}
+@media (max-width:360px){.wd-sw{grid-template-columns:repeat(6,minmax(0,1fr))}}

@@ -16,7 +16,7 @@
  */
 (function (global) {
   "use strict";
-  var VER = "2";
+  var VER = "3";
   var BASE = (function () { var s = document.currentScript && document.currentScript.src; return s ? s.replace(/[^/]*$/, "") : "wardrobe/"; })();
 
   // 套裝：id、名稱、分類、價格（智慧星星）、g：MF＝分男女版、U＝男女共用；d：男／女的［斜側、側面］臉朝右＝1、朝左＝-1
@@ -98,6 +98,101 @@
     return [[0, 0], [1, d[0] !== 1], [3, d[1] !== 1], [2, 0], [3, d[1] !== -1], [1, d[0] !== -1]];
   }
 
+  // ---------------------------------------------------------------- 調色盤
+  // 每套時裝都有區域遮罩 img/<套裝>_<m|f>_mask.png（灰階：0 不換色、60 頭髮、120 外套・上衣、180 褲子・裙子、240 鞋子・配件）
+  // 換色時保留原圖的明暗：新顏色 × (像素亮度 ÷ 該區平均亮度)。只處理舞台上目前這一套，畫在 canvas 上。
+  var PARTS4 = [["h", "頭髮", 1], ["t", "外套・上衣", 2], ["b", "褲子・裙子", 3], ["a", "鞋子・配件", 4]];
+  var PAL = {
+    h: [["自然黑", "#2b2522"], ["深咖啡", "#4a3020"], ["栗子棕", "#7a4a2a"], ["焦糖", "#a8703f"], ["亞麻金", "#d8b06a"], ["白金", "#eadfc6"], ["銀灰", "#a9a9b0"], ["酒紅", "#7c2f3a"],
+        ["玫瑰粉", "#e48aa8"], ["珊瑚橘", "#e8794f"], ["薰衣紫", "#9a7fd1"], ["星空藍", "#3f5fb0"], ["薄荷綠", "#6fc2a6"], ["天空藍", "#7ec4ea"], ["檸檬黃", "#efd35a"], ["火焰紅", "#c8343a"]],
+    c: [["純白", "#f4f1ea"], ["米白", "#e8dcc4"], ["卡其", "#c8ad7f"], ["咖啡", "#7a5236"], ["炭灰", "#4a4a50"], ["墨黑", "#24242a"], ["海軍藍", "#2c3e6b"], ["天空藍", "#7fb3e0"],
+        ["湖水綠", "#4fa79a"], ["森林綠", "#3f6b45"], ["橄欖綠", "#8a8f4e"], ["檸檬黃", "#efcf4a"], ["南瓜橘", "#e07b39"], ["番茄紅", "#c9413b"], ["櫻花粉", "#f0a7bf"], ["葡萄紫", "#7b5aa6"]]
+  };
+  function palOf(k) { return k === "h" ? PAL.h : PAL.c; }
+  function colStore(p, id) {
+    var w = wd(p); if (!w.col || typeof w.col !== "object") w.col = {};
+    var c = w.col[id]; if (!c || !Array.isArray(c.sets)) c = w.col[id] = { act: -1, sets: [{}, {}, {}] };
+    while (c.sets.length < 3) c.sets.push({});
+    if (!(c.act >= -1 && c.act <= 2)) c.act = -1;
+    return c;
+  }
+  function activeCols(p, id) {   // 目前套用的配色（{h,t,b,a}）；原色或未擁有時回傳 null
+    if (!owns(p, id)) return null;
+    var c = wd(p).col && wd(p).col[id]; if (!c || c.act < 0) return null;
+    var set = c.sets[c.act] || {}, any = false; for (var k in set) if (/^#[0-9a-f]{6}$/i.test(set[k])) any = true;
+    return any ? set : null;
+  }
+  function hexRGB(h) { var n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+  var RC = { key: "", base: null, mask: null, mean: null, cv: null, busy: null };   // 只快取目前這一套
+  function loadImg(u) { return new Promise(function (res, rej) { var im = new Image(); im.decoding = "async"; im.onload = function () { res(im); }; im.onerror = rej; im.src = u; }); }
+  function prep(id, g) {
+    var k = id + "_" + g;
+    if (RC.key === k && RC.base) return Promise.resolve();
+    if (RC.busy && RC.busyKey === k) return RC.busy;
+    RC.busyKey = k;
+    RC.busy = Promise.all([loadImg(src(id, g)), loadImg(BASE + "img/" + id + "_" + g + "_mask.png?v=" + VER)]).then(function (ims) {
+      var W = ims[0].naturalWidth, Hh = ims[0].naturalHeight, c = document.createElement("canvas"); c.width = W; c.height = Hh;
+      var x = c.getContext("2d"); x.drawImage(ims[0], 0, 0); var base = x.getImageData(0, 0, W, Hh);
+      x.clearRect(0, 0, W, Hh); x.drawImage(ims[1], 0, 0, W, Hh); var md = x.getImageData(0, 0, W, Hh).data;
+      var mask = new Uint8Array(W * Hh), sum = [0, 0, 0, 0, 0], cnt = [0, 0, 0, 0, 0], b = base.data;
+      for (var i = 0, j = 0; i < mask.length; i++, j += 4) {
+        var r = Math.round(md[j] / 60); if (r > 4) r = 4; if (b[j + 3] < 40) r = 0; mask[i] = r;
+        if (r) { sum[r] += 0.299 * b[j] + 0.587 * b[j + 1] + 0.114 * b[j + 2]; cnt[r]++; }
+      }
+      RC.key = k; RC.base = base; RC.mask = mask; RC.mean = sum.map(function (s, i) { return cnt[i] ? s / cnt[i] : 128; }); RC.cv = c; RC.busy = null;
+    });
+    return RC.busy;
+  }
+  function paint(cols) {   // 依配色畫到 RC.cv
+    var b = RC.base, out = new ImageData(new Uint8ClampedArray(b.data), b.width, b.height), o = out.data, m = RC.mask, mean = RC.mean, T = [null, null, null, null, null];
+    PARTS4.forEach(function (q) { var h = cols[q[0]]; if (/^#[0-9a-f]{6}$/i.test(h || "")) T[q[2]] = hexRGB(h); });
+    for (var i = 0, j = 0; i < m.length; i++, j += 4) {
+      var r = m[i], t = r && T[r]; if (!t) continue;
+      var L = 0.299 * o[j] + 0.587 * o[j + 1] + 0.114 * o[j + 2], k = L / mean[r]; if (k > 1.8) k = 1.8;
+      var lift = k > 1 ? (k - 1) * 60 : 0;
+      o[j] = t[0] * k + lift; o[j + 1] = t[1] * k + lift; o[j + 2] = t[2] * k + lift;
+    }
+    RC.cv.getContext("2d").putImageData(out, 0, 0);
+  }
+  function freePaint() { RC.key = ""; RC.base = null; RC.mask = null; RC.cv = null; }
+  // 把換色後的 canvas 放進舞台（取代 <img>）
+  function applyStage(p) {
+    var el = S.root && S.root.querySelector("#wd-card .wd-fr"); if (!el) return;
+    var id = shown(p), g = wd(p).g, cols = activeCols(p, id);
+    if (!cols) { var c0 = el.querySelector("canvas"); if (c0) { c0.remove(); el.querySelector("img").style.visibility = ""; } return; }
+    var ticket = S.paintT = (S.paintT || 0) + 1;
+    prep(id, g).then(function () {
+      if (ticket !== S.paintT) return;
+      var fr = S.root.querySelector("#wd-card .wd-fr"); if (!fr) return;
+      paint(cols);
+      var img = fr.querySelector("img"); if (!fr.contains(RC.cv)) fr.appendChild(RC.cv);
+      RC.cv.className = "wd-cv"; RC.cv.style.left = img ? img.style.left : "0";
+      if (img) img.style.visibility = "hidden";
+    }, function () {});
+  }
+  function palHTML(p, id, o) {
+    if (!S.pal) return "";
+    if (!owns(p, id)) return '<div class="wd-pal"><p class="wd-note">兌換這套時裝之後，就可以用調色盤自由換顏色。</p></div>';
+    var c = colStore(p, id), set = c.act >= 0 ? c.sets[c.act] : {}, part = S.part || "h";
+    var h = '<div class="wd-pal" aria-label="調色盤">';
+    h += '<div class="wd-sch" role="group" aria-label="配色方案">' + [-1, 0, 1, 2].map(function (i) {
+      return '<button type="button" data-wd="sch" data-v="' + i + '"' + (c.act === i ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + ">" + (i < 0 ? "原色" : "配色 " + (i + 1)) + "</button>"; }).join("") + "</div>";
+    h += '<div class="wd-parts" role="tablist">' + PARTS4.map(function (q) {
+      var v = set[q[0]]; return '<button type="button" role="tab" aria-selected="' + (part === q[0]) + '" data-wd="part" data-v="' + q[0] + '"' + (part === q[0] ? ' class="on"' : "") + '><i style="background:' + (v || "transparent") + '"' + (v ? "" : ' class="none"') + "></i>" + q[1] + "</button>"; }).join("") + "</div>";
+    var cur = set[part];
+    h += '<div class="wd-sw">' + '<button type="button" class="wd-sw0' + (!cur ? " on" : "") + '" data-wd="col" data-v="" aria-label="原本的顏色" title="原本的顏色"></button>' +
+      palOf(part).map(function (x) { return '<button type="button" data-wd="col" data-v="' + x[1] + '" style="background:' + x[1] + '"' + (cur && cur.toLowerCase() === x[1] ? ' class="on"' : "") + ' aria-label="' + x[0] + '" title="' + x[0] + '"></button>'; }).join("") + "</div>";
+    h += '<div class="wd-palf"><span>' + (c.act < 0 ? "目前是原色。點顏色會存進「配色 1」。" : "自動儲存在「配色 " + (c.act + 1) + "」，可以隨時切換。") + "</span>" +
+      (c.act >= 0 ? '<button type="button" class="wd-mini" data-wd="clr">清除這組配色</button>' : "") + "</div></div>";
+    return h;
+  }
+  function pickCol(p, id, hex) {
+    var c = colStore(p, id), part = S.part || "h";
+    if (c.act < 0) { c.act = 0; for (var i = 0; i < 3; i++) if (!Object.keys(c.sets[i]).length) { c.act = i; break; } }
+    if (hex) c.sets[c.act][part] = hex; else delete c.sets[c.act][part];
+    H.save();
+  }
+
   function html() { return '<div class="pd-card wd-card" id="wd-card" aria-label="我的穿搭"></div>'; }
 
   function render() {
@@ -113,7 +208,7 @@
     var tried = S.try && !owns(p, S.try), bdg = o.g === "U" ? ["男女共用", "u"] : g === "m" ? ["男生版", "m"] : ["女生版", "f"];
     var h = '<div class="wd-head"><h3>👕 我的穿搭<small>' + (tried ? "試穿中" : "左右拖曳可以 360° 轉動") + '</small></h3>' +
       '<div class="wd-seg" role="group" aria-label="角色性別"><button type="button" data-wd="g" data-v="m"' + (g === "m" ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + '>男生</button><button type="button" data-wd="g" data-v="f"' + (g === "f" ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + ">女生</button></div></div>";
-    h += '<div class="wd-stage" data-wd-stage>' +
+    h += '<div class="wd-stage" data-wd-stage>' + '<button type="button" class="wd-palbtn' + (S.pal ? " on" : "") + '" data-wd="pal" aria-pressed="' + !!S.pal + '">🎨 調色盤</button>' +
       '<div class="wd-floor" aria-hidden="true"></div><div class="wd-fig" role="img" aria-label="' + esc(o.zh + "（" + bdg[0] + "），" + ANG[S.frame][0]) + '">' + frames + "</div>" +
       '<div class="wd-name"><span class="wd-b ' + bdg[1] + '">' + bdg[0] + "</span>" + esc(o.zh) + "</div>" +
       '<div class="wd-col l">' + GROUPS.filter(function (G) { return G.side === "L"; }).map(slot).join("") + "</div>" +
@@ -123,6 +218,7 @@
       '<div class="wd-nav"><button type="button" class="wd-arw" data-wd="turn" data-v="-1" aria-label="往左轉"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>' +
       '<div class="wd-ang"><b>360°・' + ANG[S.frame][0] + "・" + ANG[S.frame][1] + '°</b><span>' + ANG.map(function (a, i) { return '<button type="button" data-wd="fr" data-v="' + i + '" aria-label="' + a[0] + '"' + (i === S.frame ? ' class="on"' : "") + "></button>"; }).join("") + "</span></div>" +
       '<button type="button" class="wd-arw" data-wd="turn" data-v="1" aria-label="往右轉"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button></div></div>';
+    h += palHTML(p, cid, o);
     // 清單
     var tabs = [{ id: "set", zh: "整套造型" }].concat(GROUPS);
     h += '<div class="wd-tabs" role="tablist">' + tabs.map(function (t) { return '<button type="button" role="tab" aria-selected="' + (S.tab === t.id) + '" data-wd="tab" data-v="' + t.id + '"' + (S.tab === t.id ? ' class="on"' : "") + ">" + t.zh + "</button>"; }).join("") + "</div>";
@@ -151,13 +247,14 @@
       (cards.length ? '<div class="wd-grid">' + cards.join("") + "</div>" : '<div class="wd-empty">🔒 敬請期待，之後會在商店上架</div>') +
       (S.msg ? '<p class="wd-msg" role="status">' + esc(S.msg) + "</p>" : "");
     el.innerHTML = h;
+    applyStage(p);
   }
 
   function setFrame(i) {
     S.frame = (i % 6 + 6) % 6;
     var el = S.root && S.root.querySelector("#wd-card"); if (!el) return;
     var fr = el.querySelector(".wd-fr"), p = H.getP && H.getP();
-    if (fr && p) { var q = seq(outOf(shown(p)), wd(p).g)[S.frame]; fr.classList.toggle("flip", !!q[1]); fr.firstChild.style.left = "-" + q[0] * 100 + "%"; }
+    if (fr && p) { var q = seq(outOf(shown(p)), wd(p).g)[S.frame]; fr.classList.toggle("flip", !!q[1]); fr.firstChild.style.left = "-" + q[0] * 100 + "%"; var cv = fr.querySelector("canvas"); if (cv) cv.style.left = fr.firstChild.style.left; }
     var k, dots = el.querySelectorAll(".wd-ang span button"); for (k = 0; k < dots.length; k++) dots[k].classList.toggle("on", k === S.frame);
     var b = el.querySelector(".wd-ang b"); if (b) b.textContent = "360°・" + ANG[S.frame][0] + "・" + ANG[S.frame][1] + "°";
     var fig = el.querySelector(".wd-fig"); if (fig) fig.setAttribute("aria-label", fig.getAttribute("aria-label").replace(/，[^，]*$/, "，" + ANG[S.frame][0]));
@@ -173,7 +270,7 @@
     if (!el) { clearInterval(S.timer); S.timer = 0; return; }
     // 抽屜關閉或切到背景時清空卡片、釋放圖片記憶體；回來時再畫
     var vis = visible() && !document.hidden;
-    if (!vis) { if (!S.cleared && el.firstChild) { el.innerHTML = ""; S.cleared = true; } return; }
+    if (!vis) { if (!S.cleared && el.firstChild) { el.innerHTML = ""; S.cleared = true; freePaint(); } return; }
     if (S.cleared) { S.cleared = false; render(); return; }
     if (S.auto && !S.drag && !document.hidden && visible() && Date.now() - S.last > 2500) setFrame(S.frame + 1);
   }
@@ -214,6 +311,11 @@
     else if (a === "wear") wear(p, v);
     else if (a === "untry") { S.try = null; S.msg = ""; S.frame = 0; }
     else if (a === "buy") { buy(p); }
+    else if (a === "pal") { S.pal = !S.pal; }
+    else if (a === "part") { S.part = v; }
+    else if (a === "sch") { var cs = colStore(p, shown(p)); cs.act = +v; H.save(); }
+    else if (a === "col") { pickCol(p, shown(p), v); }
+    else if (a === "clr") { var cc = colStore(p, shown(p)); if (cc.act >= 0) { cc.sets[cc.act] = {}; H.save(); } }
     render();
   }
   // 拖曳轉動：水平拖曳才轉，垂直仍可捲動
