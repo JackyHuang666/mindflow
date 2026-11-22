@@ -133,7 +133,7 @@
   css.textContent = ".cl-box{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:12px 14px;margin:10px 0}" +
     ".cl-box h5{margin:0 0 6px;font-size:15px}.cl-box p{margin:4px 0;font-size:13px;opacity:.85}#cloud-box .cl-box input{width:100%;height:auto;accent-color:auto;box-sizing:border-box;margin:4px 0;padding:9px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.25);color:inherit;font-size:14px}" +
     ".cl-row{display:flex;gap:8px;margin-top:6px}.cl-row button{flex:1;padding:9px;border-radius:10px;border:0;font-weight:700;cursor:pointer;background:#f3c969;color:#3a2a10}.cl-row button.sec{background:rgba(255,255,255,.18);color:inherit}" +
-    ".cl-err{color:#ffb4a8}.cl-ok{color:#bfe8a8}.adm-code{display:block;font-size:11px;color:#f3c969;margin-top:2px}.adm-code b{letter-spacing:1px}";
+    ".cl-pw{position:relative}#cloud-box .cl-pw input{padding-right:44px}#cloud-box .cl-eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:36px;height:36px;margin:0;padding:0;border:0;background:none;color:inherit;opacity:.75;cursor:pointer;display:flex;align-items:center;justify-content:center}#cloud-box .cl-eye:hover{opacity:1}#cloud-box .cl-eye svg{width:20px;height:20px}.cl-err{color:#ffb4a8}.cl-ok{color:#bfe8a8}.adm-code{display:block;font-size:11px;color:#f3c969;margin-top:2px}.adm-code b{letter-spacing:1px}";
   document.head.appendChild(css);
   var STATE_TXT = { idle: "", busy: "連線中…", dirty: "有新的進度，稍後自動上傳…", ok: "☁️ 已同步到雲端", confirm: "註冊成功！請到信箱點確認連結，再回來登入。" };
   function setState(s) { state = s; render(); }
@@ -148,11 +148,15 @@
         '<div class="cl-row"><button data-cl="sync">立即同步</button><button class="sec" data-cl="out">登出雲端帳號</button></div></div>';
     } else {
       box.innerHTML = '<div class="cl-box"><h5>☁️ 雲端存檔</h5><p>登入後進度會存到雲端，換手機、平板或電腦都能接著玩。</p>' +
-        '<input id="cl-mail" type="email" placeholder="Email" autocomplete="username"><input id="cl-pw" type="password" placeholder="密碼（至少 6 個字）" autocomplete="current-password">' + msg +
+        '<input id="cl-mail" type="email" placeholder="Email" autocomplete="username"><div class="cl-pw"><input id="cl-pw" type="password" placeholder="密碼（至少 6 個字）" autocomplete="current-password"><button type="button" class="cl-eye" data-eye aria-label="顯示密碼" title="顯示密碼">' + EYE[0] + "</button></div>" + msg +
         '<div class="cl-row"><button data-cl="in">登入</button><button class="sec" data-cl="up">註冊新帳號</button></div></div>';
     }
   }
+  var EYE = ['<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 19c-7 0-11-7-11-7a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 7 11 7a18.5 18.5 0 0 1-2.16 3.19M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/></svg>'];
   document.addEventListener("click", function (e) {
+    var ey = e.target.closest && e.target.closest("[data-eye]");
+    if (ey) { var pw = document.getElementById("cl-pw"), show = pw.type === "password"; pw.type = show ? "text" : "password"; ey.innerHTML = EYE[show ? 1 : 0]; ey.title = ey.ariaLabel = show ? "隱藏密碼" : "顯示密碼"; pw.focus(); return; }
     var b = e.target.closest && e.target.closest("[data-cl]"); if (!b) return;
     var act = b.dataset.cl;
     if (act === "sync") { pullOrg(); return push(); }
