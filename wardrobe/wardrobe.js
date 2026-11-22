@@ -16,7 +16,7 @@
  */
 (function (global) {
   "use strict";
-  var VER = "5";
+  var VER = "6";
   var BASE = (function () { var s = document.currentScript && document.currentScript.src; return s ? s.replace(/[^/]*$/, "") : "wardrobe/"; })();
 
   // 套裝：id、名稱、分類、價格（智慧星星）、g：MF＝分男女版、U＝男女共用；d：男／女的［斜側、側面］臉朝右＝1、朝左＝-1
@@ -94,6 +94,8 @@
     return '<span class="wd-th" style="width:' + size + "px;height:" + size + 'px"><img src="' + BASE + "img/thumbs_" + g + ".webp?v=" + VER + '" alt="' + esc(alt || "") + '" style="' + st + '" decoding="async" draggable="false"></span>';
   }
   function shown(p) { return S.try || wd(p).cur; }   // 舞台上顯示的套裝（試穿優先）
+  // 舞台圖用 CSS 背景只顯示四格中的一格：背景不會畫到框外，iOS Safari 也不會露出相鄰角度的殘影
+  function bgx(i) { return (i * 100 / 3).toFixed(4) + "%"; }
   function seq(o, g) {
     var d = o.d[g === "m" ? 0 : 1];
     return [[0, 0], [1, d[0] !== 1], [3, d[1] !== 1], [2, 0], [3, d[1] !== -1], [1, d[0] !== -1]];
@@ -110,7 +112,7 @@
       return '<button type="button" class="wd-slot' + (S.tab === G.id ? " on" : "") + '" data-wd="tab" data-v="' + G.id + '" aria-label="' + G.zh + (ps.length ? "：" + ps.map(function (x) { return x[0]; }).join("、") : "：未裝備") + '">' +
         '<span class="wd-sbox">' + (ps.length ? thumb(cid, g, ps[0][5], 44, ps[0][0]) : '<i class="wd-plus" aria-hidden="true"></i>') + (ps.length > 1 ? '<b class="wd-more">+' + (ps.length - 1) + "</b>" : "") + "</span><span class=\"wd-sl\">" + G.zh + "</span></button>";
     }
-    var q0 = sq[S.frame], frames = '<div class="wd-fr on' + (q0[1] ? " flip" : "") + '"><img src="' + src(cid, g) + '" alt="" decoding="async" draggable="false" style="left:-' + q0[0] * 100 + '%"></div>';
+    var q0 = sq[S.frame], frames = '<div class="wd-fr on' + (q0[1] ? " flip" : "") + '"><i class="wd-sp" style="background-image:url(\'' + src(cid, g) + '\');background-position:' + bgx(q0[0]) + ' 0"></i></div>';
     var tried = S.try && !owns(p, S.try), bdg = o.g === "U" ? ["男女共用", "u"] : g === "m" ? ["男生版", "m"] : ["女生版", "f"];
     var h = '<div class="wd-head"><h3>👕 我的穿搭<small>' + (tried ? "試穿中" : "左右拖曳可以 360° 轉動") + '</small></h3>' +
       '<div class="wd-seg" role="group" aria-label="角色性別"><button type="button" data-wd="g" data-v="m"' + (g === "m" ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + '>男生</button><button type="button" data-wd="g" data-v="f"' + (g === "f" ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + ">女生</button></div></div>";
@@ -159,7 +161,7 @@
     S.frame = (i % 6 + 6) % 6;
     var el = S.root && S.root.querySelector("#wd-card"); if (!el) return;
     var fr = el.querySelector(".wd-fr"), p = H.getP && H.getP();
-    if (fr && p) { var q = seq(outOf(shown(p)), wd(p).g)[S.frame]; fr.classList.toggle("flip", !!q[1]); fr.firstChild.style.left = "-" + q[0] * 100 + "%";}
+    if (fr && p) { var q = seq(outOf(shown(p)), wd(p).g)[S.frame]; fr.classList.toggle("flip", !!q[1]); fr.firstChild.style.backgroundPosition = bgx(q[0]) + " 0"; }
     var k, dots = el.querySelectorAll(".wd-ang span button"); for (k = 0; k < dots.length; k++) dots[k].classList.toggle("on", k === S.frame);
     var b = el.querySelector(".wd-ang b"); if (b) b.textContent = "360°・" + ANG[S.frame][0] + "・" + ANG[S.frame][1] + "°";
     var fig = el.querySelector(".wd-fig"); if (fig) fig.setAttribute("aria-label", fig.getAttribute("aria-label").replace(/，[^，]*$/, "，" + ANG[S.frame][0]));

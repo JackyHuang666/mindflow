@@ -9,10 +9,10 @@
 .wd-stage{position:relative;height:380px;border-radius:16px;background:radial-gradient(ellipse at 50% 38%,#3a4f86 0%,#212c4d 55%,#151c33 100%);overflow:hidden;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none}
 .wd-floor{position:absolute;left:50%;bottom:48px;width:170px;height:40px;margin-left:-85px;border-radius:50%;border:2px solid rgba(255,211,107,.55);background:radial-gradient(ellipse,rgba(255,211,107,.28),rgba(255,211,107,0) 70%);box-shadow:0 0 24px rgba(255,211,107,.25)}
 .wd-fig{position:absolute;left:50%;bottom:60px;width:192px;height:270px;margin-left:-96px;pointer-events:none}
-.wd-fr{position:absolute;inset:0;overflow:hidden;opacity:0;transition:opacity .35s ease}
+.wd-fr{position:absolute;inset:0;overflow:hidden;clip-path:inset(0);opacity:0;transition:opacity .35s ease}
 .wd-fr.on{opacity:1}
 .wd-fr.flip{transform:scaleX(-1)}
-.wd-fr img{position:absolute;top:0;width:400%;height:100%;max-width:none}
+.wd-sp{position:absolute;inset:0;display:block;background-repeat:no-repeat;background-size:400% 100%}
 .wd-name{position:absolute;left:50%;top:10px;transform:translateX(-50%);display:flex;align-items:center;gap:6px;white-space:nowrap;background:rgba(13,18,34,.7);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:4px 10px 4px 5px;font-size:12px;font-weight:800;color:#ffe7a6;z-index:2}
 .wd-b{display:inline-block;font-size:10px;font-weight:800;color:#fff;border-radius:999px;padding:1px 7px;line-height:1.5}
 .wd-b.u{background:#2f8f83}.wd-b.m{background:#3d6fd1}.wd-b.f{background:#c94b80}
