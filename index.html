@@ -35,7 +35,7 @@
   .gloss::before{content:"";position:absolute;left:6%;right:6%;top:3px;height:42%;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.26),rgba(255,255,255,0));pointer-events:none}
 
   /* 玩家卡 */
-  #h-player .panel{left:46px;top:8px;width:356px;height:104px;border-radius:22px 46px 32px 22px;
+  #h-player .panel{left:46px;top:8px;width:356px;height:134px;border-radius:22px 46px 32px 22px;
     background:linear-gradient(180deg,rgba(70,104,178,.96) 0%,rgba(40,66,132,.96) 46%,rgba(22,38,90,.97) 100%);
     box-shadow:var(--gold-rim),var(--gloss),0 12px 26px rgba(4,12,40,.5)}
   #h-player .ring{left:2px;top:-2px;width:122px;height:122px;border-radius:50%;padding:6px;box-sizing:border-box;
@@ -49,6 +49,14 @@
   #h-player .xp i{position:absolute;left:0;top:0;bottom:0;width:75%;border-radius:11px;background:linear-gradient(180deg,#6fc1ff 0%,#2f86ff 45%,#1d5ee8 100%);box-shadow:0 0 10px rgba(80,160,255,.8)}
   #h-player .xp i::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%);background-size:220% 100%;animation:shine 3.2s linear infinite}
   #h-player .xp b{position:relative;display:block;text-align:center;font:600 16px/22px var(--fun);letter-spacing:.04em;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+  /* 能量條（上限 2000；每場遊戲 −50；每 10 分鐘 +10） */
+  #h-player .en{left:148px;top:112px;width:208px;height:22px;border-radius:11px;background:linear-gradient(180deg,rgba(4,10,32,.95),rgba(16,28,64,.95));overflow:hidden;
+    box-shadow:inset 0 2px 4px rgba(0,0,0,.6),0 0 0 1.5px rgba(255,214,120,.4)}
+  #h-player .en i{position:absolute;left:0;top:0;bottom:0;width:100%;border-radius:11px;background:linear-gradient(180deg,#fff0a0 0%,#ffc23a 45%,#f08a12 100%);box-shadow:0 0 10px rgba(255,180,60,.8);transition:width .8s cubic-bezier(.2,.8,.2,1)}
+  #h-player .en.low i{background:linear-gradient(180deg,#ffb4a0 0%,#ff6a4a 50%,#d8361e 100%);box-shadow:0 0 10px rgba(255,90,60,.8)}
+  #h-player .en .en-ico{position:absolute;left:6px;top:0;font-size:15px;line-height:22px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
+  #h-player .en b{position:relative;display:block;text-align:center;font:600 16px/22px var(--fun);letter-spacing:.04em;text-shadow:0 1px 2px rgba(0,0,0,.7)}
+  #h-player .en.pulse{animation:xpPulse .7s ease-out}
 
   /* 標題 */
   #h-title .dome{left:35px;top:0;width:350px;height:232px;overflow:hidden;-webkit-mask-image:linear-gradient(#000 72%,transparent);mask-image:linear-gradient(#000 72%,transparent)}
@@ -249,7 +257,7 @@
   .kv dt{color:var(--gold)}.kv dd{margin:0}
   @media (max-width:760px){ .adm-wrap{grid-template-columns:1fr} .ge-row{grid-template-columns:1fr} .auth-top{padding:10px 12px} .auth-body{padding:12px} .auth-tabs{padding:8px 12px 0} }
   /* ---- 玩家角色：左側抽屜、經驗值動畫、升級慶祝 ---- */
-  #h-player .hit{left:0;top:-2px;width:404px;height:122px;border-radius:60px 46px 32px 60px;cursor:pointer}
+  #h-player .hit{left:0;top:-2px;width:404px;height:150px;border-radius:60px 46px 32px 60px;cursor:pointer}
   #h-player .hit:focus-visible{box-shadow:0 0 0 3px rgba(255,226,140,.9)}
   #h-player .hit:active ~ .ring{transform:scale(.96)}
   #h-player .ring{transition:transform .15s}
@@ -856,7 +864,7 @@
   .seg button[aria-pressed="true"]{background:#f1cd78;color:#3a2606;border-color:#f1cd78;font-weight:700}
   .zoom{right:calc(var(--u) * 32);top:calc(var(--u) * 140);display:grid;gap:6px}
   .zoom button{position:relative;width:40px;height:40px;border-radius:12px;font:600 22px/1 var(--fun);transition:transform .2s cubic-bezier(.3,1.6,.5,1)}
-  .home{left:calc(var(--u) * 44);top:calc(var(--u) * 175);font-size:14px;padding:9px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .25s}
+  .home{left:calc(var(--u) * 44);top:calc(var(--u) * 205);font-size:14px;padding:9px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .25s}
   .home.show{opacity:1;pointer-events:auto}
   .card{right:calc(var(--u) * 32);top:50%;transform:translate(20px,-50%);width:min(340px,calc(100% - 32px));padding:16px;border-radius:16px;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;z-index:6}
   .card.show{opacity:1;transform:translate(0,-50%);pointer-events:auto}
@@ -898,7 +906,7 @@
   .in-village #h-back{display:block}
   /* 村莊場景的標題名牌畫在場景圖上（覺察之門、認知覺醒），不另外疊介面標題 */
   .in-village #h-title{display:none}
-  .in-village .home{top:calc(var(--u) * 175)}
+  .in-village .home{top:calc(var(--u) * 205)}
   .portrait #h-back{transform-origin:0 0}
   .card .next{font-size:12.5px;color:var(--muted);border-top:1px solid rgba(255,255,255,.15);padding-top:8px;margin:0}
   .toast{font-family:var(--round);left:50%;top:calc(var(--u) * 250);transform:translate(-50%,-8px);padding:9px 16px;border-radius:12px;font-size:13.5px;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:7;max-width:calc(100% - 32px);text-align:center}
@@ -946,13 +954,14 @@
   <linearGradient id="mfGoldS" x1="0" y1="0" x2="0" y2="64" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff6cc"/><stop offset=".45" stop-color="#ffd25e"/><stop offset="1" stop-color="#d08a18"/></linearGradient>
 </defs></svg>
 <!-- 操作介面：位置與比例固定，與場景圖無關 -->
-<div class="hud-el" id="h-player" aria-label="玩家資料" data-box="tl 44 34 450 152">
+<div class="hud-el" id="h-player" aria-label="玩家資料" data-box="tl 44 34 450 182">
   <div class="abs panel"></div>
   <div class="abs ring"><img data-asset="avatar" alt=""></div>
   <div class="abs name">Jacky</div>
   <div class="abs rank">智慧探索者 Lv.12</div>
   <svg class="abs badge" viewBox="0 0 64 64" aria-hidden="true"><path fill="url(#mfGold)" stroke="#6e3f06" stroke-width="1.6" stroke-linejoin="round" d="M32 4l22 8v16c0 14-10 24-22 31C20 52 10 42 10 28V12z"/><path fill="#fff7d6" stroke="#8a560c" stroke-width="1.2" d="M32 17l4 8.5 9 1-6.7 6.2 1.8 9L32 37l-8.1 4.7 1.8-9L19 26.5l9-1z"/></svg>
   <div class="abs xp"><i></i><b>750 / 1,000 XP</b></div>
+  <div class="abs en" id="h-energy" role="img" aria-label="能量"><i></i><span class="en-ico" aria-hidden="true">⚡</span><b>2,000 / 2,000</b></div>
   <button class="abs hit" id="h-player-btn" aria-label="開啟角色檔案"></button>
 </div>
 <header class="hud-el" id="h-title" data-box="tc 790 0 1210 230">
@@ -1136,7 +1145,7 @@
     document.querySelectorAll(".hud-el[data-box]").forEach(function (el) {
       var b = el.dataset.box.split(" "), an = b[0], x0 = +b[1], y0 = +b[2], x1 = +b[3], y1 = +b[4];
       var dy = portrait && el.id === "h-title" ? 150 : 0;
-      if (portrait && el.id === "h-back") { x0 = 44; x1 = 294; y0 = 165; y1 = 221; }
+      if (portrait && el.id === "h-back") { x0 = 44; x1 = 294; y0 = 195; y1 = 251; }
       if (portrait && el.id === "mini-pet") { an = "br"; x0 = 1600; x1 = 1780; y0 = 760; y1 = 952; }
       el.style.width = (x1 - x0) + "px"; el.style.height = (y1 - y0) + "px";
       var ox = an[1] === "l" ? x0 * u : an[1] === "r" ? W - (HUD_W - x0) * u : W / 2 + (x0 - HUD_W / 2) * u;
@@ -2119,8 +2128,53 @@
   try { TK = JSON.parse(localStorage.getItem(TKEY) || "[]"); } catch (e) { TK = []; }
   function saveTK() { try { localStorage.setItem(TKEY, JSON.stringify(TK.slice(-60))); } catch (e) {} }
   function trustedHost(h) { return h === location.hostname || /\.github\.io$|\.onrender\.com$/.test(h); }
+  // ---- 能量：上限 2000，每玩一場遊戲 −50，每 10 分鐘自動 +10（依時間計算，關掉網頁也會回復）----
+  //   p.energy = { v: 目前能量, t: 下一次回復的計時起點（毫秒）}；最高管理者測試模式不消耗
+  var EN = { max: 2000, cost: 50, gain: 10, every: 10 * 60 * 1000 };
+  function energyOf(p) {
+    var now = Date.now(), e = p.energy;
+    if (!e || typeof e.v !== "number" || !(e.t > 0)) e = p.energy = { v: EN.max, t: now };
+    if (e.t > now) e.t = now;   // 裝置時間被調回去時，不讓計時卡住
+    if (e.v >= EN.max) { e.v = Math.min(e.v, EN.max); e.t = now; }
+    else { var n = Math.floor((now - e.t) / EN.every); if (n > 0) { e.v = Math.min(EN.max, e.v + n * EN.gain); e.t = e.v >= EN.max ? now : e.t + n * EN.every; } }
+    return e;
+  }
+  function energyWait(e, need) {   // 回復到 need 還要幾毫秒
+    if (e.v >= need) return 0;
+    var steps = Math.ceil((need - e.v) / EN.gain); return Math.max(0, e.t + steps * EN.every - Date.now());
+  }
+  function fmtWait(ms) { var m = Math.ceil(ms / 60000); return m >= 60 ? Math.floor(m / 60) + " 小時" + (m % 60 ? " " + (m % 60) + " 分鐘" : "") : m + " 分鐘"; }
+  var enEl = document.getElementById("h-energy"), enBar = enEl.querySelector("i"), enTxt = enEl.querySelector("b");
+  function renderEnergy(pulse) {
+    var p = curP(), v0 = p.energy ? p.energy.v : null, e = energyOf(p);
+    if (v0 !== e.v) saveP();
+    enBar.style.width = (e.v / EN.max * 100).toFixed(1) + "%";
+    enTxt.textContent = fmt(e.v) + " / " + fmt(EN.max);
+    enEl.classList.toggle("low", e.v < EN.cost);
+    var tip = e.v >= EN.max ? "能量已滿" : "下一次 +" + EN.gain + "：" + fmtWait(energyWait(e, e.v + 1)) + "後";
+    enEl.title = "能量 " + e.v + " / " + EN.max + "（" + tip + "；每玩一場遊戲消耗 " + EN.cost + "）";
+    enEl.setAttribute("aria-label", enEl.title);
+    if (pulse) { enEl.classList.remove("pulse"); void enEl.offsetWidth; enEl.classList.add("pulse"); }
+  }
+  function spendEnergy(g) {
+    var p = curP(), e = energyOf(p);
+    if (testMode()) { renderEnergy(); return true; }
+    if (e.v < EN.cost) {
+      saveP(); renderEnergy(true);
+      toast("⚡ 能量不足：目前 " + e.v + "，玩一場需要 " + EN.cost + "。約 " + fmtWait(energyWait(e, EN.cost)) + "後就能再玩（每 10 分鐘 +" + EN.gain + "）。");
+      return false;
+    }
+    if (e.v >= EN.max) e.t = Date.now();   // 從滿格用掉時，回復計時從現在開始
+    e.v -= EN.cost; saveP(); renderEnergy(true);
+    toast("⚡ 能量 −" + EN.cost + "（剩 " + fmt(e.v) + " / " + fmt(EN.max) + "）　「" + g.name + "」開始！");
+    return true;
+  }
+  setInterval(function () { if (!document.hidden) renderEnergy(); }, 30000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) renderEnergy(); });
+
   function launchGame(num, from) {
     var g = gameByNum(num); if (!g || !g.url) return;
+    if (!spendEnergy(g)) return;
     if (STAR_GAMES[num]) return openStarGame(num, g, from);   // 站內遊戲：迷宮尋寶 36 關（多人連線版在關卡選單底下）、記憶星球 45 關
     var u; try { u = new URL(g.url); } catch (e) { window.open(g.url, "_blank", "noopener"); return; }
     rewardLaunch(g, from);
@@ -2332,6 +2386,7 @@
     else if (anim && hpShown) countUp(hpTxt, leveled ? 0 : hpShown.xp, p.xp, needXP(p.level)); else hpTxt.textContent = fmt(p.xp) + " / " + fmt(needXP(p.level)) + " XP";
     if (anim) { hpXp.classList.remove("pulse"); void hpXp.offsetWidth; hpXp.classList.add("pulse"); }
     hpShown = { level: p.level, xp: p.xp };
+    if (typeof renderEnergy === "function" && enEl) renderEnergy();
   }
   function countUp(el, a, b, max) {
     var t0 = performance.now();
