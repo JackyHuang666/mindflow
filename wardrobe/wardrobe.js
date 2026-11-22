@@ -16,7 +16,7 @@
  */
 (function (global) {
   "use strict";
-  var VER = "1";
+  var VER = "2";
   var BASE = (function () { var s = document.currentScript && document.currentScript.src; return s ? s.replace(/[^/]*$/, "") : "wardrobe/"; })();
 
   // 套裝：id、名稱、分類、價格（智慧星星）、g：MF＝分男女版、U＝男女共用；d：男／女的［斜側、側面］臉朝右＝1、朝左＝-1
@@ -76,11 +76,21 @@
   function src(id, g) { return BASE + "img/" + id + "_" + g + ".webp?v=" + VER; }
   function fits(pg, g) { return pg === "U" || (pg === "M" && g === "m") || (pg === "F" && g === "f"); }
   function badge(pg) { return pg === "U" ? ["男女共用", "u"] : pg === "M" ? ["男生", "m"] : ["女生", "f"]; }
-  // 從 4 格圖裁出縮圖：回傳 <span class="wd-th"> 內的 <img>
-  function thumb(id, g, view, rk, size, alt) {
-    var r = RG[rk], k = size / Math.max(r[2], r[3]);
-    var st = "left:" + ((size - r[2] * k) / 2 - (view * 820 + r[0]) * k).toFixed(1) + "px;top:" + ((size - r[3] * k) / 2 - r[1] * k).toFixed(1) + "px;width:" + (3280 * k).toFixed(1) + "px;height:" + (1150 * k).toFixed(1) + "px";
-    return '<span class="wd-th" style="width:' + size + "px;height:" + size + 'px"><img src="' + src(id, g) + '" alt="' + esc(alt || "") + '" style="' + st + '" loading="lazy" draggable="false"></span>';
+  // 縮圖：預先裁好的縮圖集 img/thumbs_<m|f>.webp（每格 152×152、每列 10 格），順序＝每套［全身、臉、該性別可穿的配件…］
+  //   只載入一張小圖，不必為了縮圖把 11 張四視角大圖都解碼（手機記憶體不足會造成網頁閃退）
+  var TS = 152, TCOLS = 10, ATL = { m: {}, f: {} }, AROWS = { m: 0, f: 0 };
+  ["m", "f"].forEach(function (g) {
+    var i = 0;
+    OUT.forEach(function (o) {
+      ATL[g][o.id + "|whole"] = i++; ATL[g][o.id + "|face"] = i++;
+      PARTS[o.id].forEach(function (pt, k) { if (fits(pt[2], g)) ATL[g][o.id + "|" + k] = i++; });
+    });
+    AROWS[g] = Math.ceil(i / TCOLS);
+  });
+  function thumb(id, g, key, size, alt) {
+    var i = ATL[g][id + "|" + key]; if (i == null) i = ATL[g][id + "|whole"];
+    var k = size / TS, st = "width:" + (TS * TCOLS * k).toFixed(1) + "px;height:" + (TS * AROWS[g] * k).toFixed(1) + "px;left:-" + ((i % TCOLS) * size) + "px;top:-" + (Math.floor(i / TCOLS) * size) + "px";
+    return '<span class="wd-th" style="width:' + size + "px;height:" + size + 'px"><img src="' + BASE + "img/thumbs_" + g + ".webp?v=" + VER + '" alt="' + esc(alt || "") + '" style="' + st + '" decoding="async" draggable="false"></span>';
   }
   function shown(p) { return S.try || wd(p).cur; }   // 舞台上顯示的套裝（試穿優先）
   function seq(o, g) {
@@ -93,13 +103,13 @@
   function render() {
     var el = S.root && S.root.querySelector("#wd-card"); if (!el || !H.getP) return;
     var p = H.getP(), w = wd(p), g = w.g, cid = shown(p), o = outOf(cid), sq = seq(o, g);
-    var parts = PARTS[cid].filter(function (x) { return fits(x[2], g); });
+    var parts = PARTS[cid].map(function (x, k) { return x.concat([k]); }).filter(function (x) { return fits(x[2], g); });
     function slot(G) {
       var keys = G.subs.map(function (s) { return s[1]; }), ps = parts.filter(function (x) { return keys.indexOf(x[1]) >= 0; });
       return '<button type="button" class="wd-slot' + (S.tab === G.id ? " on" : "") + '" data-wd="tab" data-v="' + G.id + '" aria-label="' + G.zh + (ps.length ? "：" + ps.map(function (x) { return x[0]; }).join("、") : "：未裝備") + '">' +
-        '<span class="wd-sbox">' + (ps.length ? thumb(cid, g, ps[0][3], ps[0][4], 44, ps[0][0]) : '<i class="wd-plus" aria-hidden="true"></i>') + (ps.length > 1 ? '<b class="wd-more">+' + (ps.length - 1) + "</b>" : "") + "</span><span class=\"wd-sl\">" + G.zh + "</span></button>";
+        '<span class="wd-sbox">' + (ps.length ? thumb(cid, g, ps[0][5], 44, ps[0][0]) : '<i class="wd-plus" aria-hidden="true"></i>') + (ps.length > 1 ? '<b class="wd-more">+' + (ps.length - 1) + "</b>" : "") + "</span><span class=\"wd-sl\">" + G.zh + "</span></button>";
     }
-    var frames = sq.map(function (q, i) { return '<div class="wd-fr' + (i === S.frame ? " on" : "") + (q[1] ? " flip" : "") + '"><img src="' + src(cid, g) + '" alt="" draggable="false" style="left:-' + q[0] * 100 + '%"></div>'; }).join("");
+    var q0 = sq[S.frame], frames = '<div class="wd-fr on' + (q0[1] ? " flip" : "") + '"><img src="' + src(cid, g) + '" alt="" decoding="async" draggable="false" style="left:-' + q0[0] * 100 + '%"></div>';
     var tried = S.try && !owns(p, S.try), bdg = o.g === "U" ? ["男女共用", "u"] : g === "m" ? ["男生版", "m"] : ["女生版", "f"];
     var h = '<div class="wd-head"><h3>👕 我的穿搭<small>' + (tried ? "試穿中" : "左右拖曳可以 360° 轉動") + '</small></h3>' +
       '<div class="wd-seg" role="group" aria-label="角色性別"><button type="button" data-wd="g" data-v="m"' + (g === "m" ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + '>男生</button><button type="button" data-wd="g" data-v="f"' + (g === "f" ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + ">女生</button></div></div>";
@@ -123,16 +133,16 @@
         if (S.cat !== "全部" && x.cat !== S.cat) return;
         var b = x.g === "U" ? ["男女共用", "u"] : g === "m" ? ["男生版", "m"] : ["女生版", "f"], on = x.id === cid;
         var tag = on ? (owns(p, x.id) ? "穿戴中" : "試穿中") : owns(p, x.id) ? "已擁有" : "⭐ " + x.price;
-        cards.push('<button type="button" class="wd-it' + (on ? " on" : "") + '" data-wd="wear" data-v="' + x.id + '"><span class="wd-b ' + b[1] + '">' + b[0] + "</span>" + thumb(x.id, g, 0, "whole", 76, x.zh) + "<b>" + esc(x.zh) + "</b><small>" + tag + "</small></button>");
+        cards.push('<button type="button" class="wd-it' + (on ? " on" : "") + '" data-wd="wear" data-v="' + x.id + '"><span class="wd-b ' + b[1] + '">' + b[0] + "</span>" + thumb(x.id, g, "whole", 76, x.zh) + "<b>" + esc(x.zh) + "</b><small>" + tag + "</small></button>");
       });
     } else {
       var G = GROUPS.filter(function (q) { return q.id === S.tab; })[0], key = G.subs[S.sub] ? G.subs[S.sub][1] : G.subs[0][1];
       chips = G.subs.map(function (s, i) { return '<button type="button" data-wd="sub" data-v="' + i + '"' + (S.sub === i ? ' class="on"' : "") + ">" + s[0] + "</button>"; }).join("");
       OUT.forEach(function (x) {
-        PARTS[x.id].forEach(function (pt) {
+        PARTS[x.id].forEach(function (pt, pk) {
           if (pt[1] !== key || !fits(pt[2], g)) return;
           var b = badge(pt[2]), on = x.id === cid;
-          cards.push('<button type="button" class="wd-it' + (on ? " on" : "") + '" data-wd="wear" data-v="' + x.id + '"><span class="wd-b ' + b[1] + '">' + b[0] + "</span>" + thumb(x.id, g, pt[3], pt[4], 76, pt[0]) + "<b>" + esc(pt[0]) + "</b><small>" + (on ? "穿戴中" : "來自「" + esc(x.zh) + "」" + (owns(p, x.id) ? "" : "・⭐ " + x.price)) + "</small></button>");
+          cards.push('<button type="button" class="wd-it' + (on ? " on" : "") + '" data-wd="wear" data-v="' + x.id + '"><span class="wd-b ' + b[1] + '">' + b[0] + "</span>" + thumb(x.id, g, pk, 76, pt[0]) + "<b>" + esc(pt[0]) + "</b><small>" + (on ? "穿戴中" : "來自「" + esc(x.zh) + "」" + (owns(p, x.id) ? "" : "・⭐ " + x.price)) + "</small></button>");
         });
       });
     }
@@ -146,8 +156,9 @@
   function setFrame(i) {
     S.frame = (i % 6 + 6) % 6;
     var el = S.root && S.root.querySelector("#wd-card"); if (!el) return;
-    var fr = el.querySelectorAll(".wd-fr"); for (var k = 0; k < fr.length; k++) fr[k].classList.toggle("on", k === S.frame);
-    var dots = el.querySelectorAll(".wd-ang span button"); for (k = 0; k < dots.length; k++) dots[k].classList.toggle("on", k === S.frame);
+    var fr = el.querySelector(".wd-fr"), p = H.getP && H.getP();
+    if (fr && p) { var q = seq(outOf(shown(p)), wd(p).g)[S.frame]; fr.classList.toggle("flip", !!q[1]); fr.firstChild.style.left = "-" + q[0] * 100 + "%"; }
+    var k, dots = el.querySelectorAll(".wd-ang span button"); for (k = 0; k < dots.length; k++) dots[k].classList.toggle("on", k === S.frame);
     var b = el.querySelector(".wd-ang b"); if (b) b.textContent = "360°・" + ANG[S.frame][0] + "・" + ANG[S.frame][1] + "°";
     var fig = el.querySelector(".wd-fig"); if (fig) fig.setAttribute("aria-label", fig.getAttribute("aria-label").replace(/，[^，]*$/, "，" + ANG[S.frame][0]));
   }
@@ -158,7 +169,12 @@
   }
   function visible() { var el = S.root && S.root.querySelector("#wd-card"); if (!el || !el.isConnected) return false; var d = el.closest("#pdraw"); return !d || (!d.hidden && d.classList.contains("show")); }
   function tick() {
-    if (!S.root || !S.root.querySelector("#wd-card")) { clearInterval(S.timer); S.timer = 0; return; }
+    var el = S.root && S.root.querySelector("#wd-card");
+    if (!el) { clearInterval(S.timer); S.timer = 0; return; }
+    // 抽屜關閉或切到背景時清空卡片、釋放圖片記憶體；回來時再畫
+    var vis = visible() && !document.hidden;
+    if (!vis) { if (!S.cleared && el.firstChild) { el.innerHTML = ""; S.cleared = true; } return; }
+    if (S.cleared) { S.cleared = false; render(); return; }
     if (S.auto && !S.drag && !document.hidden && visible() && Date.now() - S.last > 2500) setFrame(S.frame + 1);
   }
 
@@ -227,7 +243,7 @@
       root.addEventListener("pointerup", onUp); root.addEventListener("pointercancel", onUp);
     }
     if (!root.querySelector("#wd-card")) return;
-    render();
+    S.cleared = false; render();
     if (!S.timer) S.timer = setInterval(tick, 1100);
   }
   function init(o) { for (var k in o) if (o[k]) H[k] = o[k]; }
