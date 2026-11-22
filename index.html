@@ -1,6 +1,13 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>主畫面轉動手感</title>
 <meta name="description" content="電影質感的身心智慧學院主畫面：光束、柔光暈、飛鳥與櫻花、雲海外圍、明亮的夜晚村莊。">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0e1838">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="身心智慧學院">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Huninn&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -864,6 +871,18 @@
   .seg button[aria-pressed="true"]{background:#f1cd78;color:#3a2606;border-color:#f1cd78;font-weight:700}
   .zoom{right:calc(var(--u) * 32);top:calc(var(--u) * 140);display:grid;gap:6px}
   .zoom button{position:relative;width:40px;height:40px;border-radius:12px;font:600 22px/1 var(--fun);transition:transform .2s cubic-bezier(.3,1.6,.5,1)}
+  #fs-btn{width:44px;height:44px;padding:10px;color:#fff;display:grid;place-items:center}
+  #fs-btn svg{width:22px;height:22px;display:block}
+  #fs-btn .fs-off{display:none}.is-fs #fs-btn .fs-on{display:none}.is-fs #fs-btn .fs-off{display:inline}
+  .fs-standalone #fs-wrap{display:none}
+  #fs-tip{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:20px;background:rgba(4,8,24,.72);font-family:var(--body)}
+  #fs-tip[hidden]{display:none}
+  #fs-tip .fs-card{width:min(400px,100%);max-height:100%;overflow-y:auto;box-sizing:border-box;padding:20px;border-radius:20px;color:#eef3ff;background:linear-gradient(180deg,#213372,#18275a);border:1px solid rgba(255,226,150,.4);box-shadow:0 20px 50px rgba(0,0,0,.5)}
+  #fs-tip h3{margin:0 0 8px;font:400 20px var(--round);color:#ffd36b}
+  #fs-tip p,#fs-tip li{font-size:15px;line-height:1.7}#fs-tip p{margin:0 0 8px}#fs-tip ol{margin:0 0 8px;padding-left:22px}#fs-tip b{color:#ffe7a6}
+  #fs-tip .fs-share{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,.15);font-size:13px}
+  #fs-tip .fs-note{font-size:13px;color:#a9b8e0}
+  #fs-tip .fs-ok{width:100%;margin-top:6px;padding:11px;border-radius:999px;border:1px solid #ffe7a6;background:linear-gradient(180deg,#ffe08a,#f2b33d);color:#3a2300;font:700 16px var(--body);cursor:pointer}
   .home{left:calc(var(--u) * 44);top:calc(var(--u) * 205);font-size:14px;padding:9px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .25s}
   .home.show{opacity:1;pointer-events:auto}
   .card{right:calc(var(--u) * 32);top:50%;transform:translate(20px,-50%);width:min(340px,calc(100% - 32px));padding:16px;border-radius:16px;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;z-index:6}
@@ -1052,10 +1071,13 @@
       <button class="reset" id="g-reset">恢復預設值</button>
   </div>
 </aside>
-<div class="hud zoom" role="group" aria-label="縮放">
-  <button class="glass" id="zin" aria-label="放大">＋</button>
-  <button class="glass" id="zout" aria-label="縮小">－</button>
+<div class="hud zoom" id="fs-wrap">
+  <button class="glass" id="fs-btn" aria-label="全螢幕" title="全螢幕" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="fs-on" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/><path class="fs-off" d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button>
 </div>
+<div id="fs-tip" hidden role="dialog" aria-modal="true" aria-labelledby="fs-tip-h"><div class="fs-card"><h3 id="fs-tip-h">在 iPhone 上全螢幕遊玩</h3>
+  <p>iPhone 的 Safari 不能讓網頁直接切換全螢幕。把學院加到主畫面，之後從主畫面的圖示打開，就會是全螢幕：</p>
+  <ol><li>點 Safari 下方（或上方）的 <b>分享</b> 按鈕 <span class="fs-share" aria-hidden="true">⬆︎</span></li><li>往下滑，選 <b>加入主畫面</b></li><li>回到主畫面，點「身心智慧學院」圖示打開</li></ol>
+  <p class="fs-note">從圖示打開後請登入同一個帳號，進度會從雲端接著玩（沒登入的話，主畫面版和 Safari 的進度是分開的）。</p><button class="fs-ok" id="fs-ok">知道了</button></div></div>
 <section class="hud card glass" id="card" aria-live="polite">
   <h3 id="card-title"></h3>
   <p class="sub" id="card-sub"></p>
@@ -5164,8 +5186,36 @@
   stage.addEventListener("pointercancel", endPointer);
   stage.addEventListener("pointerleave", function () { lastMouse = null; });
   stage.addEventListener("wheel", function (e) { e.preventDefault(); var r = canvas.getBoundingClientRect(); zoomAt(e.clientX - r.left, e.clientY - r.top, Math.exp(e.deltaY * 0.0012)); }, { passive: false });
-  document.getElementById("zin").addEventListener("click", function () { zoomAt(canvas.clientWidth / 2, canvas.clientHeight / 2, 0.75); });
-  document.getElementById("zout").addEventListener("click", function () { zoomAt(canvas.clientWidth / 2, canvas.clientHeight / 2, 1 / 0.75); });
+  // ---- 全螢幕（取代原本的放大／縮小按鈕；畫面縮放仍可用雙指或滑鼠滾輪）----
+  //   電腦、Android、iPad：Fullscreen API 直接切換，再按一下關閉；Esc 或系統手勢離開時按鈕狀態會自動同步。
+  //   iPhone 的 Safari 不支援網頁全螢幕 → 說明「加入主畫面」，從主畫面圖示開啟（standalone）時隱藏按鈕。
+  (function () {
+    var de = document.documentElement, btn = document.getElementById("fs-btn"), tip = document.getElementById("fs-tip");
+    function standalone() { return navigator.standalone === true || (window.matchMedia && (matchMedia("(display-mode: fullscreen)").matches || matchMedia("(display-mode: standalone)").matches)); }
+    function fsEl() { return document.fullscreenElement || document.webkitFullscreenElement || null; }
+    function canFs() { return !!(document.fullscreenEnabled || document.webkitFullscreenEnabled); }   // iPhone Safari 為 false
+    function sync() {
+      var on = !!fsEl();
+      document.body.classList.toggle("is-fs", on);
+      document.body.classList.toggle("fs-standalone", !on && standalone());
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+      btn.setAttribute("aria-label", on ? "離開全螢幕" : "全螢幕"); btn.title = on ? "離開全螢幕" : "全螢幕";
+      setTimeout(layoutHud, 60); setTimeout(layoutHud, 400);   // 全螢幕切換後畫面尺寸會變
+    }
+    function enter() {
+      var r = null;
+      try { r = de.requestFullscreen ? de.requestFullscreen({ navigationUI: "hide" }) : de.webkitRequestFullscreen ? de.webkitRequestFullscreen() : null; } catch (e) { r = null; }
+      if (r && r.catch) r.catch(function () { if (!fsEl()) showTip(); });
+      else setTimeout(function () { if (!fsEl()) showTip(); }, 800);   // 舊版 webkit 沒有回傳 Promise：沒切成功就顯示說明
+    }
+    function exit() { try { if (document.exitFullscreen) document.exitFullscreen(); else if (document.webkitExitFullscreen) document.webkitExitFullscreen(); } catch (e) {} }
+    function showTip() { tip.hidden = false; document.getElementById("fs-ok").focus(); }
+    btn.addEventListener("click", function (e) { e.stopPropagation(); if (fsEl()) exit(); else if (canFs()) enter(); else showTip(); });
+    tip.addEventListener("click", function (e) { if (e.target === tip || e.target.id === "fs-ok") tip.hidden = true; });
+    document.addEventListener("fullscreenchange", sync); document.addEventListener("webkitfullscreenchange", sync);
+    if (window.matchMedia) try { matchMedia("(display-mode: standalone)").addEventListener("change", sync); } catch (e) {}
+    sync();
+  })();
 
   var screenAreas = [];
   function toScreen(VP, px, py) { var p = project(VP, planePoint(px, py)); return [(p[0] + 1) / 2 * canvas.clientWidth, (1 - p[1]) / 2 * canvas.clientHeight, p[2]]; }
