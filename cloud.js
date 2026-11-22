@@ -9,7 +9,7 @@
   var SB_URL = "https://dphmvbgkvwnuyhznofav.supabase.co";
   var SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwaG12YmdrdndudXloem5vZmF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ5MTI0NjQsImV4cCI6MjExMDQ4ODQ2NH0.ok96ObLiWAQglToVBCRn13yv4fsV7RiFgwJ1lTXfCV0";
   var SESS_KEY = "mf-cloud-session", META_KEY = "mf-cloud-meta";
-  var LOCAL_ONLY = { "mf-gfx": 1, "mf-hud-hidden": 1, "mf-minipet-pos": 1, "mf-auth-v1": 1 };   // 和裝置有關的設定不上雲端；學院身分與授權（mf-auth-v1）另外由 MFOrg 同步到共用資料表
+  var LOCAL_ONLY = { "mf-gfx": 1, "mf-hud-hidden": 1, "mf-minipet-pos": 1, "mf-floatbtn-pos": 1, "mf-auth-v1": 1 };   // 和裝置有關的設定不上雲端；學院身分與授權（mf-auth-v1）另外由 MFOrg 同步到共用資料表
   var ls = window.localStorage, rawSet = ls.setItem.bind(ls), rawRemove = ls.removeItem.bind(ls);
 
   function synced(k) { return typeof k === "string" && k.indexOf("mf-") === 0 && k.indexOf("mf-cloud-") !== 0 && !LOCAL_ONLY[k]; }

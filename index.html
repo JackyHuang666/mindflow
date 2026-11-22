@@ -949,8 +949,12 @@
     background:rgba(14,28,66,.85);border:1px solid rgba(255,226,150,.5);opacity:0;pointer-events:none;transition:opacity .2s}
   @media (hover:hover){#hud-toggle:hover .tip{opacity:1}}
   #hud-toggle:focus-visible .tip{opacity:1}
-  .hud-hidden #hud-toggle{opacity:.55}
-  .hud-hidden #hud-toggle:hover{opacity:1}
+  /* 可拖曳的浮動按鈕（沉浸模式、全螢幕）：閒置 5 秒變半透明，點一下恢復 */
+  #hud-toggle,#fs-wrap{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;z-index:8}   /* 拖到哪裡都在操作介面最上層（面板、遊戲覆蓋層仍在它上面） */
+  #hud-toggle.fb-idle,#fs-wrap.fb-idle{opacity:.5 !important}
+  #hud-toggle.fb-drag,#fs-wrap.fb-drag{transition:none !important;cursor:grabbing;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45))}
+  #hud-toggle.fb-drag{transform:scale(1.12)}#fs-wrap.fb-drag #fs-btn{transform:scale(1.12)}
+  #hud-toggle.tip-r .tip{right:auto;left:56px}
   .portrait #hud-toggle{right:10px;bottom:auto;top:calc(var(--u) * 175 + 64px)}
   /* 直向手機：介面比例放大，標題移到玩家卡下方，隱藏今日任務與標語 */
   .portrait #h-slogan{display:none}
@@ -1124,7 +1128,7 @@
 <div id="warp" aria-hidden="true"></div>
 
 <link rel="stylesheet" href="q11/q11.css?v=2">
-<script src="cloud.js?v=4"></script>
+<script src="cloud.js?v=5"></script>
 <script src="q11/q11-data.js?v=1"></script>
 <script src="q11/q11.js?v=2"></script>
 <script>
@@ -5217,6 +5221,74 @@
     sync();
   })();
 
+  // ---- 浮動按鈕：沉浸模式（眼睛）、全螢幕 —— 可拖曳到玩家習慣的位置，閒置 5 秒變半透明 ----
+  //   按住拖動超過 8px 就是移動，放開後記住位置（直式、橫式各一組，存在這台裝置）；沒有移動就是一般點擊。
+  //   半透明時點一下只會恢復顏色，不觸發按鈕功能；恢復後再點才會執行。
+  (function () {
+    var POS_KEY = "mf-floatbtn-pos", IDLE_MS = 5000, MOVE = 8;
+    var store = {}; try { store = JSON.parse(localStorage.getItem(POS_KEY) || "{}") || {}; } catch (e) { store = {}; }
+    function orient() { return window.innerWidth < window.innerHeight ? "p" : "l"; }
+    function saveStore() { try { localStorage.setItem(POS_KEY, JSON.stringify(store)); } catch (e) {} }
+    var items = [];
+    function place(it) {   // 依記住的比例擺放，並保持在畫面內
+      var pos = (store[it.key] || {})[orient()], el = it.el;
+      if (!pos) { el.style.left = el.style.top = el.style.right = el.style.bottom = ""; it.el.classList.remove("tip-r"); return; }
+      var r = el.getBoundingClientRect(), w = r.width || 46, h = r.height || 46, W = window.innerWidth, Hh = window.innerHeight;
+      var x = Math.max(4, Math.min(W - w - 4, pos.x * W - w / 2)), y = Math.max(4, Math.min(Hh - h - 4, pos.y * Hh - h / 2));
+      el.style.left = x + "px"; el.style.top = y + "px"; el.style.right = "auto"; el.style.bottom = "auto";
+      el.classList.toggle("tip-r", x + w / 2 < W / 2);
+    }
+    function wake(it) { it.el.classList.remove("fb-idle"); clearTimeout(it.timer); it.timer = setTimeout(function () { if (!it.drag) it.el.classList.add("fb-idle"); }, IDLE_MS); }
+    function make(el, key) {
+      var it = { el: el, key: key, timer: 0, drag: false, down: null, block: false }; items.push(it);
+      el.addEventListener("pointerdown", function (e) {
+        if (e.button > 0) return;
+        var r = el.getBoundingClientRect();
+        it.down = { id: e.pointerId, x: e.clientX, y: e.clientY, ox: e.clientX - r.left, oy: e.clientY - r.top, idle: el.classList.contains("fb-idle") };
+        it.drag = false; clearTimeout(it.timer);
+        // 移動、放開改在整個視窗上追蹤：手指拖快了離開按鈕也跟得上；不捕捉指標，一般點擊的 click 才會送到裡面的按鈕
+        window.addEventListener("pointermove", move, { passive: false }); window.addEventListener("pointerup", up); window.addEventListener("pointercancel", cancel);
+      });
+      function move(e) {
+        var d = it.down; if (!d || d.id !== e.pointerId) return;
+        if (!it.drag && Math.hypot(e.clientX - d.x, e.clientY - d.y) < MOVE) return;
+        if (!it.drag) { it.drag = true; el.classList.add("fb-drag"); el.classList.remove("fb-idle"); }
+        var r = el.getBoundingClientRect(), W = window.innerWidth, Hh = window.innerHeight;
+        var x = Math.max(4, Math.min(W - r.width - 4, e.clientX - d.ox)), y = Math.max(4, Math.min(Hh - r.height - 4, e.clientY - d.oy));
+        el.style.left = x + "px"; el.style.top = y + "px"; el.style.right = "auto"; el.style.bottom = "auto";
+        el.classList.toggle("tip-r", x + r.width / 2 < W / 2);
+        e.preventDefault();
+      }
+      function stop() { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); window.removeEventListener("pointercancel", cancel); }
+      function cancel(e) { up(e); it.block = false; }
+      function up(e) {
+        var d = it.down; if (!d || d.id !== e.pointerId) return;
+        it.down = null; stop();
+        if (it.drag) {   // 拖曳結束：記住中心點位置（畫面比例），這次不算點擊
+          var r = el.getBoundingClientRect();
+          (store[key] = store[key] || {})[orient()] = { x: (r.left + r.width / 2) / window.innerWidth, y: (r.top + r.height / 2) / window.innerHeight };
+          saveStore(); el.classList.remove("fb-drag"); it.drag = false; it.block = true;
+        } else if (d.idle) it.block = true;   // 半透明時的點擊只用來恢復顏色
+        if (it.block) setTimeout(function () { it.block = false; }, 400);   // 放開時不在按鈕上就不會有 click，避免吃掉下一次點擊
+        wake(it);
+      }
+      wake(it);
+    }
+    // 拖曳或喚醒後跟著來的 click 不觸發按鈕功能（在最外層攔下，按鈕本身的事件不必改）
+    document.addEventListener("click", function (e) {
+      for (var i = 0; i < items.length; i++) if (items[i].block && items[i].el.contains(e.target)) { items[i].block = false; e.stopImmediatePropagation(); e.preventDefault(); return; }
+    }, true);
+    make(document.getElementById("hud-toggle"), "eye");
+    make(document.getElementById("fs-wrap"), "fs");
+    function placeAll() { items.forEach(place); }
+    placeAll();
+    window.addEventListener("resize", function () { setTimeout(placeAll, 50); });
+    window.addEventListener("orientationchange", function () { setTimeout(placeAll, 350); });
+    // 鍵盤快捷鍵（H）切換沉浸模式時也喚醒眼睛按鈕
+    window.addEventListener("keydown", function (e) { if (e.key === "h" || e.key === "H") wake(items[0]); });
+    window.MFFloat = { reset: function () { store = {}; saveStore(); placeAll(); }};   // 設定裡可呼叫，把按鈕放回預設位置
+  })();
+
   var screenAreas = [];
   function toScreen(VP, px, py) { var p = project(VP, planePoint(px, py)); return [(p[0] + 1) / 2 * canvas.clientWidth, (1 - p[1]) / 2 * canvas.clientHeight, p[2]]; }
   function updateScreen(VP) {
@@ -5339,7 +5411,7 @@
   document.querySelectorAll("#g-quality button").forEach(function (b) {
     b.addEventListener("click", function () { gfx.quality = b.dataset.q; syncGfxUI(); saveGfx(); resize(); });
   });
-  document.getElementById("g-reset").addEventListener("click", function () { gfx = Object.assign({}, GFX_DEFAULT); syncGfxUI(); saveGfx(); resize(); });
+  document.getElementById("g-reset").addEventListener("click", function () { gfx = Object.assign({}, GFX_DEFAULT); syncGfxUI(); saveGfx(); resize(); if (window.MFFloat) MFFloat.reset(); });   // 也把沉浸模式、全螢幕按鈕放回預設位置
   syncGfxUI();
 
   var W = 1, H = 1;
