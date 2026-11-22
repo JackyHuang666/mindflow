@@ -1155,6 +1155,7 @@
   }
   window.addEventListener("resize", layoutHud); window.addEventListener("orientationchange", function () { setTimeout(layoutHud, 300); });
   if (window.visualViewport) window.visualViewport.addEventListener("resize", layoutHud);
+  (function(){var lw=-1,lh=-1;function chk(){var w=innerWidth,h=innerHeight;if(w!==lw||h!==lh){lw=w;lh=h;layoutHud();}}chk();addEventListener('orientationchange',function(){[80,250,500,900,1500].forEach(function(t){setTimeout(chk,t)})});if(window.visualViewport)visualViewport.addEventListener('resize',chk);setInterval(chk,300)})();
   layoutHud();
 
   var ICONS = {
@@ -5212,6 +5213,8 @@
     RT.scene = makeTarget(W, H); RT.a = makeTarget(Math.max(1, W >> 2), Math.max(1, H >> 2)); RT.b = makeTarget(Math.max(1, W >> 2), Math.max(1, H >> 2));
   }
   window.addEventListener("resize", resize); resize(); cam.fov = HOME_FOV;
+  // 手機轉向時瀏覽器回報的尺寸常會延遲，持續檢查畫布大小，一變就重算比例，避免畫面被壓扁
+  (function(){var lw=-1,lh=-1;function chk(){var w=canvas.clientWidth,h=canvas.clientHeight;if(w!==lw||h!==lh){lw=w;lh=h;resize();}}chk();addEventListener('orientationchange',function(){[80,250,500,900,1500].forEach(function(t){setTimeout(chk,t)})});if(window.visualViewport)visualViewport.addEventListener('resize',chk);setInterval(chk,300)})();
 
   function drawFull(prog) { attrib(prog.p, "a", fullBuf, 2); gl.drawArrays(gl.TRIANGLES, 0, 3); resetAttribs(); }
   var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;

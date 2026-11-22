@@ -165,8 +165,10 @@
     camera.position.copy(cam.pos); camera.lookAt(cam.look);
     sun.position.set(P.x + 3, 9, P.z + 5); sun.target.position.set(P.x, 0, P.z);
   }
-  function resize() { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.fov = innerWidth < innerHeight ? 55 : 42; camera.updateProjectionMatrix(); }
+  function resize() { const cv = renderer.domElement, W = cv.clientWidth || innerWidth, H = cv.clientHeight || innerHeight; renderer.setSize(W, H, false); camera.aspect = W / H; camera.fov = W < H ? 55 : 42; camera.updateProjectionMatrix(); }
   addEventListener('resize', resize); resize(); updateCamera(0, true);
+  // 手機轉向時尺寸回報常延遲：持續檢查，一變就重算，避免畫面被壓扁
+  (function(){var lw=-1,lh=-1;function chk(){var w=renderer.domElement.clientWidth,h=renderer.domElement.clientHeight;if(w!==lw||h!==lh){lw=w;lh=h;resize();}}chk();addEventListener('orientationchange',function(){[80,250,500,900,1500].forEach(function(t){setTimeout(chk,t)})});if(window.visualViewport)visualViewport.addEventListener('resize',chk);setInterval(chk,300)})();
 
   /* ===== HUD 與遊戲流程 ===== */
   let toastT = 0, t0 = 0, el = 0, done = false, freezeT = 0, hits = 0;

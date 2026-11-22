@@ -1131,6 +1131,8 @@ function drawSky(t){
   }
 }
 initSky();addEventListener('resize',()=>{clearTimeout(initSky.t);initSky.t=setTimeout(initSky,150)});
+// 手機轉向時尺寸回報常延遲：持續檢查，一變就重畫星空，避免畫面被壓扁
+(function(){var lw=-1,lh=-1;function chk(){var w=innerWidth,h=innerHeight;if(w!==lw||h!==lh){lw=w;lh=h;initSky();}}chk();addEventListener('orientationchange',function(){[80,250,500,900,1500].forEach(function(t){setTimeout(chk,t)})});if(window.visualViewport)visualViewport.addEventListener('resize',chk);setInterval(chk,300)})();
 
 /* ---------- procedural noise & textures ---------- */
 function h3(x,y,z,s){let h=Math.imul(x,374761393)^Math.imul(y,668265263)^Math.imul(z,1274126177)^Math.imul(s,2147483629);h=Math.imul(h^(h>>>13),1274126177);return((h^(h>>>16))>>>0)/4294967295}
@@ -3894,7 +3896,7 @@ const Spirit=(()=>{
     const left=m+fx*Math.max(0,vw-bw-2*m),bot=m+fb*Math.max(0,vh-bh-2*m-50);
     root.style.bottom=bot+'px';if(fx<.5){root.style.left=left+'px';root.style.right='auto';root.style.alignItems='flex-start'}else{root.style.right=Math.max(m,vw-left-bw)+'px';root.style.left='auto';root.style.alignItems='flex-end'}};
   S.home=()=>{save.spPos=null;persist();place();S.A&&S.A.play('hop')};
-  place();addEventListener('resize',place);
+  place();addEventListener('resize',place);addEventListener('orientationchange',()=>[120,400,900].forEach(t=>setTimeout(place,t)));
   let dr=null,moved=false;
   bodyEl.addEventListener('pointerdown',e=>{dr={id:e.pointerId,x:e.clientX,y:e.clientY,r:bodyEl.getBoundingClientRect()};moved=false;try{bodyEl.setPointerCapture(e.pointerId)}catch(_){}});
   bodyEl.addEventListener('pointermove',e=>{if(!dr||e.pointerId!==dr.id)return;const dx=e.clientX-dr.x,dy=e.clientY-dr.y;if(!moved&&Math.hypot(dx,dy)<7)return;if(!moved){moved=true;bodyEl.style.cursor='grabbing';const a=A();a&&a.play('float');bub.hidden=true}

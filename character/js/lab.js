@@ -167,11 +167,13 @@
     sun.position.set(P.x + 3, 6, P.z + 4); sun.target.position.set(P.x, 0, P.z);
   }
   function resize() {
-    var W = w.innerWidth, H = w.innerHeight;
+    var W = canvas.clientWidth || w.innerWidth, H = canvas.clientHeight || w.innerHeight;
     renderer.setSize(W, H, false); camera.aspect = W / H;
     camera.fov = W < H ? 52 : 40; camera.updateProjectionMatrix();
   }
   w.addEventListener("resize", resize); resize();
+  // 手機轉向時尺寸回報常延遲：持續檢查，一變就重算，避免畫面被壓扁
+  (function(){var lw=-1,lh=-1;function chk(){var cw=canvas.clientWidth,ch=canvas.clientHeight;if(cw!==lw||ch!==lh){lw=cw;lh=ch;resize();}}chk();addEventListener('orientationchange',function(){[80,250,500,900,1500].forEach(function(t){setTimeout(chk,t)})});if(window.visualViewport)visualViewport.addEventListener('resize',chk);setInterval(chk,300)})();
   updateCamera(0, true);
 
   /* ================= HUD ================= */
