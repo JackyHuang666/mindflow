@@ -184,6 +184,7 @@
     if (!LEVEL.map) $('aMap').hidden = true;
   }
   const TH3 = ML ? ML.thresholds(lv, LEVEL, CS) : null;
+  let paid = !(EMBED && LEVEL && TH3);   // 學院內的關卡要先扣能量才能開始
   const reload = p => { const q = new URLSearchParams(location.search); Object.keys(p).forEach(k => p[k] == null ? q.delete(k) : q.set(k, p[k])); location.search = q.toString(); };
   $('aLevel').onclick = () => reload({ li: (li + 1) % LV.length, sd: null });
   $('aEnv').textContent = ART.KIT[th].name;
@@ -227,7 +228,24 @@
     ov.innerHTML = '<div class="card"><h2>第 ' + LEVEL.id + ' 關・' + LEVEL.mapName + '</h2><p>' + LEVEL.size + '・' + lv.balls.length + ' 顆寶石・' + (lv.mons || []).length + ' 隻小怪獸・' + (LEVEL.map ? '有小地圖' : '沒有小地圖') + '</p>' +
       '<ul class="arule"><li><b>★★★</b> ' + ML.fmt(TH3.t3) + ' 內完成</li><li><b>★★</b> ' + ML.fmt(TH3.t2) + ' 內完成</li><li><b>★</b> ' + ML.fmt(TH3.t1) + ' 內完成</li></ul>' +
       '<p class="small">把每顆寶石搬進同顏色的寶箱，開始移動才開始計時。</p><div class="row"><button class="abtn go" id="aGo">開始</button></div></div>';
-    $('aGo').onclick = () => { ov.hidden = true; };
+    $('aGo').onclick = () => {
+      if (paid) { ov.hidden = true; return; }
+      const go = $('aGo'); go.disabled = true; go.textContent = '確認能量中…';
+      askEnergy(r => {
+        if (r.ok) { paid = true; ov.hidden = true; if (r.msg) toast(r.msg); return; }
+        ov.innerHTML = '<div class="card"><h2>⚡ 能量不足</h2><p>' + String(r.msg || '能量不足，稍後再來挑戰。').replace(/[<>&]/g, '') + '</p>' +
+          '<div class="row"><a class="abtn" href="' + menuUrl + '">關卡選單</a></div></div>';
+      });
+    };
+  }
+  // 能量：從學院開啟的關卡，每次挑戰開始前向學院要 50 能量（已 3 星免費）；直接開啟網頁不需要
+  function askEnergy(cb) {
+    const id = 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), tgt = location.origin === 'null' ? '*' : location.origin;
+    let got = false;
+    const h = e => { if (e.origin !== location.origin && location.origin !== 'null') return; const m = e.data; if (m && m.type === 'mf-energy-res' && m.id === id) { got = true; removeEventListener('message', h); cb(m); } };
+    addEventListener('message', h);
+    try { window.parent.postMessage({ type: 'mf-energy', game: 'maze', level: LEVEL.id, id }, tgt); } catch (e) { /* ignore */ }
+    setTimeout(() => { if (!got) { removeEventListener('message', h); cb({ ok: true }); } }, 5000);   // 學院沒回應時不卡住玩家
   }
   let AC;
   function chime(fs) {
@@ -275,6 +293,7 @@
     const dt = Math.min((now - last) / 1000, 0.05); last = now;
     const s = input.sample(dt);
     cam.yaw -= s.cameraDelta * 0.006;
+    if (!paid) { s.moveX = s.moveY = s.mag = 0; s.sprint = false; s.actions.length = 0; }   // 還沒按「開始」（扣能量）前不能移動
     if (!started && readyFlag && (s.mag > 0.1 || s.actions.length)) { started = true; t0 = now; }
     if (freezeT > 0 || done) { freezeT -= dt; s.moveX = s.moveY = s.mag = 0; s.sprint = false; if (done) s.actions.length = 0; }
     player.update(dt, cam.yaw, s);

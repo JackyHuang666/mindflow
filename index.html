@@ -2156,26 +2156,27 @@
     enEl.setAttribute("aria-label", enEl.title);
     if (pulse) { enEl.classList.remove("pulse"); void enEl.offsetWidth; enEl.classList.add("pulse"); }
   }
-  function spendEnergy(g) {
-    var p = curP(), e = energyOf(p);
-    if (testMode()) { renderEnergy(); return true; }
-    if (e.v < EN.cost) {
-      saveP(); renderEnergy(true);
-      toast("⚡ 能量不足：目前 " + e.v + "，玩一場需要 " + EN.cost + "。約 " + fmtWait(energyWait(e, EN.cost)) + "後就能再玩（每 10 分鐘 +" + EN.gain + "）。");
-      return false;
+  // 嘗試扣一次能量。free：這次免費（例如已經 3 星的關卡）。回傳 { ok, free, v, msg }
+  function energyTry(label, free) {
+    var p = curP(), e = energyOf(p), r;
+    if (testMode()) r = { ok: true, free: true, msg: "測試模式：不消耗能量" };
+    else if (free) r = { ok: true, free: true, msg: "⭐ 已拿到 3 星，重玩不消耗能量" };
+    else if (e.v < EN.cost) r = { ok: false, msg: "⚡ 能量不足：目前 " + e.v + "，挑戰一次需要 " + EN.cost + "。約 " + fmtWait(energyWait(e, EN.cost)) + "後就能再挑戰（每 10 分鐘 +" + EN.gain + "）。已經 3 星的關卡可以免費重玩。" };
+    else {
+      if (e.v >= EN.max) e.t = Date.now();   // 從滿格用掉時，回復計時從現在開始
+      e.v -= EN.cost; r = { ok: true, free: false, msg: "⚡ 能量 −" + EN.cost + "（剩 " + fmt(e.v) + " / " + fmt(EN.max) + "）" + (label ? "　" + label + "開始！" : "") };
     }
-    if (e.v >= EN.max) e.t = Date.now();   // 從滿格用掉時，回復計時從現在開始
-    e.v -= EN.cost; saveP(); renderEnergy(true);
-    toast("⚡ 能量 −" + EN.cost + "（剩 " + fmt(e.v) + " / " + fmt(EN.max) + "）　「" + g.name + "」開始！");
-    return true;
+    r.v = e.v; saveP(); renderEnergy(!r.free || !r.ok);
+    return r;
   }
+  function spendEnergy(g) { var r = energyTry("「" + g.name + "」"); toast(r.msg); return r.ok; }
   setInterval(function () { if (!document.hidden) renderEnergy(); }, 30000);
   document.addEventListener("visibilitychange", function () { if (!document.hidden) renderEnergy(); });
 
   function launchGame(num, from) {
     var g = gameByNum(num); if (!g || !g.url) return;
-    if (!spendEnergy(g)) return;
-    if (STAR_GAMES[num]) return openStarGame(num, g, from);   // 站內遊戲：迷宮尋寶 36 關（多人連線版在關卡選單底下）、記憶星球 45 關
+    if (STAR_GAMES[num]) return openStarGame(num, g, from);   // 站內關卡遊戲：打開選單不扣能量，每一關開始時才扣（見下方 mf-energy）
+    if (!spendEnergy(g)) return;   // 站內遊戲：迷宮尋寶 36 關（多人連線版在關卡選單底下）、記憶星球 45 關
     var u; try { u = new URL(g.url); } catch (e) { window.open(g.url, "_blank", "noopener"); return; }
     rewardLaunch(g, from);
     if (!trustedHost(u.hostname)) { window.open(g.url, "_blank", "noopener"); return; }
@@ -2218,6 +2219,16 @@
     if (!num) return;
     if (e.source !== starFrame() || (location.origin !== "null" && e.origin !== location.origin)) return;   // 只接受站內遊戲頁面的回報
     starResult(num, d);
+  });
+  // 站內關卡遊戲每次開始一關前會送 { type:"mf-energy", game:"maze"|"memory", level, id }；已 3 星免費，否則扣 50
+  window.addEventListener("message", function (e) {
+    var d = e.data; if (!d || d.type !== "mf-energy") return;
+    if (e.source !== starFrame() || (location.origin !== "null" && e.origin !== location.origin)) return;
+    var num = d.game === "maze" ? 1 : d.game === "memory" ? 2 : 0, sg = STAR_GAMES[num], lvl = d.level | 0;
+    if (!sg || lvl < 1 || lvl > sg.n) return;
+    var p = curP(), g = gameByNum(num), best = starProg(p, sg.key)[lvl];
+    var r = energyTry("「" + (g ? g.name : "遊戲") + "」第 " + lvl + " 關", best === 3);
+    try { e.source.postMessage({ type: "mf-energy-res", id: d.id, ok: r.ok, free: !!r.free, v: r.v, max: EN.max, msg: r.msg }, location.origin === "null" ? "*" : location.origin); } catch (x) {}
   });
   function acceptResult(r, origin) {
     if (!r || r.type !== "mindflow:result" || !r.ticket) return;

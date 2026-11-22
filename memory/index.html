@@ -989,7 +989,13 @@ const MF=(()=>{let q;try{q=new URLSearchParams(location.search)}catch(e){q=null}
     b.onclick=()=>{try{window.parent.postMessage({type:'mfc-lab-close'},tgt)}catch(e){}};
     const tr=document.querySelector('.top-r');tr&&tr.prepend(b);
   }
-  return{embed,report(key,s){if(!embed)return;const n=keys.indexOf(key);if(n<0)return;try{window.parent.postMessage({type:'mf-memory',level:n+1,stars:s},tgt)}catch(e){}}};
+  // 能量：從學院開啟時，每次挑戰一關前向學院要 50 能量（已 3 星免費）；直接開啟檔案不需要
+  function energy(key){return new Promise(res=>{if(!embed)return res({ok:true});const n=keys.indexOf(key);if(n<0)return res({ok:true});
+    const id='e'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);let got=false;
+    const h=e=>{if(e.origin!==location.origin&&location.origin!=='null')return;const d=e.data;if(d&&d.type==='mf-energy-res'&&d.id===id){got=true;removeEventListener('message',h);res(d)}};
+    addEventListener('message',h);try{window.parent.postMessage({type:'mf-energy',game:'memory',level:n+1,id},tgt)}catch(e){}
+    setTimeout(()=>{if(!got){removeEventListener('message',h);res({ok:true})}},5000)})}   // 學院沒回應時不卡住玩家
+  return{embed,energy,report(key,s){if(!embed)return;const n=keys.indexOf(key);if(n<0)return;try{window.parent.postMessage({type:'mf-memory',level:n+1,stars:s},tgt)}catch(e){}}};
 })();
 const sk=(p,k)=>p.id+k;
 const starsOf=(p,k)=>save.stars[sk(p,k)]||0;
@@ -1061,7 +1067,14 @@ function renderLevel(i,k){
     $('#go').onclick=run;$('#bk2').onclick=()=>renderPlanet(i);
   }
   async function run(){
-    closeModal();attempts++;__spirit.say(attempts>1?'再來一次！小憶陪你～':'加油！我陪你一起記～',{mood:'happy',ms:2600});
+    let emsg='';
+    if(MF.embed){   // 每次挑戰（含「再試一次」）都要先向學院取得能量
+      const g=overlay.querySelector('#go,#rt');if(g){g.disabled=true;g.textContent='確認能量中…'}
+      const r=await MF.energy(sk(p,k));
+      if(!r.ok){openModal(`<h2>⚡ 能量不足</h2><p>${String(r.msg||'能量不足，稍後再來挑戰。').replace(/[<>&]/g,'')}</p><div class="acts"><button class="btn primary" id="enb" type="button">回${p.zh}</button></div>`);$('#enb').onclick=()=>renderPlanet(i);return}
+      emsg=r.msg||'';
+    }
+    closeModal();attempts++;__spirit.say(emsg?emsg:attempts>1?'再來一次！小憶陪你～':'加油！我陪你一起記～',{mood:'happy',ms:2600});
     const ctx=newCtx();cur={ctx};const ui=makeUI(ctx);
     const rb=$('#replay');rb.disabled=true;
     ctx.onReplay=on=>{rb.disabled=!on};
