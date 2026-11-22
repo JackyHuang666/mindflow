@@ -16,7 +16,7 @@
  */
 (function (global) {
   "use strict";
-  var VER = "3";
+  var VER = "4";
   var BASE = (function () { var s = document.currentScript && document.currentScript.src; return s ? s.replace(/[^/]*$/, "") : "wardrobe/"; })();
 
   // 套裝：id、名稱、分類、價格（智慧星星）、g：MF＝分男女版、U＝男女共用；d：男／女的［斜側、側面］臉朝右＝1、朝左＝-1
@@ -99,31 +99,58 @@
   }
 
   // ---------------------------------------------------------------- 調色盤
-  // 每套時裝都有區域遮罩 img/<套裝>_<m|f>_mask.png（灰階：0 不換色、60 頭髮、120 外套・上衣、180 褲子・裙子、240 鞋子・配件）
-  // 換色時保留原圖的明暗：新顏色 × (像素亮度 ÷ 該區平均亮度)。只處理舞台上目前這一套，畫在 canvas 上。
-  var PARTS4 = [["h", "頭髮", 1], ["t", "外套・上衣", 2], ["b", "褲子・裙子", 3], ["a", "鞋子・配件", 4]];
+  // 每套時裝都有區域遮罩 img/<套裝>_<m|f>_mask.png，灰階值 = 部位編號 × 20：
+  // 1 頭髮、2 膚色、3 外套、4 上衣・內搭、5 褲子・裙子、6 鞋子・襪子、7 帽子、8 背包・包包、9 圍巾・領帶、10 手持道具。
+  // 換色方式（v2）：
+  //   ・保留明暗層次：在 YCbCr 色彩空間中，新亮度 = 目標亮度 + (像素亮度 − 該部位主色亮度)，陰影與高光的落差照原圖保留。
+  //   ・保留圖案：先找出每個部位的「主色」（底色），越接近底色的像素換得越完整；
+  //     顏色差很多的花紋、刺繡、印字、格紋線條會保留原色，只換底色。
+  var PARTS10 = [["h", "頭髮", 1, "h"], ["sk", "膚色", 2, "s"], ["o", "外套", 3, "c"], ["i", "上衣・內搭", 4, "c"], ["b", "褲子・裙子", 5, "c"],
+    ["sh", "鞋子・襪子", 6, "c"], ["hat", "帽子", 7, "c"], ["bag", "背包・包包", 8, "c"], ["sc", "圍巾・領帶", 9, "c"], ["it", "手持道具", 10, "c"]];
+  // 每套時裝實際有的部位（由遮罩統計，面積太小的不列出）
+  var HAS = {"ball_f": "h sk i b sh it", "ball_m": "h sk i b sh it", "biz_f": "h sk o i b sh it", "biz_m": "h sk o i b sh sc it", "bp_f": "h sk o i b sh bag", "bp_m": "h sk o i b sh bag it",
+    "sage_f": "h sk o i b sh bag it", "sage_m": "h sk o i b sh bag it", "school_f": "h sk i b sh bag sc", "school_m": "h sk i b sh bag", "sci_f": "h sk o i b sh it", "sci_m": "h sk o i b sh it",
+    "story_f": "h sk o i b sh bag sc it", "story_m": "h sk o i b sh bag sc it", "swim_f": "h sk i b sh hat bag it", "swim_m": "h sk o b sh hat bag it", "teach_f": "h sk o i b sh it", "teach_m": "h sk o i b sh it",
+    "wiz_f": "h sk o i sh it", "wiz_m": "h sk o i sh it", "yoga_f": "h sk o i b sh bag it", "yoga_m": "h sk o i b sh bag it"};
+  function partsOf(id, g) { var hs = (HAS[id + "_" + g] || "h sk o i b sh").split(" "); return PARTS10.filter(function (q) { return hs.indexOf(q[0]) >= 0; }); }
   var PAL = {
     h: [["自然黑", "#2b2522"], ["深咖啡", "#4a3020"], ["栗子棕", "#7a4a2a"], ["焦糖", "#a8703f"], ["亞麻金", "#d8b06a"], ["白金", "#eadfc6"], ["銀灰", "#a9a9b0"], ["酒紅", "#7c2f3a"],
         ["玫瑰粉", "#e48aa8"], ["珊瑚橘", "#e8794f"], ["薰衣紫", "#9a7fd1"], ["星空藍", "#3f5fb0"], ["薄荷綠", "#6fc2a6"], ["天空藍", "#7ec4ea"], ["檸檬黃", "#efd35a"], ["火焰紅", "#c8343a"]],
+    s: [["白皙", "#f7dfcc"], ["粉嫩", "#f2c8b2"], ["自然", "#e6b590"], ["小麥", "#d29a70"], ["蜜糖", "#bb7f55"], ["古銅", "#9a6240"], ["可可", "#77482e"], ["深棕", "#563220"]],
     c: [["純白", "#f4f1ea"], ["米白", "#e8dcc4"], ["卡其", "#c8ad7f"], ["咖啡", "#7a5236"], ["炭灰", "#4a4a50"], ["墨黑", "#24242a"], ["海軍藍", "#2c3e6b"], ["天空藍", "#7fb3e0"],
-        ["湖水綠", "#4fa79a"], ["森林綠", "#3f6b45"], ["橄欖綠", "#8a8f4e"], ["檸檬黃", "#efcf4a"], ["南瓜橘", "#e07b39"], ["番茄紅", "#c9413b"], ["櫻花粉", "#f0a7bf"], ["葡萄紫", "#7b5aa6"]]
+        ["湖水綠", "#4fa79a"], ["森林綠", "#3f6b45"], ["橄欖綠", "#8a8f4e"], ["檸檬黃", "#efcf4a"], ["南瓜橘", "#e07b39"], ["番茄紅", "#c9413b"], ["櫻花粉", "#f0a7bf"], ["葡萄紫", "#7b5aa6"],
+        ["薰衣紫", "#b7a2dd"], ["薄荷綠", "#9ed9c3"], ["蜜桃橘", "#f4b48a"], ["酒紅", "#7c2f3a"], ["寶石藍", "#2f62c9"], ["香檳金", "#d9b56c"], ["銀灰", "#b9bcc4"], ["可可棕", "#5a3a28"]]
   };
-  function palOf(k) { return k === "h" ? PAL.h : PAL.c; }
+  function palOf(q) { return PAL[q[3]] || PAL.c; }
+  var HEX = /^#[0-9a-f]{6}$/i;
   function colStore(p, id) {
     var w = wd(p); if (!w.col || typeof w.col !== "object") w.col = {};
-    var c = w.col[id]; if (!c || !Array.isArray(c.sets)) c = w.col[id] = { act: -1, sets: [{}, {}, {}] };
+    var c = w.col[id]; if (!c || !Array.isArray(c.sets)) c = w.col[id] = { v: 2, act: -1, sets: [{}, {}, {}] };
     while (c.sets.length < 3) c.sets.push({});
     if (!(c.act >= -1 && c.act <= 2)) c.act = -1;
+    if (c.v !== 2) {   // 舊版 4 區配色 → 新版部位
+      c.sets = c.sets.map(function (s) {
+        var n = {}; if (!s || typeof s !== "object") return n;
+        if (HEX.test(s.h || "")) n.h = s.h;
+        if (HEX.test(s.t || "")) { n.o = s.t; n.i = s.t; }
+        if (HEX.test(s.b || "")) n.b = s.b;
+        if (HEX.test(s.a || "")) { n.sh = s.a; n.hat = s.a; n.bag = s.a; n.sc = s.a; n.it = s.a; }
+        return n;
+      });
+      c.v = 2;
+    }
     return c;
   }
-  function activeCols(p, id) {   // 目前套用的配色（{h,t,b,a}）；原色或未擁有時回傳 null
+  function activeCols(p, id) {   // 目前套用的配色；原色或未擁有時回傳 null
     if (!owns(p, id)) return null;
-    var c = wd(p).col && wd(p).col[id]; if (!c || c.act < 0) return null;
-    var set = c.sets[c.act] || {}, any = false; for (var k in set) if (/^#[0-9a-f]{6}$/i.test(set[k])) any = true;
+    var w = wd(p); if (!w.col || !w.col[id]) return null;
+    var c = colStore(p, id); if (c.act < 0) return null;
+    var set = c.sets[c.act] || {}, any = false; for (var k in set) if (HEX.test(set[k])) any = true;
     return any ? set : null;
   }
   function hexRGB(h) { var n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
-  var RC = { key: "", base: null, mask: null, mean: null, cv: null, busy: null };   // 只快取目前這一套
+  function ycc(r, g, b) { return [0.299 * r + 0.587 * g + 0.114 * b, -0.168736 * r - 0.331264 * g + 0.5 * b, 0.5 * r - 0.418688 * g - 0.081312 * b]; }
+  var RC = { key: "", base: null, mask: null, info: null, cv: null, busy: null };   // 只快取目前這一套
   function loadImg(u) { return new Promise(function (res, rej) { var im = new Image(); im.decoding = "async"; im.onload = function () { res(im); }; im.onerror = rej; im.src = u; }); }
   function prep(id, g) {
     var k = id + "_" + g;
@@ -134,27 +161,64 @@
       var W = ims[0].naturalWidth, Hh = ims[0].naturalHeight, c = document.createElement("canvas"); c.width = W; c.height = Hh;
       var x = c.getContext("2d"); x.drawImage(ims[0], 0, 0); var base = x.getImageData(0, 0, W, Hh);
       x.clearRect(0, 0, W, Hh); x.drawImage(ims[1], 0, 0, W, Hh); var md = x.getImageData(0, 0, W, Hh).data;
-      var mask = new Uint8Array(W * Hh), sum = [0, 0, 0, 0, 0], cnt = [0, 0, 0, 0, 0], b = base.data;
-      for (var i = 0, j = 0; i < mask.length; i++, j += 4) {
-        var r = Math.round(md[j] / 60); if (r > 4) r = 4; if (b[j + 3] < 40) r = 0; mask[i] = r;
-        if (r) { sum[r] += 0.299 * b[j] + 0.587 * b[j + 1] + 0.114 * b[j + 2]; cnt[r]++; }
+      var N = W * Hh, mask = new Uint8Array(N), b = base.data, i, j, r;
+      // 每個部位的色度直方圖（Cb、Cr 各 32 格），用來找主色
+      var hist = []; for (r = 0; r <= 10; r++) hist.push(new Float32Array(1024));
+      for (i = 0, j = 0; i < N; i++, j += 4) {
+        r = Math.round(md[j] / 20); if (r > 10) r = 10; if (b[j + 3] < 8) r = 0; mask[i] = r;
+        if (r && b[j + 3] > 128) {
+          var q = ycc(b[j], b[j + 1], b[j + 2]), cb = (q[1] + 128) >> 3, cr = (q[2] + 128) >> 3;
+          hist[r][(cb < 0 ? 0 : cb > 31 ? 31 : cb) * 32 + (cr < 0 ? 0 : cr > 31 ? 31 : cr)] += 1;
+        }
       }
-      RC.key = k; RC.base = base; RC.mask = mask; RC.mean = sum.map(function (s, i) { return cnt[i] ? s / cnt[i] : 128; }); RC.cv = c; RC.busy = null;
+      var info = [null];
+      for (r = 1; r <= 10; r++) {
+        var hst = hist[r], best = -1, bi = 0;
+        for (var u = 0; u < 1024; u++) {   // 3×3 平滑後取最多的格子
+          var cu = u >> 5, cv = u & 31, s = 0;
+          for (var du = -1; du <= 1; du++) for (var dv = -1; dv <= 1; dv++) { var uu = cu + du, vv = cv + dv; if (uu >= 0 && uu < 32 && vv >= 0 && vv < 32) s += hst[uu * 32 + vv]; }
+          if (s > best) { best = s; bi = u; }
+        }
+        info.push(best > 0 ? { cb: ((bi >> 5) << 3) - 124, cr: ((bi & 31) << 3) - 124, y: 0, n: 0, sd: 0 } : null);
+      }
+      // 主色附近像素的平均亮度與色度（精修主色）
+      var acc = []; for (r = 0; r <= 10; r++) acc.push([0, 0, 0, 0, 0]);
+      for (i = 0, j = 0; i < N; i++, j += 4) {
+        r = mask[i]; if (!r || !info[r] || b[j + 3] < 128) continue;
+        var p2 = ycc(b[j], b[j + 1], b[j + 2]), dcb = p2[1] - info[r].cb, dcr = p2[2] - info[r].cr;
+        if (dcb * dcb + dcr * dcr < 196) { var A = acc[r]; A[0] += p2[0]; A[1] += p2[1]; A[2] += p2[2]; A[3]++; A[4] += p2[0] * p2[0]; }
+      }
+      for (r = 1; r <= 10; r++) if (info[r] && acc[r][3]) {
+        var Z = acc[r]; info[r].y = Z[0] / Z[3]; info[r].cb = Z[1] / Z[3]; info[r].cr = Z[2] / Z[3]; info[r].n = Z[3];
+        info[r].sd = Math.sqrt(Math.max(0, Z[4] / Z[3] - info[r].y * info[r].y));
+      }
+      RC.key = k; RC.base = base; RC.mask = mask; RC.info = info; RC.cv = c; RC.busy = null;
     });
     return RC.busy;
   }
-  function paint(cols) {   // 依配色畫到 RC.cv
-    var b = RC.base, out = new ImageData(new Uint8ClampedArray(b.data), b.width, b.height), o = out.data, m = RC.mask, mean = RC.mean, T = [null, null, null, null, null];
-    PARTS4.forEach(function (q) { var h = cols[q[0]]; if (/^#[0-9a-f]{6}$/i.test(h || "")) T[q[2]] = hexRGB(h); });
+  function paint(cols, id, g) {   // 依配色畫到 RC.cv
+    var b = RC.base, out = new ImageData(new Uint8ClampedArray(b.data), b.width, b.height), o = out.data, m = RC.mask, info = RC.info, T = [];
+    PARTS10.forEach(function (q) {
+      var h = cols[q[0]], f = info[q[2]]; if (!HEX.test(h || "") || !f) return;
+      var t = hexRGB(h), ty = ycc(t[0], t[1], t[2]);
+      // 亮度落差的縮放：目標比原色亮很多或暗很多時，稍微調整層次，避免整片過曝或死黑
+      var sc = Math.sqrt((ty[0] + 30) / (f.y + 30)); if (sc < 0.7) sc = 0.7; if (sc > 1.35) sc = 1.35;
+      T[q[2]] = { y: ty[0], cb: ty[1], cr: ty[2], by: f.y, bcb: f.cb, bcr: f.cr, sc: sc };
+    });
     for (var i = 0, j = 0; i < m.length; i++, j += 4) {
-      var r = m[i], t = r && T[r]; if (!t) continue;
-      var L = 0.299 * o[j] + 0.587 * o[j + 1] + 0.114 * o[j + 2], k = L / mean[r]; if (k > 1.8) k = 1.8;
-      var lift = k > 1 ? (k - 1) * 60 : 0;
-      o[j] = t[0] * k + lift; o[j + 1] = t[1] * k + lift; o[j + 2] = t[2] * k + lift;
+      var t = T[m[i]]; if (!t || !o[j + 3]) continue;
+      var R = o[j], G = o[j + 1], B = o[j + 2];
+      var Y = 0.299 * R + 0.587 * G + 0.114 * B, Cb = -0.168736 * R - 0.331264 * G + 0.5 * B, Cr = 0.5 * R - 0.418688 * G - 0.081312 * B;
+      var dcb = Cb - t.bcb, dcr = Cr - t.bcr, d = Math.sqrt(dcb * dcb + dcr * dcr);
+      // 權重：接近底色 → 1，花紋（色差大）→ 0
+      var w = d < 14 ? 1 : d > 34 ? 0 : 1 - (d - 14) / 20; if (w <= 0) continue;
+      var ny = t.y + (Y - t.by) * t.sc, ncb = t.cb + dcb * 0.25, ncr = t.cr + dcr * 0.25;
+      var nr = ny + 1.402 * ncr, ng = ny - 0.344136 * ncb - 0.714136 * ncr, nb = ny + 1.772 * ncb;
+      o[j] = R + (nr - R) * w; o[j + 1] = G + (ng - G) * w; o[j + 2] = B + (nb - B) * w;
     }
     RC.cv.getContext("2d").putImageData(out, 0, 0);
   }
-  function freePaint() { RC.key = ""; RC.base = null; RC.mask = null; RC.cv = null; }
+  function freePaint() { RC.key = ""; RC.base = null; RC.mask = null; RC.info = null; RC.cv = null; }
   // 把換色後的 canvas 放進舞台（取代 <img>）
   function applyStage(p) {
     var el = S.root && S.root.querySelector("#wd-card .wd-fr"); if (!el) return;
@@ -164,30 +228,34 @@
     prep(id, g).then(function () {
       if (ticket !== S.paintT) return;
       var fr = S.root.querySelector("#wd-card .wd-fr"); if (!fr) return;
-      paint(cols);
+      paint(cols, id, g);
       var img = fr.querySelector("img"); if (!fr.contains(RC.cv)) fr.appendChild(RC.cv);
       RC.cv.className = "wd-cv"; RC.cv.style.left = img ? img.style.left : "0";
       if (img) img.style.visibility = "hidden";
     }, function () {});
   }
+  function curPart(id, g) {
+    var ps = partsOf(id, g), k = S.part; for (var i = 0; i < ps.length; i++) if (ps[i][0] === k) return ps[i];
+    return ps[0];
+  }
   function palHTML(p, id, o) {
     if (!S.pal) return "";
     if (!owns(p, id)) return '<div class="wd-pal"><p class="wd-note">兌換這套時裝之後，就可以用調色盤自由換顏色。</p></div>';
-    var c = colStore(p, id), set = c.act >= 0 ? c.sets[c.act] : {}, part = S.part || "h";
+    var g = wd(p).g, c = colStore(p, id), set = c.act >= 0 ? c.sets[c.act] : {}, pq = curPart(id, g), part = pq[0];
     var h = '<div class="wd-pal" aria-label="調色盤">';
     h += '<div class="wd-sch" role="group" aria-label="配色方案">' + [-1, 0, 1, 2].map(function (i) {
       return '<button type="button" data-wd="sch" data-v="' + i + '"' + (c.act === i ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + ">" + (i < 0 ? "原色" : "配色 " + (i + 1)) + "</button>"; }).join("") + "</div>";
-    h += '<div class="wd-parts" role="tablist">' + PARTS4.map(function (q) {
+    h += '<div class="wd-parts" role="tablist" aria-label="要換色的部位">' + partsOf(id, g).map(function (q) {
       var v = set[q[0]]; return '<button type="button" role="tab" aria-selected="' + (part === q[0]) + '" data-wd="part" data-v="' + q[0] + '"' + (part === q[0] ? ' class="on"' : "") + '><i style="background:' + (v || "transparent") + '"' + (v ? "" : ' class="none"') + "></i>" + q[1] + "</button>"; }).join("") + "</div>";
     var cur = set[part];
-    h += '<div class="wd-sw">' + '<button type="button" class="wd-sw0' + (!cur ? " on" : "") + '" data-wd="col" data-v="" aria-label="原本的顏色" title="原本的顏色"></button>' +
-      palOf(part).map(function (x) { return '<button type="button" data-wd="col" data-v="' + x[1] + '" style="background:' + x[1] + '"' + (cur && cur.toLowerCase() === x[1] ? ' class="on"' : "") + ' aria-label="' + x[0] + '" title="' + x[0] + '"></button>'; }).join("") + "</div>";
-    h += '<div class="wd-palf"><span>' + (c.act < 0 ? "目前是原色。點顏色會存進「配色 1」。" : "自動儲存在「配色 " + (c.act + 1) + "」，可以隨時切換。") + "</span>" +
+    h += '<div class="wd-sw' + (pq[3] === "s" ? " wd-sw-s" : "") + '">' + '<button type="button" class="wd-sw0' + (!cur ? " on" : "") + '" data-wd="col" data-v="" aria-label="原本的顏色" title="原本的顏色"></button>' +
+      palOf(pq).map(function (x) { return '<button type="button" data-wd="col" data-v="' + x[1] + '" style="background:' + x[1] + '"' + (cur && cur.toLowerCase() === x[1] ? ' class="on"' : "") + ' aria-label="' + x[0] + '" title="' + x[0] + '"></button>'; }).join("") + "</div>";
+    h += '<div class="wd-palf"><span>' + (c.act < 0 ? "目前是原色。點顏色會存進「配色 1」。花紋與刺繡會保留，只換底色。" : "自動儲存在「配色 " + (c.act + 1) + "」，可以隨時切換。") + "</span>" +
       (c.act >= 0 ? '<button type="button" class="wd-mini" data-wd="clr">清除這組配色</button>' : "") + "</div></div>";
     return h;
   }
   function pickCol(p, id, hex) {
-    var c = colStore(p, id), part = S.part || "h";
+    var c = colStore(p, id), part = curPart(id, wd(p).g)[0];
     if (c.act < 0) { c.act = 0; for (var i = 0; i < 3; i++) if (!Object.keys(c.sets[i]).length) { c.act = i; break; } }
     if (hex) c.sets[c.act][part] = hex; else delete c.sets[c.act][part];
     H.save();
