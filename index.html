@@ -1184,6 +1184,8 @@
 <script src="cloud.js?v=5"></script>
 <script src="q11/q11-data.js?v=1"></script>
 <script src="q11/q11.js?v=2"></script>
+<link rel="stylesheet" href="wardrobe/wardrobe.css?v=1">
+<script src="wardrobe/wardrobe.js?v=1"></script>
 <script>
 (function () {
   "use strict";
@@ -3440,7 +3442,10 @@
       '</div><p class="pd-muted">測試模式下：所有已有遊戲網址的關卡都能進入、迷霧全開，商店公仔免費領取，寵物食物免費，餵食不限次數，導師級升級不需認證。可在遊戲授權中心取消勾選「測試模式」。</p></div>';
     h += '<p class="pd-muted">第一階段：角色資料存在這台裝置與瀏覽器；接上雲端後會跨裝置同步。</p>';
     pdBody.innerHTML = h;
+    if (window.MFWardrobe) MFWardrobe.mount(pdBody);
   }
+  if (window.MFWardrobe) MFWardrobe.init({ getP: function () { return curP(); }, save: function () { saveP(); }, testMode: function () { return testMode(); }, toast: function (m) { toast(m); },
+    log: function (p, text) { plog(p, 0, 0, text, "star"); }, onChange: function () { renderDrawer(); } });
   // ---------- 角色動作測試（嵌入 character/lab.html，與主畫面完全隔離） ----------
   function openCharLab(ch, url) {
     if (document.getElementById("mfc-lab")) return;
@@ -3465,6 +3470,7 @@
       '<div class="pd-xp"><i style="width:' + Math.min(100, p.xp / need * 100) + '%"></i><b>' + fmt(p.xp) + " / " + fmt(need) + " XP　距離升級還差 " + fmt(need - p.xp) + "</b></div>") +
       '<div class="pd-stats"><div><b>' + fmt(p.coins) + '</b><small>🪙 智慧幣</small></div><div><b>' + fmt(mazeProg(p) && p.stars) + '</b><small>⭐ 智慧星星</small></div><div><b>' + myStreak(p) + '</b><small>🔥 連續天數</small></div><div><b>' + fmt(myWeek(p)) + '</b><small>✨ 本週經驗值</small></div></div>' +
       '<div class="pd-row"><button class="pd-btn" data-pa="edit">✎ 編輯資料</button><button class="pd-btn" data-pa="avatar">📷 更換頭像</button></div></div>';
+    if (window.MFWardrobe) h += MFWardrobe.html();   // 我的穿搭（360° 試衣間，wardrobe/wardrobe.js）
     h += '<div class="pd-card pd-lab"><h3>角色動作測試<small>左手移動、右手技能，實際操作角色</small></h3>' +
       '<div class="pd-row"><button class="pd-btn gold" data-pa="lab-boy-ai">🧑 男生背包客</button><button class="pd-btn gold" data-pa="lab-girl-ai">👩 女生背包客</button></div>' +
       '<p class="pd-muted">可以測試待機、走路、衝刺、跳躍、轉身、抓取／放下、慶祝。手機與平板：左手推搖桿，右手按技能鈕。電腦：WASD／方向鍵移動、Shift 衝刺、Space 跳躍、E 抓取／放下。</p></div>';
