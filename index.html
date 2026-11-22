@@ -1090,6 +1090,7 @@
 <button id="hud-toggle" aria-pressed="false" aria-label="收起操作介面（H 鍵）"><span class="tip">收起介面（H）</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path id="ht-ico" d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg></button>
 <div id="warp" aria-hidden="true"></div>
 
+<script src="cloud.js"></script>
 <script>
 (function () {
   "use strict";
@@ -1518,7 +1519,9 @@
   if (!DB || DB.v !== 2) DB = seedDB();
   // 站內遊戲：記憶星球改用站內版本（memory/），舊資料裡沒有網址或是舊網址時補上
   (function () { var g = (DB.games || []).filter(function (x) { return x.num === 2; })[0]; if (g && (!g.url || !/memory\/index\.html$/.test(g.url))) { g.url = "memory/index.html"; try { localStorage.setItem(AUTH_KEY, JSON.stringify(DB)); } catch (e) {} } })();
-  function saveDB() { try { localStorage.setItem(AUTH_KEY, JSON.stringify(DB)); } catch (e) {} }
+  function saveDB() { try { localStorage.setItem(AUTH_KEY, JSON.stringify(DB)); } catch (e) {} if (window.MFOrg) MFOrg.changed(); }
+  window.MFAppBridge = { db: function () { return DB; }, saveRaw: function () { try { localStorage.setItem(AUTH_KEY, JSON.stringify(DB)); } catch (e) {} }, toast: function (m) { toast(m); },
+    refresh: function () { [function () { rwApply(); }, function () { refreshGameWorld(); }, function () { renderPlayerHud(false); }, function () { if (!authEl.hidden) renderAuth(); }, function () { renderLoginPane(); updateLoginSub(); }].forEach(function (f) { try { f(); } catch (e) {} }); } };
 
   function gameByNum(n) { for (var i = 0; i < DB.games.length; i++) if (DB.games[i].num === n) return DB.games[i]; return null; }
   function adminById(id) { for (var i = 0; i < DB.admins.length; i++) if (DB.admins[i].id === id) return DB.admins[i]; return null; }
@@ -1627,10 +1630,10 @@
     var a = me(); if (creatableRoles(a).indexOf(data.role) < 0) return fail("權限不足：你不能建立這個身分。");
     if (!isSuper(a)) data.academy = a.academy;
     if (!data.name.trim()) return fail("請輸入名稱。");
-    if (data.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email)) return fail("Google 帳號格式不正確。");
+    if (data.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email)) return fail("Email 格式不正確。");
     if (data.role !== "SUPER_ADMIN" && !data.academy) return fail("請選擇所屬學院。");
     var id = "u-" + Date.now();
-    var x = { id: id, name: data.name.trim(), email: data.email.trim(), role: data.role, academy: data.role === "SUPER_ADMIN" ? null : data.academy, createdAt: nowISO() };
+    var x = { id: id, name: data.name.trim(), email: data.email.trim(), role: data.role, academy: data.role === "SUPER_ADMIN" ? null : data.academy, createdAt: nowISO(), code: window.MFOrg ? MFOrg.newCode() : "" };
     if (!isSuper(a)) x.parent = a.id;
     DB.admins.push(x);
     log("建立" + ROLE_NAME[data.role], null, x.name + "（" + roleLabel(x) + "）");
@@ -1744,7 +1747,7 @@
         var gs = grantState(grantOf(x.id));
         return '<button class="adm-item" data-sel="' + x.id + '" aria-pressed="' + (x.id === grantSel) + '"><b>' + esc(x.name) + "</b><small>" +
           (x.role === "SUPER_ADMIN" ? "全平台最高權限" : (showAcad(x) ? catById(x.academy).zh + "・" : "") + esc(grantSummary(x))) + "</small>" +
-          (x.role !== "SUPER_ADMIN" ? '<i class="gs ' + gs + '"></i>' : "") + "</button>";
+          (x.role !== "SUPER_ADMIN" ? '<i class="gs ' + gs + '"></i>' : "") + (x.code && !x.linked ? '<small class="adm-code">加入碼 <b>' + esc(x.code) + "</b>（尚未綁定）</small>" : x.linked ? '<small class="adm-code">✓ 已綁定帳號</small>' : "") + "</button>";
       }).join("") + "</div>";
     }).join("");
     var left = '<div class="adm-list">' + (creatableRoles(a).length ? '<button class="a-btn gold wide" id="a-add-admin">＋ 新增' + (sup ? "人員" : a.role === "ACADEMY_ADMIN" ? "講師／學員／訪客" : "學員／訪客") + "</button>" : "") +
@@ -1806,12 +1809,13 @@
       "</tbody></table></div>";
   }
   function renderLogin() {
+    if (window.MFCloud && MFCloud.user()) return '<div class="login"><h3>尚未綁定學院身分</h3><p class="muted">你已登入雲端帳號 ' + esc(MFCloud.user().email) + '，但還沒有學院身分。請向老師或管理者索取「加入碼」，到「設定 → 遊戲登出/登入」輸入。</p></div>';
     var byRole = ROLES.map(function (r) {
       var xs = DB.admins.filter(function (x) { return x.role === r; }); if (!xs.length) return "";
       return "<h5>" + ROLE_LV[r] + "｜" + ROLE_NAME[r] + '</h5><div class="login-list">' + xs.map(function (x) { return '<button class="a-btn" data-login="' + x.id + '">' + esc(x.name) + "</button>"; }).join("") + "</div>";
     }).join("");
     return '<div class="login"><h3>登入</h3><button class="g-signin" disabled><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>使用 Google 帳號登入（第二階段啟用）</button>' +
-      '<p class="muted small">第一階段請以示範身分登入，測試各層級能看到與能操作的內容：</p>' + byRole + "</div>";
+      '<p class="muted small">正式使用請先到「設定 → 遊戲登出/登入」登入雲端帳號。以下示範身分只在這台裝置上操作，不會寫入雲端：</p>' + byRole + "</div>";
   }
   function renderAuth() {
     var a = me(), body = document.getElementById("auth-body"), tabs = document.getElementById("auth-tabs"), who = document.getElementById("auth-who");
@@ -1905,7 +1909,7 @@
   function addAdminModal() {
     var me0 = me(), sup0 = isSuper(me0);
     openModal(sup0 ? "新增人員" : "新增" + creatableRoles(me0).map(function (r) { return ROLE_NAME[r]; }).join("／"),
-      '<label class="f">名稱<input id="n-name" maxlength="30"></label><label class="f">Google 帳號（第二階段用於登入）<input id="n-mail" placeholder="name@gmail.com"></label>' +
+      '<label class="f">名稱<input id="n-name" maxlength="30"></label><label class="f">Email（選填，方便辨認）<input id="n-mail" placeholder="name@gmail.com"></label><p class="muted small">建立後會產生一組「加入碼」，請交給對方：對方用自己的 Email 註冊登入後，在「設定 → 遊戲登出/登入」輸入加入碼，就會綁定這個身分。</p>' +
       '<label class="f">身分<select id="n-role">' + creatableRoles(me0).map(function (r) { return '<option value="' + r + '">' + ROLE_LV[r] + "｜" + ROLE_NAME[r] + "</option>"; }).join("") + "</select></label>" +
       (sup0 ? '<label class="f" id="n-acad-f">所屬學院<select id="n-acad">' + ACADS.map(function (ac) { return '<option value="' + ac.id + '">' + ac.zh + "</option>"; }).join("") + "</select></label>" +
         '<p class="muted small">講師與訪客不冠學院名稱；所屬學院決定由哪位學院管理者負責，以及講師可以開關哪個學院的遊戲。</p>' : "") +
@@ -1923,6 +1927,7 @@
     var t = e.target.closest("button, a"); if (!t || t.disabled) return;
     if (t.id === "auth-close") return closeAuth();
     if (t.dataset.login) { DB.currentId = t.dataset.login; saveDB(); authTab = "games"; grantSel = null; var a = me(); log("登入", null, a.name); saveDB(); refreshGameWorld(); return renderAuth(); }
+    if (t.id === "a-logout" && window.MFCloud && MFCloud.user()) { if (confirm("要登出雲端帳號嗎？（雲端存檔會保留）")) MFCloud.logout(); return; }
     if (t.id === "a-logout") { log("登出", null, me().name); DB.currentId = null; saveDB(); refreshGameWorld(); return renderAuth(); }
     if (t.dataset.tab) { authTab = t.dataset.tab; return renderAuth(); }
     if (t.dataset.cat && t.parentNode.classList.contains("a-filter")) { authFilter = t.dataset.cat; return renderAuth(); }
@@ -3022,11 +3027,14 @@
   function updateLoginSub() { var a = me(), el = document.getElementById("mi-login-sub"); if (el) el.textContent = a ? "目前：" + a.name + "（" + ROLE_NAME[a.role] + "）" : "目前：示範角色（未登入）"; }
   function renderLoginPane() {
     var a = me(), p = curP(), h = '<div class="lg-cur"><img src="' + avatarOf(p) + '" alt=""><div><b>' + esc(a ? a.name : p.name) + "</b><small>" + (a ? roleLabel(a) : "示範角色・未登入") + "</small></div></div>";
-    if (a) h += '<button class="lg-btn out" data-lg="out">登出</button>';
-    h += '<button class="lg-btn" disabled>使用 Google 帳號登入（第二階段啟用）</button><p class="lg-tip">' + (a ? "切換身分：" : "以示範身分登入：") + "</p><div class=\"lg-list\">" +
+    var cu = window.MFCloud && MFCloud.user();
+    if (a && !cu) h += '<button class="lg-btn out" data-lg="out">登出</button>';
+    h += '<div id="cloud-box"></div>';
+    if (cu) { document.getElementById("login-pane").innerHTML = h; MFCloud.render(); return; }
+    h += '<p class="lg-tip">' + (a ? "切換身分：" : "以示範身分登入：") + "</p><div class=\"lg-list\">" +
       ROLES.map(function (r) { var xs = DB.admins.filter(function (x) { return x.role === r; }); if (!xs.length) return "";
         return "<h6>" + ROLE_NAME[r] + "</h6>" + xs.map(function (x) { return '<button class="lg-id' + (a && a.id === x.id ? " on" : "") + '" data-lg="' + x.id + '">' + esc(x.name) + "</button>"; }).join(""); }).join("") + "</div>";
-    document.getElementById("login-pane").innerHTML = h;
+    document.getElementById("login-pane").innerHTML = h; if (window.MFCloud) MFCloud.render();
   }
   document.getElementById("login-pane").addEventListener("click", function (e) {
     var t = e.target.closest("[data-lg]"); if (!t) return;
