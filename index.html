@@ -88,23 +88,26 @@
 
   /* 今日任務 */
   /* 禮物 */
-  #gift-pop{position:fixed;inset:0;z-index:35;display:grid;place-items:center;padding:16px;background:rgba(4,8,24,.6);font-family:var(--body);color:#eef3ff}
-  #gift-pop[hidden]{display:none}
-  #gift-pop .gf-card{width:min(520px,100%);max-height:calc(100% - 16px);display:flex;flex-direction:column;border-radius:22px;overflow:hidden;background:linear-gradient(180deg,#24357a,#17265a);border:1px solid rgba(255,226,150,.45);box-shadow:0 20px 60px rgba(0,0,0,.5)}
-  #gift-pop .gf-top{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid rgba(255,226,150,.3)}
-  #gift-pop .gf-top h3{margin:0;font:400 21px var(--round);color:#ffd36b}#gift-pop .gf-top small{color:#a9b8e0}
-  #gift-pop .gf-x{margin-left:auto;width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.08);color:#fff;font-size:20px;cursor:pointer}
-  #gift-pop .gf-list{flex:1;overflow-y:auto;padding:12px 16px;display:grid;gap:10px;align-content:start}
-  #gift-pop .gf-item{display:grid;grid-template-columns:48px 1fr auto;gap:10px;align-items:center;padding:12px;border-radius:16px;background:rgba(4,10,32,.4);border:1px solid rgba(255,226,150,.18)}
-  #gift-pop .gf-item.new{border-color:rgba(255,211,107,.7);box-shadow:0 0 16px rgba(255,200,90,.25)}
-  #gift-pop .gf-ico{font-size:34px;text-align:center}
-  #gift-pop .gf-item b{display:block;font:400 17px var(--round);color:#fff}#gift-pop .gf-item p{margin:2px 0 6px;font-size:13px;line-height:1.5;color:#c6d4f5}
-  #gift-pop .gf-rw{display:flex;flex-wrap:wrap;gap:4px}#gift-pop .gf-rw span{padding:3px 8px;border-radius:999px;background:rgba(255,211,107,.15);color:#ffe7a6;font:600 13px var(--fun)}
-  #gift-pop .gf-meta{margin-top:4px;font-size:11px;color:#8f9cc4}
-  #gift-pop .gf-btn{padding:9px 16px;border-radius:999px;border:1px solid #ffe7a6;background:linear-gradient(180deg,#ffe08a,#f2b33d);color:#3a2300;font:700 15px var(--body);cursor:pointer;white-space:nowrap}
-  #gift-pop .gf-btn:disabled{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);color:#9fb0d8;cursor:default}
-  #gift-pop .gf-foot{display:flex;gap:8px;align-items:center;padding:12px 16px;border-top:1px solid rgba(255,226,150,.2)}#gift-pop .gf-foot small{color:#8f9cc4;font-size:12px}
-  #gift-pop .gf-empty{padding:30px 10px;text-align:center;color:#9fb0d8;line-height:1.8}
+  .gf-pop{position:fixed;inset:0;z-index:35;display:grid;place-items:center;padding:16px;background:rgba(4,8,24,.6);font-family:var(--body);color:#eef3ff}
+  .gf-pop[hidden]{display:none}
+  .gf-pop .gf-card{width:min(520px,100%);max-height:calc(100% - 16px);display:flex;flex-direction:column;border-radius:22px;overflow:hidden;background:linear-gradient(180deg,#24357a,#17265a);border:1px solid rgba(255,226,150,.45);box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .gf-pop .gf-top{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid rgba(255,226,150,.3)}
+  .gf-pop .gf-top h3{margin:0;font:400 21px var(--round);color:#ffd36b}.gf-pop .gf-top small{color:#a9b8e0}
+  .gf-pop .gf-x{margin-left:auto;width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.08);color:#fff;font-size:20px;cursor:pointer}
+  .gf-pop .gf-list{flex:1;overflow-y:auto;padding:12px 16px;display:grid;gap:10px;align-content:start}
+  .gf-pop .gf-item{display:grid;grid-template-columns:48px 1fr auto;gap:10px;align-items:center;padding:12px;border-radius:16px;background:rgba(4,10,32,.4);border:1px solid rgba(255,226,150,.18)}
+  .gf-pop .gf-item.new{border-color:rgba(255,211,107,.7);box-shadow:0 0 16px rgba(255,200,90,.25)}
+  .gf-pop .gf-ico{font-size:34px;text-align:center}
+  .gf-pop .gf-item b{display:block;font:400 17px var(--round);color:#fff}.gf-pop .gf-item p{margin:2px 0 6px;font-size:13px;line-height:1.5;color:#c6d4f5}
+  .gf-pop .gf-rw{display:flex;flex-wrap:wrap;gap:4px}.gf-pop .gf-rw span{padding:3px 8px;border-radius:999px;background:rgba(255,211,107,.15);color:#ffe7a6;font:600 13px var(--fun)}
+  .gf-pop .gf-meta{margin-top:4px;font-size:11px;color:#8f9cc4}
+  .gf-pop .gf-btn{padding:9px 16px;border-radius:999px;border:1px solid #ffe7a6;background:linear-gradient(180deg,#ffe08a,#f2b33d);color:#3a2300;font:700 15px var(--body);cursor:pointer;white-space:nowrap}
+  .gf-pop .gf-btn:disabled{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);color:#9fb0d8;cursor:default}
+  .gf-pop .gf-foot{display:flex;gap:8px;align-items:center;padding:12px 16px;border-top:1px solid rgba(255,226,150,.2)}.gf-pop .gf-foot small{color:#8f9cc4;font-size:12px}
+  .gf-pop .gf-empty{padding:30px 10px;text-align:center;color:#9fb0d8;line-height:1.8}
+  .gf-pop .gf-prog{margin-top:6px;height:6px;border-radius:3px;background:rgba(255,255,255,.1);overflow:hidden}.gf-pop .gf-prog span{display:block;height:100%;background:linear-gradient(90deg,#7fe3a0,#ffd36b)}
+  .gf-pop .gf-pt{font-size:12px;color:#c6d4f5;margin-top:4px}
+  .gf-pop .gf-btn.go{background:rgba(127,227,160,.15);border-color:#7fe3a0;color:#bff5cf}
   .gfa-to{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px}.gfa-to label{display:flex;align-items:center;gap:6px;color:#fff}
   .gfa-mem{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:4px 10px;max-height:220px;overflow:auto;padding:8px;border-radius:10px;background:rgba(4,10,32,.4);margin-top:8px;font-size:13px}
   .gfa-mem label{display:flex;align-items:center;gap:6px;color:#fff}.gfa-mem small{color:var(--muted)}
@@ -1168,11 +1171,11 @@
   GOLD_ICONS.task = '<svg class="ico" viewBox="0 0 64 64" aria-hidden="true"><rect fill="url(#mfGold)" stroke="#6e3f06" stroke-width="1.6" x="12" y="10" width="40" height="49" rx="6"/><rect fill="url(#mfGold)" stroke="#6e3f06" stroke-width="1.6" x="22" y="4" width="20" height="12" rx="4"/><path fill="none" stroke="#5a3205" stroke-opacity=".7" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" d="M21 36l8 8 15-17"/></svg>';
   GOLD_ICONS.gift = '<svg class="ico" viewBox="0 0 64 64" aria-hidden="true"><path fill="url(#mfGold)" stroke="#6e3f06" stroke-width="1.6" stroke-linejoin="round" d="M32 23c-5-10-16-13-17-6-1 5 8 6 17 6zM32 23c5-10 16-13 17-6 1 5-8 6-17 6z"/><rect fill="url(#mfGold)" stroke="#6e3f06" stroke-width="1.6" x="8" y="23" width="48" height="12" rx="3"/><rect fill="url(#mfGold)" stroke="#6e3f06" stroke-width="1.6" x="12" y="35" width="40" height="23" rx="3"/><path fill="#d8432f" stroke="#7a1e10" stroke-width="1.2" d="M28 23h8v35h-8z"/></svg>';
   var ACT_X0 = 464, ACTS = [["game", "遊戲挑戰"], ["course", "課程學習"], ["meditate", "冥想練習"], ["team", "團隊活動"], ["growth", "成長紀錄"], ["task", "任務"], ["gift", "禮物"]];
-  var ACT_ID = { growth: "act-growth", task: "act-task", gift: "act-gift" };
+  var ACT_ID = { game: "act-game", course: "act-course", meditate: "act-meditate", team: "act-team", growth: "act-growth", task: "act-task", gift: "act-gift" };
   document.getElementById("h-actions").insertAdjacentHTML("beforeend", ACTS.map(function (x, i) {
     var cx = 544 + i * 152;   // 每顆間隔 152（設計稿像素）
     return '<button ' + (ACT_ID[x[0]] ? 'id="' + ACT_ID[x[0]] + '"' : 'data-demo="' + x[1] + '"') + (x[0] === "task" ? ' aria-expanded="false" aria-controls="h-tasks"' : "") + ' style="left:' + (cx - ACT_X0 - 66) + 'px"><span class="abs dome"></span>' + GOLD_ICONS[x[0]] + '<span class="lab">' + x[1] + "</span>" +
-      (x[0] === "task" || x[0] === "gift" ? '<i class="act-badge" hidden></i>' : "") + "</button>"; }).join(""));
+      '<i class="act-badge" hidden></i></button>'; }).join(""));   // 每顆右上角都有提示數字
   var CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5" fill="rgba(255,255,255,.12)" stroke="#fff" stroke-width="2.2"/><path d="M7 12.5l3.2 3.2L17.5 8" fill="none" stroke="#5fb0ff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   var CHECK_OFF = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5" fill="rgba(255,255,255,.12)" stroke="#fff" stroke-width="2.2"/></svg>';
 
@@ -1885,7 +1888,7 @@
     if (!a) { tabs.innerHTML = ""; who.innerHTML = ""; body.innerHTML = renderLogin(); return; }
     var sup = isSuper(a);
     var T = [["games", isUser(a) ? "我的遊戲" : "遊戲管理中心"], ["admins", sup ? "管理者授權" : a.role === "ACADEMY_ADMIN" ? "講師與學員授權" : "學員授權"], ["status", sup ? "五大學院開放狀態" : "開放狀態"], ["logs", "操作紀錄"]];
-    if (sup) { var nc = pendingCerts().length; T.splice(3, 0, ["cert", "導師認證" + (nc ? ' <b class="tab-n">' + nc + "</b>" : "")]); T.splice(4, 0, ["reward", "獎勵平衡" + (rwEvent() ? ' <b class="tab-n">🎉</b>' : "")]); T.splice(5, 0, ["gift", "🎁 禮物發放"]); }
+    if (sup) { var nc = pendingCerts().length; T.splice(3, 0, ["cert", "導師認證" + (nc ? ' <b class="tab-n">' + nc + "</b>" : "")]); T.splice(4, 0, ["reward", "獎勵平衡" + (rwEvent() ? ' <b class="tab-n">🎉</b>' : "")]); T.splice(5, 0, ["gift", "🎁 禮物發放"]); T.splice(6, 0, ["act", "🎉 活動管理"]); }
     if (isUser(a)) T = T.filter(function (x) { return x[0] === "games" || x[0] === "logs"; });
     if (!T.some(function (x) { return x[0] === authTab; })) authTab = "games";
     tabs.innerHTML = T.map(function (x) { return '<button role="tab" data-tab="' + x[0] + '" aria-selected="' + (authTab === x[0]) + '">' + x[1] + "</button>"; }).join("");
@@ -1895,7 +1898,7 @@
       (sup ? '<label class="who-v"><input type="checkbox" id="a-test"' + (DB.testMode !== false ? " checked" : "") + '> 測試模式（全部開啟）</label>' : "") +
       (sup ? '<label class="who-v">玩家畫面預覽：<select id="a-viewer">' + ACADS.map(function (ac) { return '<option value="' + ac.id + '"' + (DB.viewerAcademy === ac.id ? " selected" : "") + ">" + ac.zh + "學生</option>"; }).join("") + "</select></label>" : "") +
       '<button class="a-btn sm" id="a-logout">登出</button>';
-    body.innerHTML = authTab === "games" ? renderGames() : authTab === "admins" ? renderAdmins() : authTab === "status" ? renderStatus() : authTab === "cert" ? renderCert() : authTab === "reward" ? renderReward() : authTab === "gift" ? renderGiftAdmin() : renderLogs();
+    body.innerHTML = authTab === "games" ? renderGames() : authTab === "admins" ? renderAdmins() : authTab === "status" ? renderStatus() : authTab === "cert" ? renderCert() : authTab === "reward" ? renderReward() : authTab === "gift" ? renderGiftAdmin() : authTab === "act" ? renderActAdmin() : renderLogs();
     syncGrantEditor();
   }
   function syncGrantEditor() {
@@ -2398,7 +2401,7 @@
     var n = giftPending(curP()).length; b.hidden = !n; b.textContent = n > 99 ? "99+" : n;
     document.getElementById("act-gift").setAttribute("aria-label", "禮物" + (n ? "（" + n + " 份可以領取）" : ""));
   }
-  var gfEl = document.createElement("section"); gfEl.id = "gift-pop"; gfEl.hidden = true; gfEl.setAttribute("role", "dialog"); gfEl.setAttribute("aria-modal", "true"); gfEl.setAttribute("aria-label", "禮物");
+  var gfEl = document.createElement("section"); gfEl.id = "gift-pop"; gfEl.className = "gf-pop"; gfEl.hidden = true; gfEl.setAttribute("role", "dialog"); gfEl.setAttribute("aria-modal", "true"); gfEl.setAttribute("aria-label", "禮物");
   document.body.appendChild(gfEl);
   function renderGift() {
     var p = curP(), list = giftMine(p), pend = giftPending(p);
@@ -2492,6 +2495,134 @@
     toast("🎁 已發放「" + g.title + "」給" + giftToText(g.to) + "。"); renderGiftBadge(); renderAuth();
   });
 
+  // ---------------------------------------------------------------- 活動：最高管理者在遊戲授權中心推出，分在遊戲挑戰／課程學習／冥想練習／團隊活動
+  //   清單存在 DB.rw.a（跟禮物一樣同步到雲端 org 資料表）。每筆：
+  //   { id, cat:"game"|"course"|"meditate"|"team", title, msg, start, end, cond:{ type:"none"|"play"|"med", game, n }, xp, coin, star, energy, by, at }
+  //   type none＝參加就能領；play＝活動期間完成某款（game）或任一款（game=0）遊戲 n 場；med＝活動期間冥想累計 n 分鐘
+  //   玩家領取紀錄存在 p.acts[活動 id]
+  var ACT_CAT = { game: "遊戲挑戰", course: "課程學習", meditate: "冥想練習", team: "團隊活動" }, ACT_ICO = { game: "🎮", course: "📚", meditate: "🧘", team: "🤝" };
+  function actAll() { return (DB.rw && Array.isArray(DB.rw.a)) ? DB.rw.a : []; }
+  function actById(id) { return actAll().filter(function (x) { return x.id === id; })[0] || null; }
+  function actLive(x) { var d = todayStr(); return (!x.start || d >= x.start) && (!x.end || d <= x.end); }
+  function actGot(p, id) { return !!(p.acts && p.acts[id]); }
+  function actIn(x, iso) { var d = String(iso || "").slice(0, 10); var dl = dayStr(new Date(iso)); return (!x.start || dl >= x.start) && (!x.end || dl <= x.end); }
+  function actProg(p, x) {   // 回傳 { cur, need }
+    var c = x.cond || { type: "none" }, n = Math.max(1, +c.n || 1);
+    if (c.type === "play") { var k = 0; (p.log || []).forEach(function (l) { if (l.k === "result" && (!+c.game || l.g === +c.game) && actIn(x, l.t)) k++; }); return { cur: Math.min(k, n), need: n }; }
+    if (c.type === "med") { var m = 0; Object.keys(p.med || {}).forEach(function (d) { if ((!x.start || d >= x.start) && (!x.end || d <= x.end)) m += p.med[d] || 0; }); return { cur: Math.min(m, n), need: n }; }
+    return { cur: 1, need: 1 };
+  }
+  function actCondText(x) {
+    var c = x.cond || { type: "none" };
+    if (c.type === "play") { var g = +c.game ? gameByNum(+c.game) : null; return "完成" + (g ? "「" + g.name + "」" : "任一款遊戲") + " " + (c.n || 1) + " 場"; }
+    if (c.type === "med") return "冥想練習累計 " + (c.n || 1) + " 分鐘";
+    return "參加就能領取";
+  }
+  function actMine(p, cat) { return actAll().filter(function (x) { return x.cat === cat && (actLive(x) || actGot(p, x.id)); }).sort(function (a, b) { return a.at < b.at ? 1 : -1; }); }
+  function actPending(p, cat) { return actAll().filter(function (x) { return x.cat === cat && actLive(x) && !actGot(p, x.id); }); }
+  // 成長紀錄：上次打開以後新達成的里程碑
+  function msNew(p) { gInit(p); if (!Array.isArray(p.msSeen)) { p.msSeen = Object.keys(p.ms || {}); saveP(); return 0; } return Object.keys(p.ms || {}).filter(function (k) { return p.msSeen.indexOf(k) < 0; }).length; }
+  function msMarkSeen() { var p = curP(); gInit(p); p.msSeen = Object.keys(p.ms || {}); saveP(); setTimeout(renderActBadges, 0); }
+  function setBadge(id, n, label) {
+    var b = document.querySelector("#" + id + " .act-badge"); if (!b) return;
+    b.hidden = !n; b.textContent = n > 99 ? "99+" : n;
+    var btn = document.getElementById(id); if (btn && label) btn.setAttribute("aria-label", label + (n ? "（" + n + " 項可以查看）" : ""));
+  }
+  function renderActBadges() {
+    var p = curP();
+    Object.keys(ACT_CAT).forEach(function (c) { setBadge("act-" + c, actPending(p, c).length, ACT_CAT[c]); });
+    setBadge("act-growth", msNew(p), "成長紀錄");
+  }
+  var acEl = document.createElement("section"); acEl.id = "act-pop"; acEl.className = "gf-pop"; acEl.hidden = true; acEl.setAttribute("role", "dialog"); acEl.setAttribute("aria-modal", "true");
+  document.body.appendChild(acEl); var acCat = "game";
+  function renderAct() {
+    var p = curP(), list = actMine(p, acCat), pend = actPending(p, acCat).length;
+    acEl.setAttribute("aria-label", ACT_CAT[acCat] + "活動");
+    acEl.innerHTML = '<div class="gf-card"><div class="gf-top"><span style="font-size:28px">' + ACT_ICO[acCat] + '</span><div><h3>' + ACT_CAT[acCat] + "活動</h3><small>" + (pend ? pend + " 個活動進行中" : "目前沒有進行中的活動") + '</small></div><button class="gf-x" data-ac="close" aria-label="關閉">×</button></div><div class="gf-list">' +
+      (list.length ? list.map(function (x) {
+        var got = actGot(p, x.id), pr = actProg(p, x), done = pr.cur >= pr.need, c = x.cond || {};
+        var btn = got ? '<button class="gf-btn" disabled>已領取</button>' : done ? '<button class="gf-btn" data-acc="' + esc(x.id) + '">領取</button>' :
+          (c.type === "play" && +c.game ? '<button class="gf-btn go" data-acgo="' + (+c.game) + '">前往</button>' : c.type === "med" ? '<button class="gf-btn go" data-acmed="1">去冥想</button>' : '<button class="gf-btn go" disabled>進行中</button>');
+        return '<div class="gf-item' + (got ? "" : " new") + '"><div class="gf-ico">' + (got ? "✅" : ACT_ICO[acCat]) + "</div><div><b>" + esc(x.title) + "</b>" + (x.msg ? "<p>" + esc(x.msg) + "</p>" : "") +
+          '<div class="gf-pt">🎯 ' + actCondText(x) + ((c.type === "play" || c.type === "med") ? "（" + pr.cur + " / " + pr.need + "）" : "") + "</div>" +
+          ((c.type === "play" || c.type === "med") && !got ? '<div class="gf-prog"><span style="width:' + Math.round(pr.cur / pr.need * 100) + '%"></span></div>' : "") +
+          '<div class="gf-rw" style="margin-top:6px">' + giftChips(x) + '</div><div class="gf-meta">活動期間：' + (x.start || "即日起") + " ～ " + (x.end || "不限") + "</div></div>" + btn + "</div>";
+      }).join("") : '<div class="gf-empty">目前沒有' + ACT_CAT[acCat] + '活動。<br>學院推出新活動時，按鈕右上角會出現紅色數字。</div>') + "</div></div>";
+  }
+  function openAct(cat) { acCat = cat; renderAct(); acEl.hidden = false; document.body.classList.add("shop-open"); if (window.MFOrg) Promise.resolve(MFOrg.pull()).then(function () { if (!acEl.hidden) renderAct(); renderActBadges(); }); }
+  function closeAct() { acEl.hidden = true; document.body.classList.remove("shop-open"); renderPlayerHud(false); }
+  function claimAct(id, btn) {
+    var p = curP(), x = actById(id); if (!x || !actLive(x) || actGot(p, id)) return;
+    var pr = actProg(p, x); if (pr.cur < pr.need) return toast("還沒完成活動條件：" + actCondText(x));
+    (p.acts = p.acts || {})[id] = nowISO();
+    var extra = [];
+    if (+x.star > 0) { starProg(p, "maze"); p.stars += +x.star; extra.push("智慧星星 +" + x.star); }
+    if (+x.energy > 0) { var e = energyOf(p); if (e.v >= EN.max) e.t = Date.now(); e.v += +x.energy; extra.push("能量 +" + x.energy); }
+    var text = "活動「" + x.title + "」獎勵" + (extra.length ? "（" + extra.join("、") + "）" : "");
+    if (+x.xp > 0 || +x.coin > 0) grant(p, +x.xp || 0, +x.coin || 0, text, { from: btn, noPet: true }); else { plog(p, 0, 0, text, "gift"); saveP(); }
+    toast("🎉 完成活動「" + x.title + "」" + (giftText(x) ? "：" + giftText(x) : ""));
+  }
+  acEl.addEventListener("click", function (e) {
+    if (e.target === acEl) return closeAct();
+    var t = e.target.closest("[data-ac],[data-acc],[data-acgo],[data-acmed]"); if (!t || t.disabled) return;
+    if (t.dataset.ac === "close") return closeAct();
+    if (t.dataset.acc) { claimAct(t.dataset.acc, t); renderAct(); renderActBadges(); renderPlayerHud(true); return; }
+    if (t.dataset.acgo) { closeAct(); goStation(+t.dataset.acgo); return; }
+    if (t.dataset.acmed) { closeAct(); openGrowth("mind"); return; }
+  });
+  window.addEventListener("keydown", function (e) { if (e.key === "Escape" && !acEl.hidden) { e.stopImmediatePropagation(); closeAct(); } }, true);
+  Object.keys(ACT_CAT).forEach(function (c) { document.getElementById("act-" + c).addEventListener("click", function (e) { e.stopPropagation(); openAct(c); }); });
+  setTimeout(renderActBadges, 0); setInterval(renderActBadges, 60000);
+
+  // ---- 遊戲授權中心「活動管理」（只有最高管理者）----
+  function renderActAdmin() {
+    var games = DB.games.filter(function (g) { return g.url; }).sort(function (a, b) { return a.num - b.num; });
+    var h = '<div class="cert-head"><h3>🎉 活動管理</h3><p class="muted small">在「遊戲挑戰、課程學習、冥想練習、團隊活動」推出活動。活動期間內，對應按鈕右上角會顯示紅色數字；玩家完成條件後在活動清單領取獎勵。活動跟著雲端同步給所有玩家（需要用最高管理者帳號登入雲端）。</p></div>';
+    h += '<div class="rw-sec"><h4>推出新活動</h4><div class="rw-grid">' +
+      '<label>放在哪個按鈕<select id="aca-cat" class="rw-in" style="width:100%;text-align:left">' + Object.keys(ACT_CAT).map(function (c) { return '<option value="' + c + '">' + ACT_ICO[c] + " " + ACT_CAT[c] + "</option>"; }).join("") + "</select></label>" +
+      '<label style="grid-column:span 2">活動名稱<input type="text" id="aca-title" maxlength="24" placeholder="例如：迷宮週末挑戰"></label>' +
+      '<label style="grid-column:1/-1">活動說明（可空白）<input type="text" id="aca-msg" maxlength="80" placeholder="例如：這個週末完成 3 場迷宮尋寶，送你能量和智慧幣！"></label>' +
+      '<label>開始日期<input type="date" id="aca-start" value="' + todayStr() + '"></label><label>結束日期（可空白＝不限）<input type="date" id="aca-end"></label>' +
+      '<label>完成條件<select id="aca-type" class="rw-in" style="width:100%;text-align:left"><option value="none">參加就能領取</option><option value="play">完成遊戲 N 場</option><option value="med">冥想累計 N 分鐘</option></select></label>' +
+      '<label id="aca-game-l" hidden>哪一款遊戲<select id="aca-game" class="rw-in" style="width:100%;text-align:left"><option value="0">任一款遊戲</option>' + games.map(function (g) { return '<option value="' + g.num + '">' + (g.num < 10 ? "0" : "") + g.num + " " + esc(g.name) + "</option>"; }).join("") + "</select></label>" +
+      '<label id="aca-n-l" hidden><span id="aca-n-t">場數</span><input type="number" id="aca-n" min="1" step="1" value="3"></label>' +
+      GF_KIND.map(function (k) { return "<label>獎勵：" + k[1] + '<input type="number" id="aca-' + k[0] + '" min="0" step="1" value="0"></label>'; }).join("") +
+      '</div><div class="rw-act" style="margin-top:12px"><button class="a-btn gold" data-aca="add">推出活動</button></div></div>';
+    var list = actAll().slice().sort(function (a, b) { return a.at < b.at ? 1 : -1; });
+    h += '<div class="rw-sec"><h4>活動列表（' + list.length + "）</h4>" + (list.length ? '<div class="gfa-list">' + list.map(function (x) {
+      var st = actLive(x) ? "進行中" : (x.start && todayStr() < x.start ? "尚未開始" : "已結束");
+      return '<div class="gfa-row' + (st === "已結束" ? " off" : "") + '"><div><b>' + ACT_ICO[x.cat] + " " + esc(x.title) + '</b>　<span class="chip ' + (st === "進行中" ? "on" : "off") + '">' + st + "</span>" +
+        '<div class="muted">' + ACT_CAT[x.cat] + "・" + actCondText(x) + (giftText(x) ? "・獎勵：" + giftText(x) : "・無獎勵") + "・" + (x.start || "即日起") + " ～ " + (x.end || "不限") + "</div></div>" +
+        '<button class="a-btn sm" data-aca-del="' + esc(x.id) + '">刪除</button></div>'; }).join("") + "</div>" : '<p class="muted small">還沒有推出活動。</p>') +
+      '<p class="muted small">「刪除」會讓活動從玩家清單消失；已經領取的獎勵不會扣回。</p></div>';
+    return h;
+  }
+  authEl.addEventListener("change", function (e) {
+    if (e.target.id !== "aca-type") return; var ty = e.target.value;
+    authEl.querySelector("#aca-game-l").hidden = ty !== "play"; authEl.querySelector("#aca-n-l").hidden = ty === "none";
+    authEl.querySelector("#aca-n-t").textContent = ty === "med" ? "分鐘數" : "場數"; authEl.querySelector("#aca-n").value = ty === "med" ? 10 : 3;
+  });
+  authEl.addEventListener("click", function (e) {
+    var t = e.target.closest("[data-aca],[data-aca-del]"); if (!t) return; var a = me(); if (!isSuper(a)) return;
+    if (t.dataset.acaDel) {
+      var x0 = actById(t.dataset.acaDel); if (!x0 || !confirm("確定刪除活動「" + x0.title + "」？")) return;
+      DB.rw = DB.rw || { v: {}, ev: {} }; DB.rw.a = actAll().filter(function (x) { return x.id !== x0.id; });
+      log("刪除活動", null, x0.title); saveDB(); toast("已刪除活動「" + x0.title + "」。"); renderActBadges(); return renderAuth();
+    }
+    var gv = function (id) { return (authEl.querySelector("#" + id) || {}).value || ""; };
+    var x = { id: "ac" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), cat: gv("aca-cat"), title: gv("aca-title").trim().slice(0, 24), msg: gv("aca-msg").trim().slice(0, 80),
+      start: gv("aca-start"), end: gv("aca-end"), by: a.name, at: nowISO() };
+    var ty = gv("aca-type"); x.cond = ty === "play" ? { type: "play", game: +gv("aca-game") || 0, n: Math.max(1, Math.round(+gv("aca-n") || 1)) } : ty === "med" ? { type: "med", n: Math.max(1, Math.round(+gv("aca-n") || 1)) } : { type: "none" };
+    GF_KIND.forEach(function (k) { var v = Math.max(0, Math.min(1000000, Math.round(+gv("aca-" + k[0]) || 0))); if (v) x[k[0]] = v; });
+    if (!ACT_CAT[x.cat]) return toast("請選擇活動要放在哪個按鈕。");
+    if (!x.title) return toast("請輸入活動名稱。");
+    if (x.start && x.end && x.end < x.start) return toast("結束日期不能早於開始日期。");
+    if (x.end && x.end < todayStr()) return toast("結束日期不能早於今天。");
+    DB.rw = DB.rw || { v: {}, ev: {} }; DB.rw.a = [x].concat(actAll()).slice(0, 100);
+    log("推出活動", null, ACT_CAT[x.cat] + "：" + x.title); saveDB();
+    toast("🎉 已在「" + ACT_CAT[x.cat] + "」推出活動「" + x.title + "」。"); renderActBadges(); renderAuth();
+  });
+
   document.getElementById("dq-head").addEventListener("click", function (e) {
     e.stopPropagation(); var h = document.getElementById("h-tasks"), on = !h.classList.contains("open");
     h.classList.toggle("open", on); this.setAttribute("aria-expanded", on); layoutHud();
@@ -2561,6 +2692,7 @@
     if (typeof renderBuffs === "function" && bfEl) setTimeout(renderBuffs, 0);
     setTimeout(renderTasks, 0);
     if (typeof renderGiftBadge === "function") setTimeout(renderGiftBadge, 0);
+    if (typeof renderActBadges === "function") setTimeout(renderActBadges, 0);
     if (miniPet) setTimeout(renderMiniPet, 0);
     var p = curP();
     if (p.celebrate) { var cl = p.celebrate; delete p.celebrate; saveP(); setTimeout(function () { showLevelUp(cl - 1, cl, titleOf(cl), true); }, 600); }
@@ -2778,7 +2910,7 @@
   authEl.addEventListener("click", function (e) {
     var t = e.target.closest("[data-rw-save],[data-rw-reset],[data-rw-pre]"); if (!t) return; var a = me(); if (!isSuper(a)) return;
     if (t.dataset.rwPre) { var pr = RW_PRESET[+t.dataset.rwPre]; authEl.querySelector("#rw-ev-on").checked = true; authEl.querySelector("#rw-ev-name").value = pr[0] + "活動"; authEl.querySelector("#rw-ev-xm").value = pr[1]; authEl.querySelector("#rw-ev-cm").value = pr[2]; authEl.querySelector("#rw-ev-lm").value = pr[3]; toast("已填入「" + pr[0] + "」範本，記得設定日期並按儲存。"); return; }
-    if (t.dataset.rwReset) { DB.rw = { v: {}, ev: (DB.rw && DB.rw.ev) || {}, g: (DB.rw && DB.rw.g) || [] }; rwApply(); log("獎勵設定恢復預設", null, a.name); saveDB(); toast("已恢復全部預設數值（活動設定保留）。"); renderPlayerHud(false); return renderAuth(); }
+    if (t.dataset.rwReset) { DB.rw = { v: {}, ev: (DB.rw && DB.rw.ev) || {}, g: (DB.rw && DB.rw.g) || [], a: (DB.rw && DB.rw.a) || [] }; rwApply(); log("獎勵設定恢復預設", null, a.name); saveDB(); toast("已恢復全部預設數值（活動設定保留）。"); renderPlayerHud(false); return renderAuth(); }
     var v = {}, bad = 0;
     authEl.querySelectorAll("[data-rw]").forEach(function (el) { var k = el.dataset.rw, x = parseFloat(el.value); if (!isFinite(x) || x < 0) { bad++; return; } if (!/X$|_per$/.test(k)) x = Math.round(x); if (x !== RW_DEF[k]) v[k] = x; });
     if (v.feedCap === 0 || v.adoptLv === 0 || v.lvBase === 0) bad++;
@@ -2786,7 +2918,7 @@
     var gv = function (id) { return authEl.querySelector("#" + id).value; };
     var ev = { on: authEl.querySelector("#rw-ev-on").checked, name: gv("rw-ev-name").trim().slice(0, 16), xm: Math.min(5, Math.max(1, +gv("rw-ev-xm") || 1)), cm: Math.min(5, Math.max(1, +gv("rw-ev-cm") || 1)), lm: Math.min(5, Math.max(1, +gv("rw-ev-lm") || 1)), start: gv("rw-ev-start"), end: gv("rw-ev-end") };
     if (ev.start && ev.end && ev.end < ev.start) return toast("活動結束日期不能早於開始日期。");
-    DB.rw = { v: v, ev: ev, g: (DB.rw && DB.rw.g) || [] }; rwApply(); log("更新獎勵設定", null, Object.keys(v).length + " 項自訂數值" + (ev.on ? "・活動：" + (ev.name || "活動加成") + " 經驗×" + ev.xm + " 幣×" + ev.cm : "")); saveDB();
+    DB.rw = { v: v, ev: ev, g: (DB.rw && DB.rw.g) || [], a: (DB.rw && DB.rw.a) || [] }; rwApply(); log("更新獎勵設定", null, Object.keys(v).length + " 項自訂數值" + (ev.on ? "・活動：" + (ev.name || "活動加成") + " 經驗×" + ev.xm + " 幣×" + ev.cm : "")); saveDB();
     toast("獎勵設定已儲存，立即生效。"); renderPlayerHud(false); renderAuth();
   });
   function skList(pt) {
@@ -3834,8 +3966,8 @@
     grBody.innerHTML = grTab === "sum" ? renderSum(p) : grTab === "tl" ? renderTimeline(p) : grTab === "games" ? grGames(p) : grTab === "ab" ? renderAbility(p) : renderMind(p);
     if (med) medTick();
   }
-  function openGrowth(tab) { if (tab) grTab = tab; grEl.hidden = false; document.body.classList.add("shop-open"); renderGrowth(); grBody.scrollTop = 0; }
-  function closeGrowth() { if (med) medStop(true); grEl.hidden = true; document.body.classList.remove("shop-open"); renderPlayerHud(false); }
+  function openGrowth(tab) { if (tab) grTab = tab; grEl.hidden = false; document.body.classList.add("shop-open"); renderGrowth(); grBody.scrollTop = 0; if (typeof msMarkSeen === "function") msMarkSeen(); }   // 畫完（含檢查新里程碑）才標記為看過
+  function closeGrowth() { if (typeof msMarkSeen === "function") msMarkSeen(); if (med) medStop(true); grEl.hidden = true; document.body.classList.remove("shop-open"); renderPlayerHud(false); }
 
   // ---- 冥想計時 ----
   function medTick() {
