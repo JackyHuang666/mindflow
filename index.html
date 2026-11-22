@@ -744,6 +744,25 @@
   .sh-new{position:absolute;right:8px;top:32px;font:700 10px var(--fun);color:#fff;background:linear-gradient(90deg,#ff9fb0,#ffcf5a,#8fd3ff,#ff9fb0);background-size:200% 100%;animation:shShine 2.4s linear infinite;padding:2px 7px;border-radius:999px}
   @keyframes shShine{to{background-position:-200% 0}}
   @media (prefers-reduced-motion:reduce){.sh-fig.idle,.sh-new,.sh-spark{animation:none}}
+  .sh-tabs button .sh-tnew{font:700 9px var(--fun);font-style:normal;color:#fff;background:#e5484d;border-radius:999px;padding:2px 5px;margin-left:5px;vertical-align:2px}
+  .sx-spec ol{margin:6px 0 6px 20px;padding:0;display:grid;gap:5px;font-size:14px;line-height:1.5}
+  .sx-tog{display:flex;gap:8px;align-items:center;font-size:15px}
+  .sx-new{display:grid;grid-template-columns:minmax(170px,220px) 1fr;gap:16px;align-items:start}
+  .sx-pic{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:start}
+  .sx-drop{grid-row:span 3;display:grid;place-items:center;height:220px;border:2px dashed rgba(160,120,60,.45);border-radius:14px;cursor:pointer;background:repeating-conic-gradient(#f3ece0 0 25%,#fffaf2 0 50%) 0 0/16px 16px;text-align:center;color:#8a6a40;overflow:hidden}
+  .sx-drop img{max-width:100%;max-height:210px;object-fit:contain}
+  .sx-av{display:grid;justify-items:center;gap:2px;font-size:11px}.sx-av canvas{width:72px;height:72px;border-radius:50%;border:2px solid #e3c98f;background:#f4ede2}
+  .sx-sl{display:grid;font-size:11px;gap:2px}.sx-sl input{width:90px}
+  .sx-pic .muted{grid-column:1/-1;margin:0}
+  .sx-sform{margin-top:10px}
+  .sx-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:0}
+  .sx-kb{float:right;font:400 12px var(--round);color:#6f8a5a}.sx-kb.warn{color:#c0392b}
+  .sx-list{display:grid;gap:8px}
+  .sx-row{display:grid;grid-template-columns:58px 1fr;gap:10px;align-items:center;padding:8px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14)}
+  .sx-row.off{opacity:.55}.sx-row img{width:58px;height:74px;object-fit:contain;object-position:50% 100%;background:radial-gradient(ellipse at 50% 40%,#fffaf2,#ece2d0);border-radius:8px}
+  .sx-meta{display:grid;gap:3px;min-width:0;font-size:14px}.sx-meta .muted{font-size:12px}
+  .sx-ed{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.sx-ed label{display:flex;align-items:center;gap:3px;font-size:13px}.sx-ed input{width:70px}
+  @media (max-width:640px){.sx-new{grid-template-columns:1fr}.sx-drop{height:200px}}
   /* 成長紀錄 */
   #growth{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;color:#eef3ff;font-family:var(--body);
     background:radial-gradient(ellipse 80% 50% at 30% 0%,#2a4290 0%,transparent 60%),#0e1838}
@@ -1123,7 +1142,7 @@
 </aside>
 <div id="lvup" hidden role="alert"></div>
 <section id="shop" hidden aria-label="商店">
-  <div class="sh-top"><h2>商店</h2><div class="sh-mode" id="sh-mode" role="tablist"><button data-shm="fig" aria-selected="true">套裝公仔</button><button data-shm="plant" aria-selected="false">植物圖鑑</button><button data-shm="food" aria-selected="false">寵物食物</button></div><span class="sh-coin">🪙 <b id="sh-coins">0</b></span><span class="sh-coin sh-star" title="智慧星星：迷宮尋寶等遊戲依表現取得，未來可以兌換商品">⭐ <b id="sh-stars">0</b></span><button class="sh-x" id="sh-close" aria-label="關閉商店">×</button></div>
+  <div class="sh-top"><h2>商店</h2><div class="sh-mode" id="sh-mode" role="tablist"><button data-shm="fig" aria-selected="true">套裝公仔</button><button data-shm="plant" aria-selected="false">植物圖鑑</button><button data-shm="food" aria-selected="false">寵物食物</button><button data-shm="fashion" aria-selected="false" id="sh-m-fashion" hidden>時裝</button></div><span class="sh-coin">🪙 <b id="sh-coins">0</b></span><span class="sh-coin sh-star" title="智慧星星：迷宮尋寶等遊戲依表現取得，未來可以兌換商品">⭐ <b id="sh-stars">0</b></span><button class="sh-x" id="sh-close" aria-label="關閉商店">×</button></div>
   <div class="sh-body"><div class="sh-main">
     <section class="sh-card sh-left">
       <div class="sh-stage" id="sh-stage"><div class="sh-light"></div><div class="sh-tags" id="sh-tags"></div><div class="sh-fig idle" id="sh-fig"><img id="sh-img" alt=""></div></div>
@@ -1598,7 +1617,7 @@
   (function () { var g = (DB.games || []).filter(function (x) { return x.num === 2; })[0]; if (g && (!g.url || !/memory\/index\.html$/.test(g.url))) { g.url = "memory/index.html"; try { localStorage.setItem(AUTH_KEY, JSON.stringify(DB)); } catch (e) {} } })();
   function saveDB() { try { localStorage.setItem(AUTH_KEY, JSON.stringify(DB)); } catch (e) {} if (window.MFOrg) MFOrg.changed(); }
   window.MFAppBridge = { db: function () { return DB; }, saveRaw: function () { try { localStorage.setItem(AUTH_KEY, JSON.stringify(DB)); } catch (e) {} }, toast: function (m) { toast(m); },
-    refresh: function () { [function () { rwApply(); }, function () { refreshGameWorld(); }, function () { renderPlayerHud(false); }, function () { if (!authEl.hidden) renderAuth(); }, function () { renderLoginPane(); updateLoginSub(); }].forEach(function (f) { try { f(); } catch (e) {} }); } };
+    refresh: function () { [function () { rwApply(); }, function () { if (typeof shopExtApply === "function" && FIGS) shopExtApply(); }, function () { refreshGameWorld(); }, function () { renderPlayerHud(false); }, function () { if (!authEl.hidden) renderAuth(); }, function () { renderLoginPane(); updateLoginSub(); }].forEach(function (f) { try { f(); } catch (e) {} }); } };
 
   function gameByNum(n) { for (var i = 0; i < DB.games.length; i++) if (DB.games[i].num === n) return DB.games[i]; return null; }
   function adminById(id) { for (var i = 0; i < DB.admins.length; i++) if (DB.admins[i].id === id) return DB.admins[i]; return null; }
@@ -1899,7 +1918,7 @@
     if (!a) { tabs.innerHTML = ""; who.innerHTML = ""; body.innerHTML = renderLogin(); return; }
     var sup = isSuper(a);
     var T = [["games", isUser(a) ? "我的遊戲" : "遊戲管理中心"], ["admins", sup ? "管理者授權" : a.role === "ACADEMY_ADMIN" ? "講師與學員授權" : "學員授權"], ["status", sup ? "五大學院開放狀態" : "開放狀態"], ["logs", "操作紀錄"]];
-    if (sup) { var nc = pendingCerts().length; T.splice(3, 0, ["cert", "導師認證" + (nc ? ' <b class="tab-n">' + nc + "</b>" : "")]); T.splice(4, 0, ["reward", "獎勵平衡" + (rwEvent() ? ' <b class="tab-n">🎉</b>' : "")]); T.splice(5, 0, ["gift", "🎁 禮物發放"]); T.splice(6, 0, ["act", "🎉 活動管理"]); }
+    if (sup) { var nc = pendingCerts().length; T.splice(3, 0, ["cert", "導師認證" + (nc ? ' <b class="tab-n">' + nc + "</b>" : "")]); T.splice(4, 0, ["reward", "獎勵平衡" + (rwEvent() ? ' <b class="tab-n">🎉</b>' : "")]); T.splice(5, 0, ["gift", "🎁 禮物發放"]); T.splice(6, 0, ["act", "🎉 活動管理"]); T.splice(7, 0, ["shop", "🛍️ 商店上架"]); }
     if (isUser(a)) T = T.filter(function (x) { return x[0] === "games" || x[0] === "logs"; });
     if (!T.some(function (x) { return x[0] === authTab; })) authTab = "games";
     tabs.innerHTML = T.map(function (x) { return '<button role="tab" data-tab="' + x[0] + '" aria-selected="' + (authTab === x[0]) + '">' + x[1] + "</button>"; }).join("");
@@ -1909,7 +1928,7 @@
       (sup ? '<label class="who-v"><input type="checkbox" id="a-test"' + (DB.testMode !== false ? " checked" : "") + '> 測試模式（全部開啟）</label>' : "") +
       (sup ? '<label class="who-v">玩家畫面預覽：<select id="a-viewer">' + ACADS.map(function (ac) { return '<option value="' + ac.id + '"' + (DB.viewerAcademy === ac.id ? " selected" : "") + ">" + ac.zh + "學生</option>"; }).join("") + "</select></label>" : "") +
       '<button class="a-btn sm" id="a-logout">登出</button>';
-    body.innerHTML = authTab === "games" ? renderGames() : authTab === "admins" ? renderAdmins() : authTab === "status" ? renderStatus() : authTab === "cert" ? renderCert() : authTab === "reward" ? renderReward() : authTab === "gift" ? renderGiftAdmin() : authTab === "act" ? renderActAdmin() : renderLogs();
+    body.innerHTML = authTab === "games" ? renderGames() : authTab === "admins" ? renderAdmins() : authTab === "status" ? renderStatus() : authTab === "cert" ? renderCert() : authTab === "reward" ? renderReward() : authTab === "gift" ? renderGiftAdmin() : authTab === "act" ? renderActAdmin() : authTab === "shop" ? renderShopAdmin() : renderLogs();
     syncGrantEditor();
   }
   function syncGrantEditor() {
@@ -2420,14 +2439,16 @@
   // 商品入帳（禮物、活動共用）：照購買的方式放進收藏與背包；已經擁有的改發商店價格的智慧幣
   function giveGoods(p, x) {
     var newFig = [], newPl = [], dupe = 0, refund = 0, extra = [];
-    (x.fig || []).forEach(function (id) { var f = FIGS.figs[id]; if (!f) return; if (figOwned(p)[id]) { dupe++; refund += +f.price || 0; return; } figOwned(p)[id] = 1; newFig.push(id); });
+    var rstar = 0;
+    (x.fig || []).forEach(function (id) { var f = FIGS.figs[id]; if (!f) return; if (figOwned(p)[id]) { dupe++; if (f.cur === "star") rstar += +f.price || 0; else refund += +f.price || 0; return; } figOwned(p)[id] = 1; newFig.push(id); });
+    if (rstar) { mazeProg(p); p.stars += rstar; }
     (x.plant || []).forEach(function (id) { var f = PLANTS.plants[id]; if (!f) return; if (plOwned(p)[id]) { dupe++; refund += +f.price || 0; return; } plOwned(p)[id] = 1; newPl.push(id); });
     var fn = giftFoodN(x); if (fn) { petInit(p); Object.keys(x.food).forEach(function (k) { var q = +x.food[k] || 0; if (q > 0 && foodById(k)) p.food[k] = (p.food[k] || 0) + q; }); extra.push("寵物食物 " + fn + " 份"); }
     if (newFig.length) extra.push("公仔 " + newFig.length + " 尊");
     if (newPl.length) extra.push("植物 " + newPl.length + " 種");
-    if (dupe) extra.push(dupe + " 項已擁有" + (refund ? "，補償智慧幣 " + refund : ""));
+    if (dupe) extra.push(dupe + " 項已擁有" + (refund ? "，補償智慧幣 " + refund : "") + (rstar ? "，補償智慧星星 " + rstar : ""));
     setTimeout(function () { newFig.forEach(function (id) { checkSeries(p, id); }); newPl.forEach(function (id) { plCheck(p, id); }); }, 0);   // 集滿系列或圖鑑時給稱號
-    return { extra: extra, refund: refund, dupe: dupe, note: dupe ? "（其中 " + dupe + " 項你已經擁有" + (refund ? "，改發 🪙 " + fmt(refund) + " 智慧幣補償" : "") + "）" : "" };
+    return { extra: extra, refund: refund, dupe: dupe, note: dupe ? "（其中 " + dupe + " 項你已經擁有" + (refund ? "，改發 🪙 " + fmt(refund) + " 智慧幣補償" : "") + (rstar ? "，退還 ⭐ " + rstar + " 智慧星星" : "") + "）" : "" };
   }
   function giftText(g) { return GF_KIND.filter(function (k) { return +g[k[0]] > 0; }).map(function (k) { return k[1] + " +" + fmt(g[k[0]]); }).concat(giftGoods(g).map(function (x) { return x[1] + " " + x[2] + " " + x[4]; })).join("、"); }
   function renderGiftBadge() {
@@ -2506,12 +2527,159 @@
       '<p class="muted small">「收回」會讓還沒領取的玩家看不到這份禮物；已經領取的不會被扣回。</p></div>';
     return h;
   }
+  // ---- 🛍️ 商店上架（最高管理者）：新增「套裝公仔系列」與「時裝」商品；圖片在瀏覽器裡自動去邊、縮圖、壓縮後存進雲端 ----
+  var SX_H = 640, SX_MAX_ITEMS = 150, SX_WARN_KB = 1500, sxImg = null, sxSel = "";
+  function sxSave(msg, detail) { DB.rw = DB.rw || { v: {}, ev: {} }; var s = shopExt(); DB.rw.s = { fo: !!s.fo, series: s.series || [], items: s.items || [] }; shopExtApply(); log(msg, null, detail || ""); saveDB(); }
+  function sxSetRaw(fn) { DB.rw = DB.rw || { v: {}, ev: {} }; var s = shopExt(); var o = { fo: !!s.fo, series: (s.series || []).slice(), items: (s.items || []).slice() }; fn(o); DB.rw.s = o; }
+  function sxKB() { try { return Math.round(JSON.stringify(shopExt()).length / 1024); } catch (e) { return 0; } }
+  function sxNewId(pre) { return pre + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36); }
+  function sxSeriesOpts(sel) {   // 可上架的系列：內建（未下架）公仔系列＋自訂公仔系列＋自訂時裝系列
+    var base = FIG_BASE.filter(function (s) { return !s.retired; }), mf = sxSeries().filter(function (s) { return s.kind !== "fashion"; }), ms = sxSeries().filter(function (s) { return s.kind === "fashion"; });
+    var o = function (s, tag) { return '<option value="' + esc(s.id) + '"' + (s.id === sel ? " selected" : "") + ">" + tag + esc(s.name) + "</option>"; };
+    return '<optgroup label="套裝公仔系列（智慧幣購買）">' + base.map(function (s) { return o(s, ""); }).join("") + mf.map(function (s) { return o(s, "★ "); }).join("") + "</optgroup>" +
+      (ms.length ? '<optgroup label="時裝（智慧星星兌換）">' + ms.map(function (s) { return o(s, "👗 "); }).join("") + "</optgroup>" : "");
+  }
+  function sxSerById(id) { return sxSeries().filter(function (s) { return s.id === id; })[0] || FIG_BASE.filter(function (s) { return s.id === id; })[0]; }
+  function sxSerName(id) { var s = sxSerById(id); return s ? s.name : "（系列已刪除）"; }
+  function sxIsFashion(id) { var s = sxSerById(id); return !!(s && s.kind === "fashion"); }
+  function renderShopAdmin() {
+    var sx = shopExt(), items = sxItems(), sers = sxSeries(), kb = sxKB(), sel = sxSel || (sers[0] && sers[0].id) || FIG_BASE[0].id, fas = sxIsFashion(sel);
+    var h = '<div class="cert-head"><h3>🛍️ 商店上架</h3><p class="muted small">在這裡新增「套裝公仔系列」和「時裝」商品。上架後會跟著雲端同步給所有玩家，商品右上角會顯示 <span class="sh-new" style="position:static">NEW</span>，系列分頁也會標示 NEW。需要用最高管理者帳號登入雲端。</p></div>';
+    h += '<div class="rw-sec sx-spec"><h4>📐 要準備什麼</h4><ol>' +
+      "<li><b>商品圖片</b>：一張<b>去背 PNG</b>（背景透明），全身、正面站姿，腳底貼齊畫面下緣。建議高度 900–1500 像素，人物占滿畫面高度、頭頂不要被切掉。黏土公仔風格、光線方向與現有公仔一致。</li>" +
+      "<li><b>名稱</b>：最多 12 個字，例如「海洋保育員」。</li>" +
+      "<li><b>系列</b>：放進現有的公仔系列，或先在下方「新增系列」建立新的套裝公仔系列／時裝系列（系列名稱、代表色、集滿後的稱號）。</li>" +
+      "<li><b>價格</b>：公仔用 🪙 智慧幣（現有公仔 80–700）；時裝用 ⭐ 智慧星星（目前全部遊戲最多可拿 243 顆，建議 5–60）。填 0 代表免費。</li>" +
+      "<li><b>等級限制</b>（可選）：達到幾等才能購買。</li>" +
+      "<li><b>NEW 顯示天數</b>：預設 14 天，到期自動消失；玩家擁有後也不再顯示。</li></ol>" +
+      '<p class="muted small">上傳後系統會自動裁掉透明邊、縮成高 ' + SX_H + ' 像素的 webp（每件約 30–50 KB），並從頭部自動裁出玩家頭像，可用滑桿微調。時裝是「同一個角色換一整套衣服」的全身圖，玩家兌換後可以像公仔一樣設成自己的造型。</p></div>';
+    // 時裝開放
+    h += '<div class="rw-sec"><h4>👗 時裝兌換</h4><label class="sx-tog"><input type="checkbox" data-sx="fo"' + (sx.fo ? " checked" : "") + "> 開放玩家用智慧星星兌換時裝</label>" +
+      '<p class="muted small">未開放時，玩家看不到商店的「時裝」分頁；你（最高管理者）看得到「時裝（未開放）」分頁可以先預覽。</p></div>';
+    // 新增商品
+    h += '<div class="rw-sec"><h4>上架新商品</h4><div class="sx-new"><div class="sx-pic">' +
+      '<label class="sx-drop" id="sx-drop"><input type="file" accept="image/png,image/webp,image/jpeg" id="sx-file" hidden><span id="sx-ph">＋ 選擇圖片<br><small>去背 PNG</small></span><img id="sx-prev" alt="" hidden></label>' +
+      '<div class="sx-av"><canvas id="sx-av" width="96" height="96"></canvas><small>玩家頭像</small></div>' +
+      '<label class="sx-sl">頭像左右<input type="range" id="sx-hx" min="0" max="100" value="50" disabled></label><label class="sx-sl">頭像大小<input type="range" id="sx-hs" min="18" max="55" value="32" disabled></label>' +
+      '<p class="muted small" id="sx-info"></p></div><div class="rw-grid">' +
+      '<label style="grid-column:1/-1">名稱<input type="text" id="sx-name" maxlength="12" placeholder="例如：海洋保育員"></label>' +
+      '<label style="grid-column:1/-1">系列<select id="sx-ser">' + sxSeriesOpts(sel) + "</select></label>" +
+      '<label><span id="sx-pl">' + (fas ? "價格（⭐ 智慧星星）" : "價格（🪙 智慧幣）") + '</span><input type="number" id="sx-price" min="0" step="1" value="' + (fas ? 20 : 300) + '"></label>' +
+      '<label>等級限制（0＝不限）<input type="number" id="sx-lv" min="0" max="99" step="1" value="0"></label>' +
+      '<label>NEW 顯示天數（0＝不顯示）<input type="number" id="sx-nd" min="0" max="365" step="1" value="' + SX_NEW_DAYS + '"></label>' +
+      '<div class="rw-act" style="grid-column:1/-1"><button class="a-btn gold" data-sx="add">上架</button></div></div></div></div>';
+    // 系列
+    h += '<div class="rw-sec"><h4>系列（' + sers.length + "）</h4>" + (sers.length ? '<div class="gfa-list">' + sers.map(function (s) {
+      var n = items.filter(function (it) { return it.sid === s.id; }).length;
+      return '<div class="gfa-row"><div><b><i class="sx-dot" style="background:' + esc(s.color || "#c9a36a") + '"></i>' + (s.kind === "fashion" ? "👗 " : "🎎 ") + esc(s.name) + '</b>　<span class="muted">' + (s.kind === "fashion" ? "時裝" : "套裝公仔") + "・" + n + " 件" + (s.reward ? "・集滿稱號「" + esc(s.reward) + "」" : "") + "</span></div>" +
+        '<button class="a-btn sm" data-sx-sdel="' + esc(s.id) + '">刪除</button></div>'; }).join("") + "</div>" : '<p class="muted small">還沒有自訂系列。也可以把新公仔直接放進現有的系列。</p>') +
+      '<div class="rw-grid sx-sform"><label>類型<select id="sx-skind"><option value="fig">套裝公仔系列</option><option value="fashion">時裝系列</option></select></label>' +
+      '<label>系列名稱<input type="text" id="sx-sname" maxlength="10" placeholder="例如：海洋守護系列"></label>' +
+      '<label>代表色<input type="color" id="sx-scolor" value="#8fc6e6"></label>' +
+      '<label>集滿稱號（可空白）<input type="text" id="sx-sreward" maxlength="8" placeholder="例如：海洋守護者"></label>' +
+      '<div class="rw-act" style="grid-column:1/-1"><button class="a-btn" data-sx="sadd">新增系列</button></div></div></div>';
+    // 已上架
+    var list = items.slice().sort(function (a, b) { return a.at < b.at ? 1 : -1; });
+    h += '<div class="rw-sec"><h4>已上架（' + list.length + " / " + SX_MAX_ITEMS + '）<span class="sx-kb' + (kb > SX_WARN_KB ? " warn" : "") + '">雲端圖片容量 ' + kb + " KB / 建議 " + SX_WARN_KB + " KB</span></h4>" +
+      (kb > SX_WARN_KB ? '<p class="small" style="color:#c0392b">容量偏大，玩家開啟遊戲時下載會變慢。可以請 Claude 把圖片轉存到 GitHub 的 figs 資料夾，雲端只留文字設定。</p>' : "") +
+      (list.length ? '<div class="sx-list">' + list.map(function (it) {
+        var fs = sxIsFashion(it.sid), nw = sxIsNew(it);
+        return '<div class="sx-row' + (it.off ? " off" : "") + '"><img src="' + (it.src || FIG_DIR + it.id + ".webp") + '" alt=""><div class="sx-meta"><b>' + esc(it.name) + (nw && !it.off ? ' <span class="sh-new" style="position:static">NEW</span>' : "") + (it.off ? ' <span class="muted">（已下架）</span>' : "") + "</b>" +
+          '<div class="muted">' + (fs ? "👗 " : "🎎 ") + esc(sxSerName(it.sid)) + "・" + fmtTime(it.at) + (it.lv ? "・Lv." + it.lv : "") + "</div>" +
+          '<div class="sx-ed"><label>' + (fs ? "⭐" : "🪙") + '<input type="number" min="0" step="1" value="' + (+it.price || 0) + '" data-sx-price="' + esc(it.id) + '"></label><button class="a-btn sm" data-sx-psave="' + esc(it.id) + '">改價</button>' +
+          '<button class="a-btn sm" data-sx-new="' + esc(it.id) + '">重新標 NEW</button><button class="a-btn sm" data-sx-off="' + esc(it.id) + '">' + (it.off ? "重新上架" : "下架") + '</button><button class="a-btn sm" data-sx-del="' + esc(it.id) + '">刪除</button></div></div></div>';
+      }).join("") + "</div>" : '<p class="muted small">還沒有上架新商品。</p>') +
+      '<p class="muted small">「下架」：商店不再販售，已經擁有的玩家仍保留（會移到「經典收藏」）。「刪除」：完全移除，連已擁有的玩家也會失去，請小心使用。</p></div>';
+    return h;
+  }
+  // 圖片處理：裁掉透明邊 → 縮到高 SX_H → webp；自動估計頭部位置
+  function sxLoadFile(file) {
+    var info = document.getElementById("sx-info"); if (!file) return;
+    if (!/^image\//.test(file.type)) { toast("請選擇圖片檔（PNG）"); return; }
+    info.textContent = "處理中…";
+    var url = URL.createObjectURL(file), im = new Image();
+    im.onload = function () {
+      URL.revokeObjectURL(url);
+      var W = im.naturalWidth, H = im.naturalHeight, c = document.createElement("canvas"); c.width = W; c.height = H; var x = c.getContext("2d"); x.drawImage(im, 0, 0);
+      var d = x.getImageData(0, 0, W, H).data, minX = W, minY = H, maxX = -1, maxY = -1, transp = false;
+      for (var yy = 0; yy < H; yy++) for (var xx = 0; xx < W; xx++) { var a = d[(yy * W + xx) * 4 + 3]; if (a < 250) transp = true; if (a > 16) { if (xx < minX) minX = xx; if (xx > maxX) maxX = xx; if (yy < minY) minY = yy; if (yy > maxY) maxY = yy; } }
+      if (maxX < 0) { info.textContent = ""; toast("這張圖片是全透明的，請換一張。"); return; }
+      var cw = maxX - minX + 1, ch = maxY - minY + 1, sc = Math.min(1, SX_H / ch), ow = Math.max(1, Math.round(cw * sc)), oh = Math.max(1, Math.round(ch * sc));
+      var o = document.createElement("canvas"); o.width = ow; o.height = oh; var ox = o.getContext("2d"); ox.imageSmoothingQuality = "high"; ox.drawImage(c, minX, minY, cw, ch, 0, 0, ow, oh);
+      // 頭部中心：上方 22% 的不透明像素平均 x
+      var od = ox.getImageData(0, 0, ow, Math.max(1, Math.round(oh * 0.22))).data, sx = 0, n = 0;
+      for (var i = 0; i < od.length; i += 4) if (od[i + 3] > 40) { sx += (i / 4) % ow; n++; }
+      var hx = n ? sx / n : ow / 2, src = "", q = 0.82;
+      do { src = o.toDataURL("image/webp", q); q -= 0.1; } while (src.length > 70000 && q > 0.45 && src.indexOf("data:image/webp") === 0);
+      if (src.indexOf("data:image/webp") !== 0) { src = o.toDataURL("image/png"); if (src.length > 160000) { var o2 = document.createElement("canvas"), k = 160000 / src.length; o2.width = Math.round(ow * Math.sqrt(k)); o2.height = Math.round(oh * Math.sqrt(k)); o2.getContext("2d").drawImage(o, 0, 0, o2.width, o2.height); src = o2.toDataURL("image/png"); } }
+      sxImg = { src: src, w: ow, h: oh, hx: hx, hs: 0.32, transp: transp };
+      var pv = document.getElementById("sx-prev"); pv.src = src; pv.hidden = false; document.getElementById("sx-ph").hidden = true;
+      var sl = document.getElementById("sx-hx"), ss = document.getElementById("sx-hs"); sl.disabled = ss.disabled = false; sl.value = Math.round(hx / ow * 100); ss.value = 32;
+      info.innerHTML = ow + "×" + oh + " 像素・約 " + Math.round(src.length * 0.75 / 1024) + " KB" + (transp ? "" : '<br><b style="color:#c0392b">這張圖沒有透明背景，商店裡會出現方框，建議改用去背 PNG。</b>');
+      var nm = document.getElementById("sx-name"); if (nm && !nm.value) nm.value = file.name.replace(/\.[^.]+$/, "").slice(0, 12);
+      sxDrawAv();
+    };
+    im.onerror = function () { URL.revokeObjectURL(url); info.textContent = ""; toast("讀不到這張圖片，請改用 PNG。"); };
+    im.src = url;
+  }
+  function sxDrawAv() {
+    var cv = document.getElementById("sx-av"), g = sxImg; if (!cv || !g) return; var x = cv.getContext("2d"), im = new Image();
+    im.onload = function () { var s = g.hs * g.h, cx = g.hx; x.fillStyle = "#f4ede2"; x.fillRect(0, 0, 96, 96); x.imageSmoothingQuality = "high"; x.drawImage(im, cx - s / 2, -s * 0.02, s, s, 0, 0, 96, 96); };
+    im.src = g.src;
+  }
+  authEl.addEventListener("change", function (e) {
+    var t = e.target; if (!t) return;
+    if (t.id === "sx-file") { sxLoadFile(t.files && t.files[0]); return; }
+    if (t.id === "sx-ser") { sxSel = t.value; var fs = sxIsFashion(t.value), pl = document.getElementById("sx-pl"), pr = document.getElementById("sx-price"); if (pl) pl.textContent = fs ? "價格（⭐ 智慧星星）" : "價格（🪙 智慧幣）"; if (pr) pr.value = fs ? 20 : 300; return; }
+    if (t.dataset && t.dataset.sx === "fo") { var a = me(); if (!isSuper(a)) return; sxSetRaw(function (o) { o.fo = t.checked; }); sxSave(t.checked ? "開放時裝兌換" : "關閉時裝兌換"); toast(t.checked ? "已開放時裝兌換，玩家商店會出現「時裝」分頁。" : "已關閉時裝兌換。"); renderAuth(); }
+  });
+  authEl.addEventListener("input", function (e) {
+    var t = e.target; if (!sxImg || !t) return;
+    if (t.id === "sx-hx") { sxImg.hx = +t.value / 100 * sxImg.w; sxDrawAv(); } else if (t.id === "sx-hs") { sxImg.hs = +t.value / 100; sxDrawAv(); }
+  });
+  authEl.addEventListener("click", function (e) {
+    var t = e.target.closest("button"); if (!t || !authEl.contains(t)) return; var a = me(); if (!isSuper(a)) return;
+    var d = t.dataset, val = function (id) { var el = document.getElementById(id); return el ? el.value : ""; };
+    if (d.sx === "add") {
+      var name = val("sx-name").trim(), sid = val("sx-ser"), price = Math.max(0, Math.round(+val("sx-price") || 0)), lv = Math.max(0, Math.round(+val("sx-lv") || 0)), nd = Math.max(0, Math.round(+val("sx-nd") || 0));
+      if (!sxImg) return toast("請先選擇商品圖片。");
+      if (!name) return toast("請填商品名稱。");
+      if (!sxSerById(sid)) return toast("請選擇系列。");
+      if (sxItems().length >= SX_MAX_ITEMS) return toast("已達上架上限 " + SX_MAX_ITEMS + " 件，請先刪除不用的商品。");
+      var it = { id: sxNewId("x"), sid: sid, name: name, price: price, lv: lv, nd: nd, at: new Date().toISOString(), src: sxImg.src, w: sxImg.w, h: sxImg.h, head: [Math.round(sxImg.hx), 0, Math.round(sxImg.hs * sxImg.h)] };
+      sxSetRaw(function (o) { o.items.unshift(it); }); sxSel = sid; sxImg = null;
+      sxSave("商店上架", (sxIsFashion(sid) ? "時裝" : "公仔") + "「" + name + "」・" + sxSerName(sid));
+      toast("已上架「" + name + "」" + (sxIsFashion(sid) && !fashionOpen() ? "（時裝兌換尚未開放，玩家暫時看不到）" : "，玩家商店會顯示 NEW。")); renderAuth(); return;
+    }
+    if (d.sx === "sadd") {
+      var nm = val("sx-sname").trim(), kind = val("sx-skind") === "fashion" ? "fashion" : "fig";
+      if (!nm) return toast("請填系列名稱。");
+      if (sxSeries().length >= 30) return toast("自訂系列最多 30 個。");
+      var sr = { id: sxNewId("xs"), kind: kind, name: nm, color: val("sx-scolor") || "#c9a36a", reward: val("sx-sreward").trim(), at: new Date().toISOString() };
+      sxSetRaw(function (o) { o.series.push(sr); }); sxSel = sr.id; sxSave("新增商店系列", (kind === "fashion" ? "時裝系列「" : "公仔系列「") + nm + "」");
+      toast("已新增系列「" + nm + "」，現在可以上架這個系列的商品。"); renderAuth(); return;
+    }
+    if (d.sxSdel) {
+      var s0 = sxSerById(d.sxSdel), n0 = sxItems().filter(function (it) { return it.sid === d.sxSdel; }).length; if (!s0) return;
+      if (!confirm("刪除系列「" + s0.name + "」？" + (n0 ? "裡面的 " + n0 + " 件商品也會一起刪除，已擁有的玩家會失去它們。" : ""))) return;
+      sxSetRaw(function (o) { o.series = o.series.filter(function (s) { return s.id !== d.sxSdel; }); o.items = o.items.filter(function (it) { return it.sid !== d.sxSdel; }); });
+      sxSel = ""; sxSave("刪除商店系列", s0.name); renderAuth(); return;
+    }
+    var pick = function (id, fn, msg) { var it0 = sxItems().filter(function (x) { return x.id === id; })[0]; if (!it0) return; sxSetRaw(function (o) { o.items = o.items.map(function (x) { return x.id === id ? fn(Object.assign({}, x)) : x; }); }); sxSave(msg, it0.name); renderAuth(); };
+    if (d.sxPsave) { var pi = authEl.querySelector('[data-sx-price="' + d.sxPsave + '"]'), np = Math.max(0, Math.round(+(pi && pi.value) || 0)); pick(d.sxPsave, function (x) { x.price = np; return x; }, "商店商品改價"); toast("已更新價格。"); return; }
+    if (d.sxNew) { pick(d.sxNew, function (x) { x.at = new Date().toISOString(); if (!(+x.nd > 0)) x.nd = SX_NEW_DAYS; return x; }, "商店商品重新標示 NEW"); toast("已重新標示 NEW。"); return; }
+    if (d.sxOff) { pick(d.sxOff, function (x) { x.off = !x.off; return x; }, "商店商品上下架"); return; }
+    if (d.sxDel) {
+      var it1 = sxItems().filter(function (x) { return x.id === d.sxDel; })[0]; if (!it1 || !confirm("完全刪除「" + it1.name + "」？已擁有的玩家也會失去它（若只想停止販售，請用「下架」）。")) return;
+      sxSetRaw(function (o) { o.items = o.items.filter(function (x) { return x.id !== d.sxDel; }); }); sxSave("刪除商店商品", it1.name); renderAuth(); return;
+    }
+  });
   // ---- 商店商品選擇器（禮物發放、活動管理共用）----
   function shopPicker(key) {
     return '<h4 style="margin-top:12px">商店商品（可複選，點類別展開）</h4><div class="gfa-shop" data-shop="' + key + '">' +
-      '<details><summary>🎎 公仔<em data-sp-cnt="fig">未選</em></summary>' + FIGS.series.filter(function (sr) { return !sr.retired; }).map(function (sr) {
-        return '<div class="gfa-grp"><div class="gfa-gh">' + esc(sr.name) + '<button type="button" class="a-btn sm" data-sp-pick="fig:' + sr.id + ':1">全選</button><button type="button" class="a-btn sm" data-sp-pick="fig:' + sr.id + ':0">清除</button></div><div class="gfa-items">' +
-          sr.ids.map(function (id) { var f = FIGS.figs[id]; return '<label><input type="checkbox" data-sp-fig="' + id + '" data-grp="fig:' + sr.id + '"><span>' + esc(f.name) + "</span><small>" + (f.price ? f.price + " 幣" : f.lv ? "Lv." + f.lv : f.ach ? "成就" : "免費") + "</small></label>"; }).join("") + "</div></div>";
+      '<details><summary>🎎 公仔・👗 時裝<em data-sp-cnt="fig">未選</em></summary>' + FIGS.series.filter(function (sr) { return !sr.retired; }).map(function (sr) {
+        return '<div class="gfa-grp"><div class="gfa-gh">' + (sr.kind === "fashion" ? "👗 時裝・" : "") + esc(sr.name) + '<button type="button" class="a-btn sm" data-sp-pick="fig:' + sr.id + ':1">全選</button><button type="button" class="a-btn sm" data-sp-pick="fig:' + sr.id + ':0">清除</button></div><div class="gfa-items">' +
+          sr.ids.map(function (id) { var f = FIGS.figs[id]; return '<label><input type="checkbox" data-sp-fig="' + id + '" data-grp="fig:' + sr.id + '"><span>' + esc(f.name) + "</span><small>" + (f.price ? f.price + (f.cur === "star" ? " 星" : " 幣") : f.lv ? "Lv." + f.lv : f.ach ? "成就" : "免費") + "</small></label>"; }).join("") + "</div></div>";
       }).join("") + "</details>" +
       '<details><summary>🌿 植物<em data-sp-cnt="plant">未選</em></summary>' + PLANTS.cats.map(function (c) {
         return '<div class="gfa-grp"><div class="gfa-gh">' + c.ico + " " + esc(c.name) + '<button type="button" class="a-btn sm" data-sp-pick="plant:' + c.id + ':1">全選</button><button type="button" class="a-btn sm" data-sp-pick="plant:' + c.id + ':0">清除</button></div><div class="gfa-items">' +
@@ -2988,7 +3156,7 @@
   authEl.addEventListener("click", function (e) {
     var t = e.target.closest("[data-rw-save],[data-rw-reset],[data-rw-pre]"); if (!t) return; var a = me(); if (!isSuper(a)) return;
     if (t.dataset.rwPre) { var pr = RW_PRESET[+t.dataset.rwPre]; authEl.querySelector("#rw-ev-on").checked = true; authEl.querySelector("#rw-ev-name").value = pr[0] + "活動"; authEl.querySelector("#rw-ev-xm").value = pr[1]; authEl.querySelector("#rw-ev-cm").value = pr[2]; authEl.querySelector("#rw-ev-lm").value = pr[3]; toast("已填入「" + pr[0] + "」範本，記得設定日期並按儲存。"); return; }
-    if (t.dataset.rwReset) { DB.rw = { v: {}, ev: (DB.rw && DB.rw.ev) || {}, g: (DB.rw && DB.rw.g) || [], a: (DB.rw && DB.rw.a) || [] }; rwApply(); log("獎勵設定恢復預設", null, a.name); saveDB(); toast("已恢復全部預設數值（活動設定保留）。"); renderPlayerHud(false); return renderAuth(); }
+    if (t.dataset.rwReset) { DB.rw = { v: {}, ev: (DB.rw && DB.rw.ev) || {}, g: (DB.rw && DB.rw.g) || [], a: (DB.rw && DB.rw.a) || [], s: (DB.rw && DB.rw.s) || undefined }; rwApply(); log("獎勵設定恢復預設", null, a.name); saveDB(); toast("已恢復全部預設數值（活動設定保留）。"); renderPlayerHud(false); return renderAuth(); }
     var v = {}, bad = 0;
     authEl.querySelectorAll("[data-rw]").forEach(function (el) { var k = el.dataset.rw, x = parseFloat(el.value); if (!isFinite(x) || x < 0) { bad++; return; } if (!/X$|_per$/.test(k)) x = Math.round(x); if (x !== RW_DEF[k]) v[k] = x; });
     if (v.feedCap === 0 || v.adoptLv === 0 || v.lvBase === 0) bad++;
@@ -2996,7 +3164,7 @@
     var gv = function (id) { return authEl.querySelector("#" + id).value; };
     var ev = { on: authEl.querySelector("#rw-ev-on").checked, name: gv("rw-ev-name").trim().slice(0, 16), xm: Math.min(5, Math.max(1, +gv("rw-ev-xm") || 1)), cm: Math.min(5, Math.max(1, +gv("rw-ev-cm") || 1)), lm: Math.min(5, Math.max(1, +gv("rw-ev-lm") || 1)), start: gv("rw-ev-start"), end: gv("rw-ev-end") };
     if (ev.start && ev.end && ev.end < ev.start) return toast("活動結束日期不能早於開始日期。");
-    DB.rw = { v: v, ev: ev, g: (DB.rw && DB.rw.g) || [], a: (DB.rw && DB.rw.a) || [] }; rwApply(); log("更新獎勵設定", null, Object.keys(v).length + " 項自訂數值" + (ev.on ? "・活動：" + (ev.name || "活動加成") + " 經驗×" + ev.xm + " 幣×" + ev.cm : "")); saveDB();
+    DB.rw = { v: v, ev: ev, g: (DB.rw && DB.rw.g) || [], a: (DB.rw && DB.rw.a) || [], s: (DB.rw && DB.rw.s) || undefined }; rwApply(); log("更新獎勵設定", null, Object.keys(v).length + " 項自訂數值" + (ev.on ? "・活動：" + (ev.name || "活動加成") + " 經驗×" + ev.xm + " 幣×" + ev.cm : "")); saveDB();
     toast("獎勵設定已儲存，立即生效。"); renderPlayerHud(false); renderAuth();
   });
   function skList(pt) {
@@ -3510,12 +3678,43 @@
   });
   // ---- 商店：套裝公仔（智慧幣購買、等級解鎖、成就專屬；系列集滿得稱號）----
   var FIGS = {"series": [{"id": "nature", "name": "自然探險系列", "color": "#a9c38c", "reward": "自然探險家", "ids": ["hiker", "observer", "compass", "gardener", "planter", "farm", "trek", "radio", "photo", "night", "geo", "bike", "camo", "ranger", "treasure"]}, {"id": "craft", "name": "生活職人系列", "color": "#e3b98a", "reward": "生活職人", "ids": ["chef", "florist", "barista", "baker", "veggie", "potter", "painter", "tailor", "carpenter", "mechanic", "harvest", "vet", "architect", "scholar", "lab", "tripod", "botanist", "birder", "butterfly", "wildphoto", "geode", "canoe", "kayak", "parkranger", "alpine", "crystal", "dino", "backpack", "diver", "arctic", "desert", "survival"]}, {"id": "stage", "name": "奇幻舞台系列", "color": "#b9a3d8", "reward": "舞台之星", "ids": ["bard", "fairy", "wizard", "archer", "knight", "starmage", "priestess", "alchemy", "rogue", "dwarf", "beastmaster", "genie", "dragonrider", "darkelf", "necro", "vampire"]}, {"id": "sport", "name": "運動休閒系列", "color": "#8fc6e6", "reward": "運動健將", "ids": ["soccer", "hoops2", "runner", "swimmer", "tennis", "volley", "baseball", "cyclist", "golfer", "yoga", "ballet", "skater", "gymnast", "boxer", "surf", "fencer"]}, {"id": "fest", "name": "節慶限定系列", "color": "#e8a0a0", "reward": "節慶收藏家", "ids": ["cnygirl", "lion", "lanternfest", "valentine", "eastergirl", "eggpaint", "mothers", "dragonboat", "moon", "witch", "muerto", "turkey", "harvestfest", "elf", "santa", "newyear"]}, {"id": "classic", "name": "經典收藏", "color": "#9aa7bd", "retired": 1, "ids": ["wildflower", "dig", "seaphoto", "climb", "venus", "sushi2", "wok", "lumber", "lumbergirl", "tractor", "orchard", "bee", "pilot", "halberd", "viking", "samurai", "pirate", "hoops", "juggler", "flowermagic", "sax", "astro", "station"]}], "figs": {"hiker": {"name": "森林健行者", "w": 494, "h": 900, "head": [237, 0, 288], "price": 0}, "compass": {"name": "指南針旅人", "w": 541, "h": 900, "head": [249, 0, 288], "price": 80}, "observer": {"name": "自然觀察家", "w": 518, "h": 900, "head": [232, 0, 288], "price": 0}, "gardener": {"name": "園藝小達人", "w": 533, "h": 900, "head": [266, 0, 288], "price": 100}, "planter": {"name": "植栽守護者", "w": 468, "h": 900, "head": [233, 0, 288], "price": 100}, "geo": {"name": "地質探險家", "w": 439, "h": 900, "head": [269, 0, 288], "price": 160}, "night": {"name": "夜行探索者", "w": 391, "h": 900, "head": [214, 0, 288], "price": 140}, "photo": {"name": "自然攝影師", "w": 427, "h": 900, "head": [225, 0, 288], "price": 140}, "ranger": {"name": "森林巡守員", "w": 437, "h": 900, "head": [248, 0, 288], "lv": 8}, "trek": {"name": "健走登山客", "w": 449, "h": 900, "head": [220, 0, 288], "price": 120}, "farm": {"name": "農場小幫手", "w": 440, "h": 900, "head": [251, 0, 288], "price": 100}, "bike": {"name": "單車旅人", "w": 446, "h": 900, "head": [221, 0, 288], "price": 160}, "treasure": {"name": "尋寶冒險家", "w": 406, "h": 900, "head": [196, 0, 288], "ach": "完成 10 關首次通關"}, "radio": {"name": "無線電通訊員", "w": 402, "h": 900, "head": [186, 0, 288], "price": 120}, "crystal": {"name": "水晶洞探險家", "w": 422, "h": 900, "head": [229, 0, 288], "price": 400, "lv": 20}, "surf": {"name": "衝浪少年", "w": 490, "h": 900, "head": [293, 0, 288], "price": 450, "ach": "完成 15 關首次通關"}, "wildflower": {"name": "野花記錄員", "w": 540, "h": 655, "head": [226, 0, 298], "price": 180, "retired": 1}, "dig": {"name": "考古挖掘家", "w": 583, "h": 648, "head": [268, 0, 249], "price": 200, "retired": 1}, "wildphoto": {"name": "野生動物攝影師", "w": 502, "h": 900, "head": [280, 0, 288], "price": 300, "lv": 10}, "seaphoto": {"name": "海底攝影師", "w": 536, "h": 594, "head": [251, 6, 207], "price": 260, "new": 1, "retired": 1}, "diver": {"name": "深海潛水員", "w": 441, "h": 900, "head": [220, 0, 288], "price": 400, "lv": 20}, "climb": {"name": "攀岩高手", "w": 551, "h": 677, "head": [131, 6, 235], "lv": 25, "retired": 1}, "dino": {"name": "恐龍化石學家", "w": 437, "h": 900, "head": [232, 0, 288], "price": 400, "lv": 20}, "venus": {"name": "食蟲植物研究員", "w": 558, "h": 594, "head": [290, 0, 207], "price": 200, "new": 1, "retired": 1}, "potter": {"name": "陶藝家", "w": 435, "h": 900, "head": [218, 0, 288], "price": 150}, "barista": {"name": "咖啡師", "w": 475, "h": 900, "head": [243, 0, 288], "price": 150}, "lab": {"name": "化學實驗家", "w": 445, "h": 900, "head": [211, 0, 288], "price": 220}, "sushi2": {"name": "壽司職人", "w": 630, "h": 601, "head": [316, 0, 192], "price": 220, "retired": 1}, "wok": {"name": "熱炒大廚", "w": 565, "h": 608, "head": [322, 0, 212], "price": 220, "retired": 1}, "lumber": {"name": "伐木工", "w": 522, "h": 605, "head": [292, 0, 190], "price": 180, "retired": 1}, "lumbergirl": {"name": "伐木女孩", "w": 572, "h": 716, "head": [316, 0, 229], "price": 180, "retired": 1}, "veggie": {"name": "蔬果小農", "w": 436, "h": 900, "head": [225, 0, 288], "price": 150}, "harvest": {"name": "秋收農夫", "w": 453, "h": 900, "head": [219, 0, 288], "price": 220}, "tractor": {"name": "拖拉機農夫", "w": 547, "h": 637, "head": [289, 0, 189], "price": 260, "retired": 1}, "orchard": {"name": "鄉村果農", "w": 540, "h": 666, "head": [259, 0, 213], "price": 160, "retired": 1}, "bee": {"name": "養蜂人", "w": 518, "h": 781, "head": [301, 0, 249], "price": 260, "retired": 1}, "alchemy": {"name": "藥草煉金師", "w": 481, "h": 900, "head": [206, 0, 288], "price": 450}, "pilot": {"name": "復古飛行員", "w": 544, "h": 799, "head": [247, 0, 254], "price": 300, "retired": 1}, "archer": {"name": "精靈弓箭手", "w": 499, "h": 900, "head": [218, 0, 288], "price": 350}, "halberd": {"name": "森林騎士", "w": 569, "h": 616, "head": [283, 0, 182], "lv": 15, "retired": 1}, "viking": {"name": "維京戰士", "w": 763, "h": 605, "head": [175, 0, 264], "price": 320, "new": 1, "retired": 1}, "samurai": {"name": "武士", "w": 767, "h": 806, "head": [411, 0, 256], "price": 320, "lim": 1, "retired": 1}, "knight": {"name": "守護騎士", "w": 482, "h": 900, "head": [246, 0, 288], "price": 450}, "pirate": {"name": "海盜船長", "w": 565, "h": 846, "head": [294, 0, 270], "price": 300, "lim": 1, "retired": 1}, "hoops": {"name": "魔術師", "w": 497, "h": 641, "head": [245, 0, 204], "price": 240, "retired": 1}, "juggler": {"name": "雜耍紳士", "w": 490, "h": 648, "head": [220, 0, 206], "price": 220, "retired": 1}, "flowermagic": {"name": "花束魔術師", "w": 554, "h": 670, "head": [333, 0, 214], "price": 220, "retired": 1}, "sax": {"name": "爵士薩克斯風手", "w": 601, "h": 734, "head": [289, 0, 233], "price": 260, "retired": 1}, "astro": {"name": "太空人", "w": 461, "h": 731, "head": [206, 0, 216], "ach": "連續簽到 30 天", "retired": 1}, "station": {"name": "太空站工程師", "w": 533, "h": 713, "head": [201, 0, 223], "lv": 40, "retired": 1}, "camo": {"w": 392, "h": 900, "head": [202, 0, 288], "name": "叢林探險隊員", "price": 180, "new": 1}, "chef": {"w": 487, "h": 900, "head": [223, 0, 288], "name": "大廚", "price": 150, "new": 1}, "florist": {"w": 457, "h": 900, "head": [225, 0, 288], "name": "花藝師", "price": 150, "new": 1}, "baker": {"w": 457, "h": 900, "head": [224, 0, 288], "name": "麵包師傅", "price": 150, "new": 1}, "painter": {"w": 469, "h": 900, "head": [247, 0, 288], "name": "街頭畫家", "price": 150, "new": 1}, "tailor": {"w": 454, "h": 900, "head": [226, 0, 288], "name": "裁縫師", "price": 150, "new": 1}, "carpenter": {"w": 432, "h": 900, "head": [215, 0, 288], "name": "木工師傅", "price": 220, "new": 1}, "mechanic": {"w": 462, "h": 900, "head": [235, 0, 288], "name": "汽車技師", "price": 220, "new": 1}, "vet": {"w": 464, "h": 900, "head": [230, 0, 288], "name": "獸醫師", "price": 220, "new": 1}, "architect": {"w": 463, "h": 900, "head": [239, 0, 288], "name": "建築設計師", "price": 220, "new": 1}, "scholar": {"w": 433, "h": 900, "head": [220, 0, 288], "name": "書房學者", "price": 220, "new": 1}, "tripod": {"w": 441, "h": 900, "head": [211, 0, 288], "name": "旅拍攝影師", "price": 220, "new": 1}, "botanist": {"w": 451, "h": 900, "head": [232, 0, 288], "name": "植物學家", "price": 300, "lv": 10, "new": 1}, "birder": {"w": 490, "h": 900, "head": [257, 0, 288], "name": "賞鳥觀察員", "price": 300, "lv": 10, "new": 1}, "butterfly": {"w": 442, "h": 900, "head": [190, 0, 288], "name": "蝴蝶研究員", "price": 300, "lv": 10, "new": 1}, "geode": {"w": 446, "h": 900, "head": [225, 0, 288], "name": "礦石鑑定師", "price": 300, "lv": 10, "new": 1}, "canoe": {"w": 437, "h": 900, "head": [169, 0, 288], "name": "獨木舟玩家", "price": 300, "lv": 10, "new": 1}, "kayak": {"w": 424, "h": 900, "head": [261, 0, 288], "name": "激流泛舟手", "price": 300, "lv": 10, "new": 1}, "parkranger": {"w": 437, "h": 900, "head": [221, 0, 288], "name": "國家公園巡守員", "price": 300, "lv": 10, "new": 1}, "alpine": {"w": 493, "h": 900, "head": [256, 0, 288], "name": "高山登山家", "price": 400, "lv": 20, "new": 1}, "backpack": {"w": 417, "h": 900, "head": [203, 0, 288], "name": "長程背包客", "price": 400, "lv": 20, "new": 1}, "arctic": {"w": 452, "h": 900, "head": [224, 0, 288], "name": "極地探險家", "price": 400, "lv": 20, "new": 1}, "desert": {"w": 466, "h": 900, "head": [217, 0, 288], "name": "沙漠旅人", "price": 400, "lv": 20, "new": 1}, "survival": {"w": 474, "h": 900, "head": [216, 0, 288], "name": "野外求生家", "price": 400, "lv": 20, "new": 1}, "bard": {"w": 429, "h": 900, "head": [210, 0, 288], "name": "吟遊詩人", "price": 350, "new": 1}, "fairy": {"w": 511, "h": 900, "head": [248, 0, 288], "name": "花仙子", "price": 350, "new": 1}, "wizard": {"w": 497, "h": 900, "head": [228, 0, 288], "name": "星紋大法師", "price": 350, "new": 1}, "starmage": {"w": 470, "h": 900, "head": [240, 0, 288], "name": "星空女巫", "price": 450, "new": 1}, "priestess": {"w": 463, "h": 900, "head": [215, 0, 288], "name": "光之祭司", "price": 450, "new": 1}, "rogue": {"w": 461, "h": 900, "head": [232, 0, 288], "name": "暗影盜賊", "price": 550, "lv": 25, "new": 1}, "dwarf": {"w": 491, "h": 900, "head": [257, 0, 288], "name": "矮人戰士", "price": 550, "lv": 25, "new": 1}, "beastmaster": {"w": 399, "h": 900, "head": [217, 0, 288], "name": "森林馴獸師", "price": 550, "lv": 25, "new": 1}, "genie": {"w": 424, "h": 900, "head": [228, 0, 288], "name": "神燈精靈", "price": 550, "ach": "連續簽到 14 天", "new": 1}, "dragonrider": {"w": 441, "h": 900, "head": [218, 0, 288], "name": "馴龍騎士", "price": 700, "lv": 35, "new": 1}, "darkelf": {"w": 449, "h": 900, "head": [204, 0, 288], "name": "暗夜精靈", "price": 700, "lv": 35, "new": 1}, "necro": {"w": 464, "h": 900, "head": [197, 0, 288], "name": "墓園術士", "price": 700, "lv": 35, "new": 1}, "vampire": {"w": 422, "h": 900, "head": [208, 0, 288], "name": "古堡伯爵", "price": 700, "ach": "完成 20 關首次通關", "new": 1}, "soccer": {"w": 543, "h": 900, "head": [266, 0, 288], "name": "足球前鋒", "price": 200, "new": 1}, "hoops2": {"w": 542, "h": 900, "head": [265, 0, 288], "name": "籃球好手", "price": 200, "new": 1}, "runner": {"w": 438, "h": 900, "head": [214, 0, 288], "name": "田徑跑者", "price": 200, "new": 1}, "swimmer": {"w": 409, "h": 900, "head": [192, 0, 288], "name": "游泳健將", "price": 200, "new": 1}, "tennis": {"w": 443, "h": 900, "head": [230, 0, 288], "name": "網球選手", "price": 260, "new": 1}, "volley": {"w": 456, "h": 900, "head": [229, 0, 288], "name": "排球隊長", "price": 260, "new": 1}, "baseball": {"w": 437, "h": 900, "head": [237, 0, 288], "name": "棒球打者", "price": 260, "new": 1}, "cyclist": {"w": 441, "h": 900, "head": [192, 0, 288], "name": "公路車手", "price": 260, "new": 1}, "golfer": {"w": 422, "h": 900, "head": [239, 0, 288], "name": "高爾夫球手", "price": 320, "new": 1}, "yoga": {"w": 480, "h": 900, "head": [240, 0, 288], "name": "瑜伽達人", "price": 320, "new": 1}, "ballet": {"w": 507, "h": 900, "head": [293, 0, 288], "name": "芭蕾舞者", "price": 320, "new": 1}, "skater": {"w": 446, "h": 900, "head": [220, 0, 288], "name": "滑板少女", "price": 320, "new": 1}, "gymnast": {"w": 436, "h": 900, "head": [189, 0, 288], "name": "體操選手", "price": 380, "ach": "完成 5 關首次通關", "new": 1}, "boxer": {"w": 435, "h": 900, "head": [240, 0, 288], "name": "拳擊手", "price": 400, "ach": "連續簽到 7 天", "new": 1}, "fencer": {"w": 500, "h": 900, "head": [277, 0, 288], "name": "西洋劍士", "price": 450, "ach": "完成 15 關首次通關", "new": 1}, "cnygirl": {"w": 535, "h": 900, "head": [233, 0, 288], "name": "春節福娃", "price": 300, "lim": 1, "mon": [1, 2], "new": 1}, "lion": {"w": 480, "h": 900, "head": [293, 0, 288], "name": "舞獅迎春", "price": 400, "lim": 1, "mon": [1, 2], "new": 1}, "lanternfest": {"w": 551, "h": 900, "head": [282, 0, 288], "name": "元宵賞燈", "price": 300, "lim": 1, "mon": [2, 3], "new": 1}, "valentine": {"w": 372, "h": 900, "head": [184, 0, 288], "name": "情人節告白", "price": 400, "lim": 1, "mon": [2], "new": 1}, "eastergirl": {"w": 404, "h": 900, "head": [189, 0, 288], "name": "復活節兔兔", "price": 400, "lim": 1, "mon": [3, 4], "new": 1}, "eggpaint": {"w": 373, "h": 900, "head": [186, 0, 288], "name": "彩蛋小畫家", "price": 300, "lim": 1, "mon": [3, 4], "new": 1}, "mothers": {"w": 407, "h": 900, "head": [198, 0, 288], "name": "母親節康乃馨", "price": 400, "lim": 1, "mon": [5], "new": 1}, "dragonboat": {"w": 446, "h": 900, "head": [231, 0, 288], "name": "端午龍舟手", "price": 500, "lim": 1, "mon": [5, 6], "new": 1}, "moon": {"w": 425, "h": 900, "head": [219, 0, 288], "name": "中秋月兔仙子", "price": 500, "lim": 1, "mon": [9, 10], "new": 1}, "witch": {"w": 433, "h": 900, "head": [222, 0, 288], "name": "萬聖小女巫", "price": 500, "lim": 1, "mon": [10], "new": 1}, "muerto": {"w": 439, "h": 900, "head": [205, 0, 288], "name": "亡靈節樂手", "price": 500, "lim": 1, "mon": [10, 11], "new": 1}, "turkey": {"w": 449, "h": 900, "head": [223, 0, 288], "name": "感恩節大餐", "price": 400, "lim": 1, "mon": [11], "new": 1}, "harvestfest": {"w": 468, "h": 900, "head": [248, 0, 288], "name": "秋日豐收", "price": 300, "lim": 1, "mon": [9, 10, 11], "new": 1}, "elf": {"w": 423, "h": 900, "head": [227, 0, 288], "name": "聖誕小幫手", "price": 400, "lim": 1, "mon": [12], "new": 1}, "santa": {"w": 415, "h": 900, "head": [205, 0, 288], "name": "聖誕老公公", "price": 600, "lim": 1, "mon": [12], "new": 1}, "newyear": {"w": 434, "h": 900, "head": [199, 0, 288], "name": "跨年派對", "price": 600, "lim": 1, "mon": [12, 1], "new": 1}}}, FIG_DIR = "figs/";
+  // ---- 商店擴充：最高管理者在「遊戲授權中心 → 🛍️ 商店上架」新增的系列與商品（存在 DB.rw.s，跟著雲端同步給所有玩家）----
+  //   DB.rw.s = { fo: 是否開放時裝兌換, series: [{ id, kind:"fig"|"fashion", name, color, reward, at }], items: [{ id, sid, name, price, lv, nd(NEW 天數), at, off, src, w, h, head }] }
+  //   公仔用智慧幣購買；時裝用智慧星星兌換。圖片 src 是上架時壓縮好的 webp（沒有 src 時改讀 figs/<id>.webp）
+  var FIG_BASE = FIGS.series.map(function (s) { return Object.assign({}, s, { ids: s.ids.slice() }); }), SX_NEW_DAYS = 14;
+  function shopExt() { var s = DB.rw && DB.rw.s; return s && typeof s === "object" ? s : { fo: false, series: [], items: [] }; }
+  function sxSeries() { return shopExt().series || []; }
+  function sxItems() { return shopExt().items || []; }
+  function sxIsNew(it, now) { var nd = it.nd == null ? SX_NEW_DAYS : +it.nd; return nd > 0 && (now || Date.now()) - Date.parse(it.at || 0) < nd * 864e5; }
+  function shopExtApply() {
+    Object.keys(FIGS.figs).forEach(function (id) { if (FIGS.figs[id].x) delete FIGS.figs[id]; });
+    var out = FIG_BASE.map(function (s) { return Object.assign({}, s, { ids: s.ids.slice() }); }), now = Date.now();
+    var ci = out.map(function (s) { return s.id; }).indexOf("classic"), classic = out[ci];
+    var oldF = { id: "x-fashion-old", name: "已下架時裝", color: "#9aa7bd", kind: "fashion", retired: 1, ids: [] };
+    var mine = sxSeries().map(function (s) { return { id: s.id, name: s.name, color: s.color || "#c9a36a", reward: s.reward || "", kind: s.kind === "fashion" ? "fashion" : "fig", x: 1, ids: [] }; });
+    var all = out.concat(mine);
+    sxItems().forEach(function (it) {
+      var sr = all.filter(function (s) { return s.id === it.sid && !s.retired; })[0]; if (!sr || FIGS.figs[it.id]) return;
+      var f = { x: 1, name: it.name, w: +it.w || 450, h: +it.h || 900, head: it.head || [(+it.w || 450) / 2, 0, (+it.h || 900) * 0.32], cur: sr.kind === "fashion" ? "star" : "coin" };
+      if (it.src) f.src = it.src; if (+it.price > 0) f.price = +it.price; if (+it.lv > 0) f.lv = +it.lv; if (sxIsNew(it, now)) f.new = 1;
+      FIGS.figs[it.id] = f;
+      if (it.off) { f.retired = 1; (sr.kind === "fashion" ? oldF : classic).ids.push(it.id); } else sr.ids.push(it.id);
+    });
+    mine = mine.filter(function (s) { return s.ids.length; });
+    var figM = mine.filter(function (s) { return s.kind === "fig"; }), fasM = mine.filter(function (s) { return s.kind === "fashion"; });
+    FIGS.series = out.slice(0, ci).concat(figM, out.slice(ci), fasM, oldF.ids.length ? [oldF] : []);
+  }
+  shopExtApply();
   var shopEl = document.getElementById("shop"), shSeries = FIGS.series[0].id, shCur = null;
   function figSeries(id) { return FIGS.series.filter(function (s) { return s.ids.indexOf(id) >= 0; })[0]; }
-  function figSrc(id) { return FIG_DIR + id + ".webp"; }
+  function figSrc(id) { var f = FIGS.figs[id]; return f && f.src ? f.src : FIG_DIR + id + ".webp"; }
+  function figKind(id) { var s = figSeries(id); return s && s.kind === "fashion" ? "fashion" : "fig"; }
+  function shKind() { return shMode === "fashion" ? "fashion" : "fig"; }
+  function fashionOpen() { return !!shopExt().fo; }
+  function fashionTab(p) { var a = me(); return FIGS.series.some(function (s) { return s.kind === "fashion" && !s.retired; }) && (fashionOpen() || isSuper(a)) || FIGS.series.some(function (s) { return s.kind === "fashion" && s.retired && s.ids.some(function (id) { return figOwned(p)[id]; }); }); }
   // 預設款（免費、無條件、未下架）每位玩家都擁有；已下架的「經典收藏」只有原本擁有的人能看到與穿戴
   function figOwned(p) { p.figs = p.figs || {}; if (!p.figs.__d) { FIGS.series.forEach(function (s) { if (s.retired) return; s.ids.forEach(function (id) { var f = FIGS.figs[id]; if (!f.price && !f.lv && !f.ach) p.figs[id] = 1; }); }); Object.defineProperty(p.figs, "__d", { value: 1, enumerable: false }); } return p.figs; }
-  function shopSeries(p) { return FIGS.series.filter(function (s) { return !s.retired || s.ids.some(function (id) { return figOwned(p)[id]; }); }); }
+  function shopSeries(p) { var k = shKind(); return FIGS.series.filter(function (s) { return (s.kind === "fashion" ? "fashion" : "fig") === k && (!s.retired || s.ids.some(function (id) { return figOwned(p)[id]; })); }); }
   function achOk(p, txt) {
     var m = /完成 (\d+) 關首次通關/.exec(txt); if (m) return Object.keys(p.res || {}).filter(function (k) { return p.res[k].cleared; }).length >= +m[1];
     m = /連續簽到 (\d+) 天/.exec(txt); if (m) return myStreak(p) >= +m[1];
@@ -3528,33 +3727,40 @@
     var f = FIGS.figs[id];
     if (figOwned(p)[id]) return { own: 1 };
     if (f.retired) return { lock: 1, txt: "已下架" };
+    if (f.cur === "star" && !fashionOpen() && !testMode()) return { lock: 1, txt: "時裝兌換尚未開放" };
     if (testMode()) return { free: 1, txt: "測試模式：免費領取" };
     if (f.mon && !figOnSale(f)) return { lock: 1, txt: "節慶限定：" + monTxt(f.mon) + "販售（節日活動期間也會開放）" };
-    if (f.lv && p.level < f.lv) return { lock: 1, txt: "Lv." + f.lv + " 解鎖" + (f.price ? "，再以 " + f.price + " 智慧幣購買" : "") };
+    if (f.lv && p.level < f.lv) return { lock: 1, txt: "Lv." + f.lv + " 解鎖" + (f.price ? "，再以 " + f.price + (f.cur === "star" ? " 智慧星星兌換" : " 智慧幣購買") : "") };
     if (f.ach && !achOk(p, f.ach)) return { lock: 1, txt: "成就：" + f.ach };
     if ((f.lv || f.ach) && !f.price) return { free: 1, txt: f.lv ? "已達 Lv." + f.lv + "，可領取" : "成就達成，可領取" };   // 有價格的等級款：達到等級後才能購買
-    return { buy: 1, price: f.price || 0 };
+    return { buy: 1, price: f.price || 0, star: f.cur === "star" };
   }
   var shMode = "fig";
-  function openShop(mode) { shMode = mode === "food" || mode === "plant" ? mode : "fig"; var p = curP(); if (p.fig && !FIGS.figs[p.fig]) p.fig = null; if (!FIGS.figs[shCur]) shCur = null; shCur = shCur || p.fig || FIGS.series[0].ids[0]; shSeries = figSeries(shCur).id; shopEl.hidden = false; document.body.classList.add("shop-open"); renderShop(false); }
+  function openShop(mode) { shMode = mode === "food" || mode === "plant" || mode === "fashion" ? mode : "fig"; var p = curP(); if (p.fig && !FIGS.figs[p.fig]) p.fig = null; if (!FIGS.figs[shCur]) shCur = null; shCur = shCur || p.fig || FIGS.series[0].ids[0]; shSeries = figSeries(shCur).id; shopEl.hidden = false; document.body.classList.add("shop-open"); renderShop(false); }
   function closeShop() { shopEl.hidden = true; document.body.classList.remove("shop-open"); renderPlayerHud(false); }
   function renderShop(anim) {
     document.querySelectorAll("#sh-mode button").forEach(function (b) { b.setAttribute("aria-selected", b.dataset.shm === shMode); });
-    document.querySelector("#shop .sh-main").hidden = shMode !== "fig"; document.getElementById("sh-food").hidden = shMode !== "food"; document.getElementById("sh-plant").hidden = shMode !== "plant";
+    var fbt = document.getElementById("sh-m-fashion"); fbt.hidden = !fashionTab(curP()); fbt.textContent = "時裝" + (fashionOpen() ? "" : "（未開放）");
+    if (shMode === "fashion" && fbt.hidden) shMode = "fig";
+    document.querySelectorAll("#sh-mode button").forEach(function (b) { b.setAttribute("aria-selected", b.dataset.shm === shMode); });
+    document.querySelector("#shop .sh-main").hidden = shMode !== "fig" && shMode !== "fashion"; document.getElementById("sh-food").hidden = shMode !== "food"; document.getElementById("sh-plant").hidden = shMode !== "plant";
     if (shMode === "food") return renderFood();
     if (shMode === "plant") return renderPlant(anim);
-    var p = curP(), f = FIGS.figs[shCur], s = figSeries(shCur), st = figState(p, shCur);
+    var p = curP(), vis0 = shopSeries(p);
+    if (!FIGS.figs[shCur] || figKind(shCur) !== shKind() || !figSeries(shCur)) shCur = p.fig && FIGS.figs[p.fig] && figKind(p.fig) === shKind() ? p.fig : vis0[0].ids.filter(function (id) { return !vis0[0].retired || figOwned(p)[id]; })[0];
+    if (!vis0.some(function (x) { return x.id === shSeries; })) shSeries = figSeries(shCur).id;
+    var f = FIGS.figs[shCur], s = figSeries(shCur), st = figState(p, shCur);
     document.getElementById("sh-coins").textContent = fmt(p.coins); document.getElementById("sh-stars").textContent = fmt(mazeProg(p) && p.stars);
     document.getElementById("sh-img").src = figSrc(shCur); document.getElementById("sh-img").alt = f.name;
-    document.getElementById("sh-tags").innerHTML = "<span>" + s.name + "</span>" + (f.lim ? '<span style="color:#c0392b">限定</span>' : "") + (f.new ? "<span>NEW</span>" : "");
+    document.getElementById("sh-tags").innerHTML = "<span>" + s.name + "</span>" + (f.lim ? '<span style="color:#c0392b">限定</span>' : "") + (f.new ? "<span>NEW</span>" : "") + (f.cur === "star" ? "<span>⭐ 智慧星星兌換</span>" : "");
     document.getElementById("sh-name").textContent = f.name;
-    document.getElementById("sh-desc").textContent = st.own ? (p.fig === shCur ? "目前的造型" : "已收藏，可以設為你的造型") : st.lock ? "取得方式：" + st.txt : st.free ? st.txt : "價格：" + (st.price ? st.price + " 智慧幣" : "免費") + "（你有 " + fmt(p.coins) + "）";
+    document.getElementById("sh-desc").textContent = st.own ? (p.fig === shCur ? "目前的造型" : "已收藏，可以設為你的造型") : st.lock ? "取得方式：" + st.txt : st.free ? st.txt : st.star ? "兌換：" + (st.price ? st.price + " 智慧星星" : "免費") + "（你有 ⭐ " + fmt(mazeProg(p) && p.stars) + "）" : "價格：" + (st.price ? st.price + " 智慧幣" : "免費") + "（你有 " + fmt(p.coins) + "）";
     var bb = document.getElementById("sh-buy");
-    bb.textContent = st.own ? "已擁有 ✓" : st.lock ? "尚未解鎖" : st.free ? "領取" : st.price ? "購買 🪙 " + st.price : "免費領取"; bb.disabled = !!(st.own || st.lock);
+    bb.textContent = st.own ? "已擁有 ✓" : st.lock ? "尚未解鎖" : st.free ? "領取" : st.price ? (st.star ? "兌換 ⭐ " : "購買 🪙 ") + st.price : "免費領取"; bb.disabled = !!(st.own || st.lock);
     document.getElementById("sh-use").disabled = !st.own || p.fig === shCur;
     var have = s.ids.filter(function (id) { return figOwned(p)[id]; }).length, done = (p.titlesGot || []).indexOf(s.reward) >= 0;
     var vis = shopSeries(p); if (!vis.some(function (x) { return x.id === shSeries; })) shSeries = vis[0].id;
-    document.getElementById("sh-tabs").innerHTML = vis.map(function (x) { return '<button role="tab" aria-selected="' + (x.id === shSeries) + '" data-shs="' + x.id + '">' + x.name + "</button>"; }).join("");
+    document.getElementById("sh-tabs").innerHTML = vis.map(function (x) { var nw = x.ids.some(function (id) { var g = FIGS.figs[id]; return g.x && g.new && !figOwned(p)[id]; }); return '<button role="tab" aria-selected="' + (x.id === shSeries) + '" data-shs="' + x.id + '">' + esc(x.name) + (nw ? '<i class="sh-tnew">NEW</i>' : "") + "</button>"; }).join("");
     var cs = FIGS.series.filter(function (x) { return x.id === shSeries; })[0], ch = cs.ids.filter(function (id) { return figOwned(p)[id]; }).length;
     if (cs.retired) cs = { id: cs.id, name: cs.name, retired: 1, ids: cs.ids.filter(function (id) { return figOwned(p)[id]; }) };
     document.getElementById("sh-prog").innerHTML = cs.retired ? "經典收藏：已下架的公仔，你擁有的仍然可以穿戴（共 " + cs.ids.length + " 尊）" : "收集進度 <b>" + ch + " / " + cs.ids.length + '</b><span class="sh-bar"><i style="width:' + (ch / cs.ids.length * 100) + '%"></i></span>' + ((p.titlesGot || []).indexOf(cs.reward) >= 0 ? "已獲得稱號「" + cs.reward + "」✓" : "集滿得稱號「" + cs.reward + "」");
@@ -3563,7 +3769,7 @@
       return '<button class="sh-box' + (t.lock ? " locked" : "") + '" style="--tint:' + cs.color + '" aria-pressed="' + (shCur === id) + '" data-shf="' + id + '"><span class="tp">MINDFLOW</span>' +
         (p.fig === id ? '<span class="sh-wear">穿戴中</span>' : t.own ? '<span class="sh-own">已擁有</span>' : "") + (g.lim ? '<span class="sh-lim">限定</span>' : "") + (g.new && !t.own ? '<span class="sh-new">NEW</span>' : "") +
         '<span class="win"><img src="' + figSrc(id) + '" alt="" loading="lazy"></span><b>' + (t.lock ? "？？？" : g.name) + "</b>" +
-        (t.lock ? '<span class="cd">' + (g.retired ? "已下架" : g.mon && !figOnSale(g) ? "限定 " + g.mon.join("・") + " 月" : g.lv && p.level < g.lv ? "Lv." + g.lv + " 解鎖" + (g.price ? "・🪙" + g.price : "") : t.txt) + "</span>" : '<span class="pr">' + (t.own ? "收藏中" : t.free ? "可領取" : t.price ? "🪙 " + t.price : "免費") + "</span>") + "</button>";
+        (t.lock ? '<span class="cd">' + (g.retired ? "已下架" : g.mon && !figOnSale(g) ? "限定 " + g.mon.join("・") + " 月" : g.lv && p.level < g.lv ? "Lv." + g.lv + " 解鎖" + (g.price ? (g.cur === "star" ? "・⭐" : "・🪙") + g.price : "") : t.txt) + "</span>" : '<span class="pr">' + (t.own ? "收藏中" : t.free ? "可領取" : t.price ? (t.star ? "⭐ " : "🪙 ") + t.price : "免費") + "</span>") + "</button>";
     }).join("");
     if (anim) { var fg = document.getElementById("sh-fig"); fg.classList.remove("idle", "hop"); void fg.offsetWidth; fg.classList.add("hop"); setTimeout(function () { fg.classList.remove("hop"); fg.classList.add("idle"); }, 560); shSparkle(); }
   }
@@ -3792,9 +3998,11 @@
     if (t.id === "sh-buy") {
       var st = figState(p, shCur), f = FIGS.figs[shCur];
       if (st.own || st.lock) return;
-      if (st.buy && st.price > p.coins) return toast("智慧幣不足，還差 " + (st.price - p.coins) + " 枚。玩遊戲、每日簽到都能賺智慧幣。");
-      if (st.buy) p.coins -= st.price;
-      figOwned(p)[shCur] = 1; plog(p, 0, st.buy ? -st.price : 0, (st.buy && st.price ? "購買" : "獲得") + "公仔「" + f.name + "」"); saveP();
+      if (st.buy && st.star) { mazeProg(p); if (st.price > p.stars) return toast("智慧星星不足，還差 " + (st.price - p.stars) + " 顆。迷宮尋寶、記憶星球拿到更多星星就能兌換。"); p.stars -= st.price; }
+      else if (st.buy && st.price > p.coins) return toast("智慧幣不足，還差 " + (st.price - p.coins) + " 枚。玩遊戲、每日簽到都能賺智慧幣。");
+      else if (st.buy) p.coins -= st.price;
+      var kd = f.cur === "star" ? "時裝" : "公仔";
+      figOwned(p)[shCur] = 1; plog(p, 0, st.buy && !st.star ? -st.price : 0, (st.buy && st.price ? (st.star ? "以 ⭐" + st.price + " 兌換" : "購買") : "獲得") + kd + "「" + f.name + "」"); saveP();
       toast("獲得「" + f.name + "」！"); checkSeries(p, shCur); renderShop(true); return;
     }
     if (t.id === "sh-use") {
