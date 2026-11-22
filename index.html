@@ -3,9 +3,6 @@
 <meta name="description" content="電影質感的身心智慧學院主畫面：光束、柔光暈、飛鳥與櫻花、雲海外圍、明亮的夜晚村莊。">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0e1838">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="身心智慧學院">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -874,15 +871,7 @@
   #fs-btn{width:44px;height:44px;padding:10px;color:#fff;display:grid;place-items:center}
   #fs-btn svg{width:22px;height:22px;display:block}
   #fs-btn .fs-off{display:none}.is-fs #fs-btn .fs-on{display:none}.is-fs #fs-btn .fs-off{display:inline}
-  .fs-standalone #fs-wrap{display:none}
-  #fs-tip{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:20px;background:rgba(4,8,24,.72);font-family:var(--body)}
-  #fs-tip[hidden]{display:none}
-  #fs-tip .fs-card{width:min(400px,100%);max-height:100%;overflow-y:auto;box-sizing:border-box;padding:20px;border-radius:20px;color:#eef3ff;background:linear-gradient(180deg,#213372,#18275a);border:1px solid rgba(255,226,150,.4);box-shadow:0 20px 50px rgba(0,0,0,.5)}
-  #fs-tip h3{margin:0 0 8px;font:400 20px var(--round);color:#ffd36b}
-  #fs-tip p,#fs-tip li{font-size:15px;line-height:1.7}#fs-tip p{margin:0 0 8px}#fs-tip ol{margin:0 0 8px;padding-left:22px}#fs-tip b{color:#ffe7a6}
-  #fs-tip .fs-share{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,.15);font-size:13px}
-  #fs-tip .fs-note{font-size:13px;color:#a9b8e0}
-  #fs-tip .fs-ok{width:100%;margin-top:6px;padding:11px;border-radius:999px;border:1px solid #ffe7a6;background:linear-gradient(180deg,#ffe08a,#f2b33d);color:#3a2300;font:700 16px var(--body);cursor:pointer}
+  .fs-standalone #fs-wrap,.fs-none #fs-wrap{display:none}   /* 手機、不支援全螢幕的瀏覽器、主畫面圖示開啟時不顯示 */
   .home{left:calc(var(--u) * 44);top:calc(var(--u) * 205);font-size:14px;padding:9px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .25s}
   .home.show{opacity:1;pointer-events:auto}
   .card{right:calc(var(--u) * 32);top:50%;transform:translate(20px,-50%);width:min(340px,calc(100% - 32px));padding:16px;border-radius:16px;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;z-index:6}
@@ -1078,10 +1067,6 @@
 <div class="hud zoom" id="fs-wrap">
   <button class="glass" id="fs-btn" aria-label="全螢幕" title="全螢幕" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="fs-on" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/><path class="fs-off" d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button>
 </div>
-<div id="fs-tip" hidden role="dialog" aria-modal="true" aria-labelledby="fs-tip-h"><div class="fs-card"><h3 id="fs-tip-h">在 iPhone 上全螢幕遊玩</h3>
-  <p>iPhone 的 Safari 不能讓網頁直接切換全螢幕。把學院加到主畫面，之後從主畫面的圖示打開，就會是全螢幕：</p>
-  <ol><li>點 Safari 下方（或上方）的 <b>分享</b> 按鈕 <span class="fs-share" aria-hidden="true">⬆︎</span></li><li>往下滑，選 <b>加入主畫面</b></li><li>回到主畫面，點「身心智慧學院」圖示打開</li></ol>
-  <p class="fs-note">從圖示打開後請登入同一個帳號，進度會從雲端接著玩（沒登入的話，主畫面版和 Safari 的進度是分開的）。</p><button class="fs-ok" id="fs-ok">知道了</button></div></div>
 <section class="hud card glass" id="card" aria-live="polite">
   <h3 id="card-title"></h3>
   <p class="sub" id="card-sub"></p>
@@ -5192,9 +5177,13 @@
   stage.addEventListener("wheel", function (e) { e.preventDefault(); var r = canvas.getBoundingClientRect(); zoomAt(e.clientX - r.left, e.clientY - r.top, Math.exp(e.deltaY * 0.0012)); }, { passive: false });
   // ---- 全螢幕（取代原本的放大／縮小按鈕；畫面縮放仍可用雙指或滑鼠滾輪）----
   //   電腦、Android、iPad：Fullscreen API 直接切換，再按一下關閉；Esc 或系統手勢離開時按鈕狀態會自動同步。
-  //   iPhone 的 Safari 不支援網頁全螢幕 → 說明「加入主畫面」，從主畫面圖示開啟（standalone）時隱藏按鈕。
+  //   手機不提供全螢幕（按鈕不顯示）；只在平板、電腦且瀏覽器支援時顯示。從主畫面圖示開啟（standalone）時也隱藏。
   (function () {
-    var de = document.documentElement, btn = document.getElementById("fs-btn"), tip = document.getElementById("fs-tip");
+    var de = document.documentElement, btn = document.getElementById("fs-btn");
+    function isPhone() {   // 觸控為主、螢幕短邊小於 600px（CSS 像素）視為手機；iPad、Android 平板短邊都大於這個值
+      var coarse = window.matchMedia ? matchMedia("(pointer: coarse)").matches : ("ontouchstart" in window);
+      return coarse && Math.min(screen.width, screen.height) < 600;
+    }
     function standalone() { return navigator.standalone === true || (window.matchMedia && (matchMedia("(display-mode: fullscreen)").matches || matchMedia("(display-mode: standalone)").matches)); }
     function fsEl() { return document.fullscreenElement || document.webkitFullscreenElement || null; }
     function canFs() { return !!(document.fullscreenEnabled || document.webkitFullscreenEnabled); }   // iPhone Safari 為 false
@@ -5209,13 +5198,11 @@
     function enter() {
       var r = null;
       try { r = de.requestFullscreen ? de.requestFullscreen({ navigationUI: "hide" }) : de.webkitRequestFullscreen ? de.webkitRequestFullscreen() : null; } catch (e) { r = null; }
-      if (r && r.catch) r.catch(function () { if (!fsEl()) showTip(); });
-      else setTimeout(function () { if (!fsEl()) showTip(); }, 800);   // 舊版 webkit 沒有回傳 Promise：沒切成功就顯示說明
+      if (r && r.catch) r.catch(function () {});
     }
     function exit() { try { if (document.exitFullscreen) document.exitFullscreen(); else if (document.webkitExitFullscreen) document.webkitExitFullscreen(); } catch (e) {} }
-    function showTip() { tip.hidden = false; document.getElementById("fs-ok").focus(); }
-    btn.addEventListener("click", function (e) { e.stopPropagation(); if (fsEl()) exit(); else if (canFs()) enter(); else showTip(); });
-    tip.addEventListener("click", function (e) { if (e.target === tip || e.target.id === "fs-ok") tip.hidden = true; });
+    if (isPhone() || !canFs()) document.body.classList.add("fs-none");
+    btn.addEventListener("click", function (e) { e.stopPropagation(); if (fsEl()) exit(); else if (canFs()) enter(); });
     document.addEventListener("fullscreenchange", sync); document.addEventListener("webkitfullscreenchange", sync);
     if (window.matchMedia) try { matchMedia("(display-mode: standalone)").addEventListener("change", sync); } catch (e) {}
     sync();

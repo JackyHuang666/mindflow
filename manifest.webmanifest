@@ -5,8 +5,7 @@
   "lang": "zh-Hant",
   "start_url": "./",
   "scope": "./",
-  "display": "fullscreen",
-  "display_override": ["fullscreen", "standalone"],
+  "display": "browser",
   "background_color": "#0e1838",
   "theme_color": "#0e1838",
   "icons": [
