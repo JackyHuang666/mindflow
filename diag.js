@@ -8,7 +8,7 @@
   "use strict";
   var VER = "v112", KEY = "swt-diag-log", HB = "swt-diag-hb", MAX = 60;
   var sid = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-  var crumbs = [], memWarned = false, upState = "idle", upErr = "", upTimer = 0;
+  var crashedLast = false, crumbs = [], memWarned = false, upState = "idle", upErr = "", upTimer = 0;
   var ls = null; try { ls = window.localStorage; } catch (e) {}
 
   function env() {
@@ -49,6 +49,7 @@
       var a0 = load(), r0 = { id: prev.sid + "-crash", t: prev.t, sid: prev.sid, kind: "crash", msg: "疑似閃退：上次使用中頁面突然關閉（最後操作後 " + Math.max(0, Math.round((Date.now() - prev.t) / 1000)) + " 秒才重新開啟）",
         p: prev.p || player(), env: prev.env || env(), crumbs: crumbs.slice(-15), x: null, up: 0 };
       if (!a0.some(function (r) { return r.id === r0.id; })) { a0.push(r0); save(a0); }
+      crashedLast = true;
       crumbs = [];
     }
   } catch (e) {}
@@ -187,5 +188,5 @@
     draw(el); fetchCloud(el);
   }
 
-  window.MFDiag = { log: log, crumb: crumb, list: load, renderAdmin: renderAdmin, upload: upload, sql: SQL, state: function () { return { up: upState, err: upErr, sid: sid }; } };
+  window.MFDiag = { crashedLastTime: function () { return crashedLast; }, log: log, crumb: crumb, list: load, renderAdmin: renderAdmin, upload: upload, sql: SQL, state: function () { return { up: upState, err: upErr, sid: sid }; } };
 })();

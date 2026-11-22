@@ -1,6 +1,6 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>身心智慧學院</title><!-- 加入主畫面：名稱、圖示、獨立 App 視窗（PWA / iOS） --><link rel="manifest" href="manifest.webmanifest?v=2"><meta name="application-name" content="身心智慧學院"><meta name="theme-color" content="#0e1838"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="身心智慧學院"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"><link rel="apple-touch-icon" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png?v=2"><link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png?v=2"><link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120.png?v=2"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"><link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"><link rel="icon" href="favicon.ico?v=2" sizes="any"></head><body>
 <title>身心智慧學院</title>
-<script src="diag.js?v=1"></script>
+<script src="diag.js?v=2"></script>
 <meta name="description" content="電影質感的身心智慧學院主畫面：光束、柔光暈、飛鳥與櫻花、雲海外圍、明亮的夜晚村莊。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -928,6 +928,16 @@
   .tools .rng input{width:100%;height:18px;accent-color:#f1cd78;cursor:pointer}
   .qlabel{font-size:13px;margin-top:6px}
   .gfx .qhint{margin:6px 0 0;font-size:11.5px}
+  #g-quality button{position:relative}
+  #g-quality .qrec{position:absolute;top:-8px;right:-4px;padding:0 5px;border-radius:999px;background:#5fd38a;color:#0d2a18;font:700 9.5px/15px var(--body,sans-serif);letter-spacing:0;pointer-events:none}
+  .gfx .qwarn-t{color:#ffd27a}
+  .gfx .qwarn{margin:8px 0 0;padding:10px 12px;border-radius:12px;background:rgba(255,196,90,.14);border:1px solid rgba(255,206,110,.55);font-size:12px;line-height:1.6}
+  .gfx .qwarn[hidden]{display:none}
+  .gfx .qwarn b{display:block;margin-bottom:2px;color:#ffe2a0}
+  .gfx .qwarn p{margin:0 0 8px}
+  .gfx .qwarn-b{display:flex;flex-wrap:wrap;gap:6px}
+  .gfx .qwarn-b button{flex:1 1 auto;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.08);color:#fff;font:inherit;font-size:12px;cursor:pointer}
+  .gfx .qwarn-b button.pri{background:linear-gradient(90deg,#ffb84d,#ffd36b);border-color:transparent;color:#1b2236;font-weight:700}
   .reset{margin-top:8px;width:100%;padding:7px 0;border-radius:8px;font:400 13px/1 var(--round);background:rgba(255,255,255,.08);border:1px solid rgba(255,226,150,.4);color:#fff2c8;position:relative}
   .seg button{position:relative;font:400 12.5px/1.2 var(--round);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px 0}
   .seg button[aria-pressed="true"]{background:#f1cd78;color:#3a2606;border-color:#f1cd78;font-weight:700}
@@ -6162,7 +6172,7 @@
     var on = Object.keys(fx).filter(function (k) { return fx[k]; }).length;
     document.getElementById("mi-fx-sub").textContent = "已開啟 " + on + " / " + Object.keys(fx).length + " 項";
     document.getElementById("mi-time-sub").textContent = "目前：" + TIME_NAME[timeMode];
-    document.getElementById("mi-gfx-sub").textContent = "畫質：" + (Q_NAME[gfx.quality] || gfx.quality) + "・亮度 " + gfx.bright + "・對比 " + gfx.contrast + "・飽和 " + gfx.sat;
+    document.getElementById("mi-gfx-sub").textContent = "畫質：" + (Q_NAME[gfx.quality] || gfx.quality) + (gfx.quality === Q_REC ? "（推薦）" : "") + "・亮度 " + gfx.bright + "・對比 " + gfx.contrast + "・飽和 " + gfx.sat;
   }
   var curPage = "root";
   function goBack() { var pg = tools.querySelector('.menu-page[data-page="' + curPage + '"]'); showPage(pg && pg.dataset.parent ? pg.dataset.parent : "root"); }
@@ -6198,24 +6208,60 @@
     mid: { scale: 0.8, cap: 1.25, hint: "中：較省電，畫面略柔。" },
     high: { scale: 1, cap: 1.5, hint: "高：清晰與流暢的平衡。" },
     ultra: { scale: 1, cap: 2, hint: "超高：完整解析度，最清晰（需要較好的顯示卡）。" } };
-  // 預設畫質（v113 防閃退）：手機、平板預設「高」（解析度上限 1.5 倍），電腦維持「超高」；玩家在設定裡選過的照舊
-  var GFX_DEFAULT = { bright: 100, contrast: 100, sat: 100, quality: TIER === "desktop" ? "ultra" : "high" }, gfx = Object.assign({}, GFX_DEFAULT);
-  try { var saved = JSON.parse(localStorage.getItem("mf-gfx") || "null"); if (saved && QUALITY[saved.quality]) gfx = Object.assign(gfx, saved); } catch (e) {}
+  // 推薦畫質（v114）：手機、平板、記憶體 ≤ 4GB 的電腦是「高」（解析度上限 1.5 倍），其他電腦是「超高」。
+  //   - 新玩家、以及 v114 以前存過畫質的玩家，一律改成這台裝置的推薦值（qv:2 表示已套用新規則）
+  //   - 玩家之後自己選的畫質會記住（qUser:1）；選得比推薦高時，先溫馨提醒、確認後才套用
+  var Q_ORDER = ["low", "mid", "high", "ultra"], Q_REC = TIER === "desktop" ? "ultra" : "high";
+  function qRank(q) { return Q_ORDER.indexOf(q); }
+  var GFX_DEFAULT = { bright: 100, contrast: 100, sat: 100, quality: Q_REC, qv: 2 }, gfx = Object.assign({}, GFX_DEFAULT);
+  try {
+    var saved = JSON.parse(localStorage.getItem("mf-gfx") || "null");
+    if (saved && QUALITY[saved.quality]) {
+      gfx = Object.assign(gfx, saved);
+      if (saved.qv !== 2 || !saved.qUser) { gfx.quality = Q_REC; delete gfx.qUser; }   // 舊設定或沒有自己選過：改回推薦
+      gfx.qv = 2;
+    }
+  } catch (e) {}
   function saveGfx() { try { localStorage.setItem("mf-gfx", JSON.stringify(gfx)); } catch (e) {} }
+  saveGfx();
   var GFX_INPUTS = { bright: "g-bright", contrast: "g-contrast", sat: "g-sat" };
   function syncGfxUI() {
     Object.keys(GFX_INPUTS).forEach(function (k) { var el = document.getElementById(GFX_INPUTS[k]); el.value = gfx[k]; el.nextElementSibling.textContent = gfx[k]; });
-    document.querySelectorAll("#g-quality button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.q === gfx.quality)); });
-    document.getElementById("g-qhint").textContent = QUALITY[gfx.quality].hint;
+    document.querySelectorAll("#g-quality button").forEach(function (b) {
+      b.setAttribute("aria-pressed", String(b.dataset.q === gfx.quality));
+      if (b.dataset.q === Q_REC && !b.querySelector(".qrec")) b.insertAdjacentHTML("beforeend", '<small class="qrec">推薦</small>');
+    });
+    var hi = qRank(gfx.quality) > qRank(Q_REC);
+    document.getElementById("g-qhint").innerHTML = QUALITY[gfx.quality].hint + (gfx.quality === Q_REC ? "<br>✅ 這是這台裝置的推薦設定。" : hi ? '<br><span class="qwarn-t">⚠️ 高於這台裝置的推薦設定，如果出現卡頓、發熱或畫面突然關閉，請改回「' + Q_NAME[Q_REC] + "」。</span>" : "");
+    var w = document.getElementById("g-qwarn"); if (w) w.hidden = true;
+  }
+  // 選比推薦高的畫質：先顯示提醒，按「仍要使用」才套用
+  function applyQuality(q) { gfx.quality = q; gfx.qUser = 1; syncGfxUI(); saveGfx(); resize(); }
+  function askQuality(q) {
+    var w = document.getElementById("g-qwarn");
+    if (!w) { w = document.createElement("div"); w.id = "g-qwarn"; w.className = "qwarn"; document.getElementById("g-qhint").insertAdjacentElement("afterend", w); }
+    w.innerHTML = "<b>💡 溫馨提醒</b><p>「" + Q_NAME[q] + "」畫質會使用比較多的記憶體和電力。這台裝置建議使用「" + Q_NAME[Q_REC] + "」；改用「" + Q_NAME[q] + "」可能會讓裝置發熱、耗電變快，記憶體不夠時畫面也可能突然關閉（進度會保留）。</p>" +
+      '<div class="qwarn-b"><button type="button" data-qw="ok">仍要使用「' + Q_NAME[q] + '」</button><button type="button" data-qw="no" class="pri">維持推薦「' + Q_NAME[Q_REC] + "」</button></div>";
+    w.hidden = false;
+    w.querySelector('[data-qw="ok"]').onclick = function () { applyQuality(q); toast("已改成「" + Q_NAME[q] + "」畫質。如果覺得卡頓或發熱，隨時可以改回推薦設定。"); };
+    w.querySelector('[data-qw="no"]').onclick = function () { w.hidden = true; };
   }
   Object.keys(GFX_INPUTS).forEach(function (k) {
     document.getElementById(GFX_INPUTS[k]).addEventListener("input", function (e) { gfx[k] = +e.target.value; e.target.nextElementSibling.textContent = gfx[k]; saveGfx(); });
   });
   document.querySelectorAll("#g-quality button").forEach(function (b) {
-    b.addEventListener("click", function () { gfx.quality = b.dataset.q; syncGfxUI(); saveGfx(); resize(); });
+    b.addEventListener("click", function () {
+      var q = b.dataset.q; if (q === gfx.quality) return;
+      if (qRank(q) > qRank(Q_REC)) askQuality(q); else applyQuality(q);
+    });
   });
   document.getElementById("g-reset").addEventListener("click", function () { gfx = Object.assign({}, GFX_DEFAULT); syncGfxUI(); saveGfx(); resize(); if (window.MFFloat) MFFloat.reset(); });   // 也把沉浸模式、全螢幕按鈕放回預設位置
   syncGfxUI();
+  // 上次使用中畫面突然關閉、而且現在的畫質高於推薦：開站後提醒一次
+  setTimeout(function () {
+    if (qRank(gfx.quality) > qRank(Q_REC) && window.MFDiag && MFDiag.crashedLastTime && MFDiag.crashedLastTime())
+      toast("上次畫面好像突然關閉了。目前是「" + Q_NAME[gfx.quality] + "」畫質，建議到「設定 → 畫面」改回推薦的「" + Q_NAME[Q_REC] + "」。");
+  }, 4000);
 
   var W = 1, H = 1;
   function resize() {
