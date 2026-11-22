@@ -131,7 +131,7 @@
   // ---- 介面（設定 → 遊戲登出/登入 裡的 #cloud-box）----
   var css = document.createElement("style");
   css.textContent = ".cl-box{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:12px 14px;margin:10px 0}" +
-    ".cl-box h5{margin:0 0 6px;font-size:15px}.cl-box p{margin:4px 0;font-size:13px;opacity:.85}.cl-box input{width:100%;box-sizing:border-box;margin:4px 0;padding:9px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.25);color:inherit;font-size:14px}" +
+    ".cl-box h5{margin:0 0 6px;font-size:15px}.cl-box p{margin:4px 0;font-size:13px;opacity:.85}#cloud-box .cl-box input{width:100%;height:auto;accent-color:auto;box-sizing:border-box;margin:4px 0;padding:9px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.25);color:inherit;font-size:14px}" +
     ".cl-row{display:flex;gap:8px;margin-top:6px}.cl-row button{flex:1;padding:9px;border-radius:10px;border:0;font-weight:700;cursor:pointer;background:#f3c969;color:#3a2a10}.cl-row button.sec{background:rgba(255,255,255,.18);color:inherit}" +
     ".cl-err{color:#ffb4a8}.cl-ok{color:#bfe8a8}.adm-code{display:block;font-size:11px;color:#f3c969;margin-top:2px}.adm-code b{letter-spacing:1px}";
   document.head.appendChild(css);
