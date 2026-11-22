@@ -72,3 +72,13 @@
 .wd-nav.off .wd-ang span button{opacity:.4;cursor:not-allowed}
 .wd-nav.off .wd-ang b{color:#ffd36b}
 @media (prefers-reduced-motion:reduce){.wd-slot.pick .wd-sbox{animation:none}}
+/* 整套造型：展開／收起 */
+.wd-fold{display:flex;align-items:center;gap:8px;width:100%;margin-top:12px;padding:11px 12px;border:1px solid rgba(255,211,107,.35);border-radius:14px;background:rgba(255,211,107,.08);color:#ffd36b;font:inherit;cursor:pointer;text-align:left}
+.wd-fold b{font-size:14px;font-weight:800}
+.wd-fold small{flex:1;color:#b8c4e6;font-size:11.5px;font-weight:500}
+.wd-fold span{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;white-space:nowrap}
+.wd-fold i{width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform .2s}
+.wd-fold.open i{transform:translateY(2px) rotate(-135deg)}
+.wd-fold.open{border-radius:14px 14px 4px 4px}
+.wd-fold:focus-visible{outline:2px solid #ffd36b;outline-offset:2px}
+#wd-list{margin-top:4px}
