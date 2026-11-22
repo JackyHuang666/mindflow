@@ -29,7 +29,7 @@
   .hud-el button{pointer-events:auto;-webkit-tap-highlight-color:transparent;-webkit-appearance:none;appearance:none;background:transparent;border:0;margin:0;padding:0;outline:none}
   /* iPad／iPhone 的 Safari：按鈕內的圖層一律以區塊顯示，並把按鈕本身設為透明、不裁切 */
   #h-actions button>span,#h-nav button>span{display:block}
-  #h-actions button{background:transparent !important;overflow:visible;isolation:isolate;-webkit-mask-image:none}
+  #h-actions button{background:transparent !important;overflow:visible}
   .hud-el img{display:block;pointer-events:none;-webkit-user-drag:none}
   .abs{position:absolute}
   .gloss::before{content:"";position:absolute;left:6%;right:6%;top:3px;height:42%;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.26),rgba(255,255,255,0));pointer-events:none}
@@ -116,14 +116,16 @@
   /* 底部功能鈕 */
   #h-actions .stage{left:6px;top:22px;width:936px;height:102px;border-radius:50%;box-sizing:border-box;
     background:radial-gradient(ellipse at 50% 55%,rgba(255,214,120,.16),rgba(80,52,16,.32) 72%);
-    box-shadow:0 0 0 3px rgba(255,212,120,.85),0 0 0 5px rgba(110,70,14,.5),0 0 30px rgba(255,190,90,.75),inset 0 0 34px rgba(255,190,90,.5);animation:stageGlow 4s ease-in-out infinite}
+    border:3px solid rgba(255,212,120,.85);box-shadow:inset 0 0 0 2px rgba(110,70,14,.45),inset 0 0 34px rgba(255,190,90,.55);animation:stageGlow 4s ease-in-out infinite}
   #h-actions button{position:absolute;top:0;width:132px;height:120px;transition:transform .22s cubic-bezier(.3,1.6,.5,1),filter .2s}
   @media (hover:hover){#h-actions button:hover{transform:translateY(-6px)}}
   @media (hover:none){#h-nav button:hover,#h-actions button:hover{transform:none}}
-  #h-actions .dome{left:4px;right:4px;top:0;height:106px;border-radius:62px 62px 30px 30px;
+  #h-actions .dome{left:7px;right:7px;top:6px;height:100px;border-radius:59px 59px 27px 27px;box-sizing:border-box;border:3px solid #f2c75e;
     background:radial-gradient(circle at 50% 28%,rgba(96,82,66,.96),rgba(40,32,24,.97) 62%,rgba(20,16,12,.98));
-    box-shadow:0 0 0 3px #f2c75e,0 0 0 5px rgba(104,66,12,.9),0 0 0 6.5px rgba(255,226,150,.55),0 0 22px rgba(255,196,90,.6),inset 0 3px 10px rgba(255,236,190,.28),inset 0 -14px 22px rgba(0,0,0,.5);transition:box-shadow .2s}
-  #h-actions button:hover .dome{box-shadow:0 0 0 3px #ffd877,0 0 0 5px rgba(104,66,12,.9),0 0 0 6.5px rgba(255,236,170,.8),0 0 34px rgba(255,206,110,.95),inset 0 3px 10px rgba(255,236,190,.35),inset 0 -14px 22px rgba(0,0,0,.45)}
+    box-shadow:inset 0 0 0 1px rgba(104,66,12,.6),inset 0 3px 10px rgba(255,236,190,.28),inset 0 -14px 22px rgba(0,0,0,.5);transition:border-color .2s}
+  #h-actions .dome::after{content:"";position:absolute;left:-6px;right:-6px;top:-6px;bottom:-6px;border-radius:65px 65px 33px 33px;border:2px solid rgba(104,66,12,.85);box-shadow:inset 0 0 0 1.5px rgba(255,226,150,.5);pointer-events:none}
+  #h-actions button:hover .dome{border-color:#ffd877}
+  /* iPad／iPhone 的 Safari 會把超出按鈕範圍的外光暈裁成方塊，所以底部功能鈕的金框與光暈都畫在按鈕範圍內 */
   #h-actions .ico{position:absolute;left:31px;top:5px;width:70px;height:70px;filter:drop-shadow(0 0 8px rgba(255,210,110,.65)) drop-shadow(0 2px 1px rgba(60,30,0,.6));animation:bob 3.4s ease-in-out infinite}
   #h-actions button:nth-of-type(2) .ico{animation-delay:-.7s} #h-actions button:nth-of-type(3) .ico{animation-delay:-1.4s}
   #h-actions button:nth-of-type(4) .ico{animation-delay:-2.1s} #h-actions button:nth-of-type(5) .ico{animation-delay:-2.8s}
