@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>身心智慧學院</title><!-- 加入主畫面：名稱、圖示、獨立 App 視窗（PWA / iOS） --><link rel="manifest" href="manifest.webmanifest?v=2"><meta name="application-name" content="身心智慧學院"><meta name="theme-color" content="#0e1838"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="身心智慧學院"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"><link rel="apple-touch-icon" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png?v=2"><link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png?v=2"><link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120.png?v=2"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"><link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"><link rel="icon" href="favicon.ico?v=2" sizes="any"><meta name="app-version" content="20261123-013836"><script src="update.js?v=1"></script></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>身心智慧學院</title><!-- 加入主畫面：名稱、圖示、獨立 App 視窗（PWA / iOS） --><link rel="manifest" href="manifest.webmanifest?v=2"><meta name="application-name" content="身心智慧學院"><meta name="theme-color" content="#0e1838"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="身心智慧學院"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"><link rel="apple-touch-icon" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png?v=2"><link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png?v=2"><link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120.png?v=2"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"><link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"><link rel="icon" href="favicon.ico?v=2" sizes="any"><meta name="app-version" content="20261123-014430"><script src="update.js?v=1"></script></head><body>
 <title>身心智慧學院</title>
 <script src="diag.js?v=2"></script>
 <meta name="description" content="電影質感的身心智慧學院主畫面：光束、柔光暈、飛鳥與櫻花、雲海外圍、明亮的夜晚村莊。">
@@ -384,7 +384,10 @@
   .ttl-list div{display:flex;gap:8px;align-items:center;padding:6px 10px;border-radius:10px;background:rgba(4,10,32,.35);font-size:13px;color:#9fb0d8}
   .ttl-list b{flex:none;min-width:62px;font:600 12px var(--fun)}
   .ttl-list .done{color:#dbe7ff}
-  .ttl-cert{margin-left:auto;font-style:normal;font-size:10px;padding:1px 6px;border-radius:999px;border:1px solid rgba(255,211,107,.6);color:#ffd36b}
+  .ttl-fold{margin:0 0 10px}#ttl-body[hidden]{display:none}
+  .ttl-list span{min-width:0}
+  @media (max-width:560px){.ttl-list div{position:relative;flex-direction:column;align-items:flex-start;gap:2px;padding:7px 10px}.ttl-list b{min-width:0}.ttl-list .ttl-cert{position:absolute;top:6px;right:8px}}
+  .ttl-cert{flex:none;white-space:nowrap;margin-left:auto;font-style:normal;font-size:10px;padding:1px 6px;border-radius:999px;border:1px solid rgba(255,211,107,.6);color:#ffd36b}
   .ttl-list .on .ttl-cert{color:#3a2300;border-color:#3a2300}
   .cert-st{margin:0 0 6px;font:400 15px/1.4 var(--round)}
   .cert-st.pend{color:#ffe7a6}.cert-st.rej{color:#ffb08a}
@@ -3520,10 +3523,14 @@
     var nextXP = RW.checkXP + Math.min(RW.checkStreakMax, (checked ? p.checkin.streak : (p.checkin.last === daysAgo(1) ? p.checkin.streak : 0)) * RW.checkStreakXP);
     h += '<div class="pd-card"><h3>每日簽到<small>連續簽到，經驗值加成最多 +' + RW.checkStreakMax + "</small></h3>" +
       '<button class="pd-btn gold wide" data-pa="checkin"' + (checked ? " disabled" : "") + ">" + (checked ? "今天已簽到 ✓" : "簽到領取 +" + nextXP + " XP、+" + RW.checkCoin + " 🪙") + "</button>" + '<div class="pd-days">' + days + "</div></div>";
-    h += '<div class="pd-card"><h3>等級與稱謂<small>最高 Lv.' + MAX_LV + "</small></h3><div class=\"ttl-list\">" + TITLES.map(function (x, i) {
+    // 等級與稱謂可以展開／收起（預設收起；狀態存在這台裝置）
+    var ttlOpen = (function () { try { return localStorage.getItem("swt-ttl-open") === "1"; } catch (e) { return false; } })();
+    h += '<div class="pd-card"><h3>等級與稱謂<small>最高 Lv.' + MAX_LV + "</small></h3>" +
+      '<button type="button" class="wd-fold ttl-fold' + (ttlOpen ? " open" : "") + '" data-ttl-fold="1" aria-expanded="' + ttlOpen + '" aria-controls="ttl-body"><b>目前稱謂</b><small>Lv.' + p.level + "・" + esc(titleOf(p.level)) + "</small><span>" + (ttlOpen ? "收起" : "展開") + '<i aria-hidden="true"></i></span></button>' +
+      '<div id="ttl-body"' + (ttlOpen ? "" : " hidden") + '><div class="ttl-list">' + TITLES.map(function (x, i) {
       var to = i + 1 < TITLES.length ? TITLES[i + 1][0] - 1 : MAX_LV, rng = "Lv." + x[0] + (to > x[0] ? "–" + to : ""), on = p.level >= x[0] && p.level <= to;
       return '<div class="' + (on ? "on" : p.level > to ? "done" : "") + '"><b>' + rng + "</b><span>" + x[1] + "</span>" + (x[0] >= CERT_FROM ? '<i class="ttl-cert" title="需最高管理者認證">認證</i>' : "") + "</div>"; }).join("") + "</div>" +
-      '<p class="pd-muted">標示「認證」的導師稱謂（Lv.' + CERT_FROM + "–" + MAX_LV + "），需通過最高管理者認證才能升級。</p></div>";
+      '<p class="pd-muted">標示「認證」的導師稱謂（Lv.' + CERT_FROM + "–" + MAX_LV + "），需通過最高管理者認證才能升級。</p></div></div>";
     h += '<div class="pd-card"><h3>獎勵規則</h3><p class="pd-muted">體驗一關（每關每天第一次）+' + RW.launchXP + " XP、+" + RW.launchCoin + " 🪙<br>遊戲回傳成績：完成 +" + RW.completeXP + "、表現最多 +" + RW.perfXP + " XP；★／★★／★★★ +" + RW.starCoin.slice(1).join("／") + " 🪙<br>首次通關 +" + RW.firstXP + " XP、+" + RW.firstCoin + " 🪙；突破個人最佳 +" + RW.pbXP + " XP、+" + RW.pbCoin + " 🪙<br>同一關一天：第 2 次 50%、第 3 次 20%；遊戲經驗值每天上限 " + RW.dailyGameXP + "</p></div>";
     return h;
   }
@@ -3701,6 +3708,13 @@
       '<p class="pd-muted">夥伴可以互相看到成長並加油打氣。接上雲端後，會顯示真實的同學與夥伴邀請。</p>';
   }
   pdEl.addEventListener("click", function (e) {
+    var tf = e.target.closest("[data-ttl-fold]");
+    if (tf) {
+      var bd = document.getElementById("ttl-body"), op = bd.hidden;
+      bd.hidden = !op; tf.classList.toggle("open", op); tf.setAttribute("aria-expanded", op); tf.querySelector("span").firstChild.nodeValue = op ? "收起" : "展開";
+      try { localStorage.setItem("swt-ttl-open", op ? "1" : "0"); } catch (er) {}
+      return;
+    }
     var t = e.target.closest("button,[data-pa]"); if (!t) return;
     var p = curP();
     if (t.id === "pd-close") return closeDrawer();
