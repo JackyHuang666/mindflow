@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>身心智慧學院</title><!-- 加入主畫面：名稱、圖示、獨立 App 視窗（PWA / iOS） --><link rel="manifest" href="manifest.webmanifest?v=2"><meta name="application-name" content="身心智慧學院"><meta name="theme-color" content="#0e1838"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="身心智慧學院"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"><link rel="apple-touch-icon" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png?v=2"><link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png?v=2"><link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120.png?v=2"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"><link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"><link rel="icon" href="favicon.ico?v=2" sizes="any"><meta name="app-version" content="20261122-222035"><script src="update.js?v=1"></script></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>身心智慧學院</title><!-- 加入主畫面：名稱、圖示、獨立 App 視窗（PWA / iOS） --><link rel="manifest" href="manifest.webmanifest?v=2"><meta name="application-name" content="身心智慧學院"><meta name="theme-color" content="#0e1838"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="身心智慧學院"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"><link rel="apple-touch-icon" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png?v=2"><link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png?v=2"><link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120.png?v=2"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"><link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"><link rel="icon" href="favicon.ico?v=2" sizes="any"><meta name="app-version" content="20261123-005719"><script src="update.js?v=1"></script></head><body>
 <title>身心智慧學院</title>
 <script src="diag.js?v=2"></script>
 <meta name="description" content="電影質感的身心智慧學院主畫面：光束、柔光暈、飛鳥與櫻花、雲海外圍、明亮的夜晚村莊。">
@@ -2860,7 +2860,7 @@
   }
   function renderActBadges() {
     var p = curP();
-    Object.keys(ACT_CAT).forEach(function (c) { setBadge("act-" + c, actPending(p, c).length, ACT_CAT[c]); });
+    Object.keys(ACT_CAT).forEach(function (c) { if (c !== "course") setBadge("act-" + c, actPending(p, c).length, ACT_CAT[c]); });   // 課程學習改連外部課程網站，不顯示活動數字
     setBadge("act-growth", msNew(p), "成長紀錄");
   }
   var acEl = document.createElement("section"); acEl.id = "act-pop"; acEl.className = "gf-pop"; acEl.hidden = true; acEl.setAttribute("role", "dialog"); acEl.setAttribute("aria-modal", "true");
@@ -2902,7 +2902,12 @@
     if (t.dataset.acmed) { closeAct(); openGrowth("mind"); return; }
   });
   window.addEventListener("keydown", function (e) { if (e.key === "Escape" && !acEl.hidden) { e.stopImmediatePropagation(); closeAct(); } }, true);
-  Object.keys(ACT_CAT).forEach(function (c) { document.getElementById("act-" + c).addEventListener("click", function (e) { e.stopPropagation(); openAct(c); }); });
+  // 課程學習：開新分頁進入課程網站（遊戲畫面和進度留在原分頁）；其他三顆照舊打開活動清單
+  var COURSE_URL = "https://www.sw-ii.com";
+  Object.keys(ACT_CAT).forEach(function (c) { document.getElementById("act-" + c).addEventListener("click", function (e) {
+    e.stopPropagation();
+    if (c === "course") { var w = window.open(COURSE_URL, "_blank"); if (w) { try { w.opener = null; } catch (x) {} } else location.href = COURSE_URL; return; }   // 被擋彈出視窗時直接前往
+    openAct(c); }); });
   setTimeout(renderActBadges, 0); setInterval(renderActBadges, 60000);
 
   // ---- 遊戲授權中心「活動管理」（只有最高管理者）----
@@ -2910,7 +2915,7 @@
     var games = DB.games.filter(function (g) { return g.url; }).sort(function (a, b) { return a.num - b.num; });
     var h = '<div class="cert-head"><h3>🎉 活動管理</h3><p class="muted small">在「遊戲挑戰、課程學習、冥想練習、團隊活動」推出活動。活動期間內，對應按鈕右上角會顯示紅色數字；玩家完成條件後在活動清單領取獎勵。活動跟著雲端同步給所有玩家（需要用最高管理者帳號登入雲端）。</p></div>';
     h += '<div class="rw-sec"><h4>推出新活動</h4><div class="rw-grid">' +
-      '<label>放在哪個按鈕<select id="aca-cat" class="rw-in" style="width:100%;text-align:left">' + Object.keys(ACT_CAT).map(function (c) { return '<option value="' + c + '">' + ACT_ICO[c] + " " + ACT_CAT[c] + "</option>"; }).join("") + "</select></label>" +
+      '<label>放在哪個按鈕<select id="aca-cat" class="rw-in" style="width:100%;text-align:left">' + Object.keys(ACT_CAT).filter(function (c) { return c !== "course"; }).map(function (c) { return '<option value="' + c + '">' + ACT_ICO[c] + " " + ACT_CAT[c] + "</option>"; }).join("") + "</select></label>" +
       '<label style="grid-column:span 2">活動名稱<input type="text" id="aca-title" maxlength="24" placeholder="例如：迷宮週末挑戰"></label>' +
       '<label style="grid-column:1/-1">活動說明（可空白）<input type="text" id="aca-msg" maxlength="80" placeholder="例如：這個週末完成 3 場迷宮尋寶，送你能量和智慧幣！"></label>' +
       '<label>開始日期<input type="date" id="aca-start" value="' + todayStr() + '"></label><label>結束日期（可空白＝不限）<input type="date" id="aca-end"></label>' +
