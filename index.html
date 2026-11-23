@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>身心智慧學院</title><!-- 加入主畫面：名稱、圖示、獨立 App 視窗（PWA / iOS） --><link rel="manifest" href="manifest.webmanifest?v=2"><meta name="application-name" content="身心智慧學院"><meta name="theme-color" content="#0e1838"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="身心智慧學院"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"><link rel="apple-touch-icon" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png?v=2"><link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png?v=2"><link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120.png?v=2"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"><link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"><link rel="icon" href="favicon.ico?v=2" sizes="any"><meta name="app-version" content="20261123-021244"><script src="update.js?v=1"></script></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>身心智慧學院</title><!-- 加入主畫面：名稱、圖示、獨立 App 視窗（PWA / iOS） --><link rel="manifest" href="manifest.webmanifest?v=2"><meta name="application-name" content="身心智慧學院"><meta name="theme-color" content="#0e1838"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="身心智慧學院"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"><link rel="apple-touch-icon" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png?v=2"><link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png?v=2"><link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120.png?v=2"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"><link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"><link rel="icon" href="favicon.ico?v=2" sizes="any"><meta name="app-version" content="20261123-021659"><script src="update.js?v=1"></script></head><body>
 <title>身心智慧學院</title>
 <script src="diag.js?v=2"></script>
 <meta name="description" content="電影質感的身心智慧學院主畫面：光束、柔光暈、飛鳥與櫻花、雲海外圍、明亮的夜晚村莊。">
@@ -546,6 +546,7 @@
   .lv-pet{width:150px;margin:0 auto 6px}
   .sh-mode{display:flex;gap:4px;background:rgba(4,10,32,.5);padding:4px;border-radius:999px;border:1px solid rgba(255,214,120,.35)}
   .sh-mode button{font:400 14px var(--round);color:#dbe7ff;padding:7px 14px;border-radius:999px;border:0;background:transparent;cursor:pointer;-webkit-appearance:none;appearance:none;white-space:nowrap}
+  .sh-mode button.shm-lock{color:rgba(219,231,255,.5)}
   .sh-mode button[aria-selected="true"]{background:linear-gradient(180deg,#ffe08a,#f2b33d);color:#3a2300}
   @media (max-width:520px){.sh-top h2{display:none}.sh-top{gap:8px}.sh-mode button{padding:7px 9px;font-size:13px}.sh-coin{padding:6px 10px;font-size:14px}.sh-x{flex:none;width:36px;height:36px}}
   @media (max-width:400px){.sh-top{flex-wrap:wrap}.sh-mode{order:3;flex-basis:100%;justify-content:space-between}}
@@ -3952,11 +3953,20 @@
     if (r.done) shSparkle(); renderWd(true); renderPlayerHud(false);
   }
   var FIG_DEF = "compass";
-  function openShop(mode, keep) { shMode = mode === "food" || mode === "plant" || mode === "fashion" ? mode : "fig"; var p = curP(); if (p.fig && (!FIGS.figs[p.fig] || !figOwned(p)[p.fig])) p.fig = null; if (!p.fig) p.fig = FIG_DEF;   // 我的造型預設是指南針旅人
+  function openShop(mode, keep) { if (mode && mode !== "food" && shmGate(mode === "plant" || mode === "fashion" ? mode : "fig")) mode = "food"; shMode = mode === "food" || mode === "plant" || mode === "fashion" ? mode : "fig"; var p = curP(); if (p.fig && (!FIGS.figs[p.fig] || !figOwned(p)[p.fig])) p.fig = null; if (!p.fig) p.fig = FIG_DEF;   // 我的造型預設是指南針旅人
     if (!keep || !FIGS.figs[shCur]) shCur = p.fig;   // 每次打開商店，套裝公仔的大圖都先顯示「我的造型」
     shSeries = figSeries(shCur).id; shopEl.hidden = false; document.body.classList.add("shop-open"); renderShop(false); }
   function closeShop() { shopEl.hidden = true; document.body.classList.remove("shop-open"); renderPlayerHud(false); }
+  // 商店分頁解鎖等級：寵物食物一開始就有；套裝公仔、植物圖鑑 Lv.11；時裝 Lv.21（最高管理者測試模式不受限）
+  var SHM_LV = { fig: 11, plant: 11, fashion: 21 }, SHM_NAME = { food: "寵物食物", fig: "套裝公仔", plant: "植物圖鑑", fashion: "時裝" };
+  function shmLockLv(m) { var lv = SHM_LV[m]; return lv && !testMode() && (curP().level || 1) < lv ? lv : 0; }
+  function shmGate(m) { var lv = shmLockLv(m); if (lv) toast("🔒「" + SHM_NAME[m] + "」在 Lv." + lv + " 解鎖（目前 Lv." + (curP().level || 1) + "）。玩遊戲、完成任務就能升級！"); return !!lv; }
   function renderShop(anim) {
+    if (shmLockLv(shMode)) shMode = "food";   // 從其他入口指定到還沒解鎖的分頁時，改開寵物食物
+    document.querySelectorAll("#sh-mode button").forEach(function (b) {
+      var lv = shmLockLv(b.dataset.shm); b.classList.toggle("shm-lock", !!lv);
+      b.textContent = (lv ? "🔒" : "") + SHM_NAME[b.dataset.shm]; b.setAttribute("aria-label", SHM_NAME[b.dataset.shm] + (lv ? "（Lv." + lv + " 解鎖）" : ""));
+    });
     document.querySelectorAll("#sh-mode button").forEach(function (b) { b.setAttribute("aria-selected", b.dataset.shm === shMode); });
     // 時裝分頁一定顯示：「整套造型」（我的穿搭的套裝）一直販售；最高管理者上架的時裝系列另外受「開放時裝兌換」控制
     var swOn = shMode === "fashion" && (shWdOn || !fashionTab(curP()) || !window.MFWardrobe);
@@ -4248,7 +4258,7 @@
     if (t.dataset.swall) { mazeProg(p); return swBuy(p, MFWardrobe.shop.parts(p, swCur).map(function (x) { return x.id; })); }
     if (t.dataset.swwear) { if (MFWardrobe.shop.wear(p, swCur)) { toast("已換上「" + MFWardrobe.shop.list().filter(function (x) { return x.id === swCur; })[0].zh + "」"); renderWd(true); } return; }
     if (t.dataset.swgo) { closeShop(); openDrawer("me"); return; }
-    if (t.dataset.shm) { shMode = t.dataset.shm; return renderShop(false); }
+    if (t.dataset.shm) { if (shmGate(t.dataset.shm)) return; shMode = t.dataset.shm; return renderShop(false); }
     if (t.dataset.shg) { closeShop(); openDrawer("pet"); return; }
     if (t.dataset.food) {
       var fd = foodById(t.dataset.food), q = +t.dataset.q, cost = testMode() ? 0 : fd.price * q; petInit(p);
