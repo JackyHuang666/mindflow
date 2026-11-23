@@ -17,7 +17,7 @@
  */
 (function (global) {
   "use strict";
-  var VER = "10";
+  var VER = "11";
   var BASE = (function () { var s = document.currentScript && document.currentScript.src; return s ? s.replace(/[^/]*$/, "") : "wardrobe/"; })();
 
   // 套裝：id、名稱、分類、價格（智慧星星）、g：MF＝分男女版、U＝男女共用；d：男／女的［斜側、側面］臉朝右＝1、朝左＝-1
@@ -60,7 +60,7 @@
   ];
   var ANG = [["正面", 0], ["右前方", 60], ["右側", 120], ["背面", 180], ["左側", 240], ["左前方", 300]];
 
-  var H = { getP: null, save: function () {}, testMode: function () { return false; }, toast: function (m) { try { alert(m); } catch (e) {} }, log: function () {}, onChange: function () {} };
+  var H = { openShop: null, getP: null, save: function () {}, testMode: function () { return false; }, toast: function (m) { try { alert(m); } catch (e) {} }, log: function () {}, onChange: function () {} };
   var S = { open: (function () { try { return localStorage.getItem("swt-wd-open") === "1"; } catch (e) { return false; } })(), frame: 0, auto: true, tab: "set", sub: 0, cat: "全部", try: null, msg: "", timer: 0, last: 0, root: null };
 
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
@@ -163,6 +163,7 @@
         if (S.cat !== "全部" && x.cat !== S.cat) return;
         var b = x.g === "U" ? ["男女共用", "u"] : g === "m" ? ["男生版", "m"] : ["女生版", "f"], on = x.id === cid;
         var pr = progress(p, x.id, g), ow = owns(p, x.id, g);
+        if (!ow && !pr[0]) return;   // 只陳列已擁有或已購買部位的套裝；還沒買的到商店「時裝」選購
         var tag = on ? (ow ? "穿戴中" : "試穿中") : ow ? "已擁有" : pr[0] ? "已購 " + pr[0] + "/" + pr[1] + " 部位" : "⭐ " + x.price;
         cards.push('<button type="button" class="wd-it' + (on ? " on" : "") + '" data-wd="wear" data-v="' + x.id + '"><span class="wd-b ' + b[1] + '">' + b[0] + "</span>" + thumb(x.id, g, "whole", 76, x.zh) + "<b>" + esc(x.zh) + "</b><small>" + tag + "</small></button>");
       });
@@ -178,8 +179,9 @@
       });
     }
     h += '<div id="wd-list"' + (S.open ? "" : " hidden") + '><div class="wd-chips">' + chips + "</div>" +
-      '<p class="wd-note">' + (g === "m" ? "只顯示男生可以穿的時裝（含男女共用）" : "只顯示女生可以穿的時裝（含男女共用）") + "。點一下就會換上或試穿整套造型。</p>" +
-      (cards.length ? '<div class="wd-grid">' + cards.join("") + "</div>" : '<div class="wd-empty">🔒 敬請期待，之後會在商店上架</div>') + "</div>" +
+      '<p class="wd-note">' + "只顯示你已經擁有或已購買部位的" + (g === "m" ? "男生" : "女生") + "時裝（含男女共用）。點一下就會換上；還沒買齊的可以在這裡補買部位。</p>" +
+      (cards.length ? '<div class="wd-grid">' + cards.join("") + "</div>" : '<div class="wd-empty">' + (S.cat === "全部" ? "還沒有購買時裝" : "這個分類還沒有購買的時裝") + "</div>") +
+      '<button type="button" class="wd-shop" data-wd="shop">🛍️ 到商店「時裝」選購更多造型 →</button></div>' +
       (S.msg ? '<p class="wd-msg" role="status">' + esc(S.msg) + "</p>" : "");
     el.innerHTML = h;
     if (S.dirty) { S.dirty = false; H.save(); }
@@ -292,6 +294,7 @@
     if (a === "auto") { S.auto = !S.auto; S.last = 0; }
     else if (a === "g") { wd(p).g = v === "f" ? "f" : "m"; H.save(); S.msg = ""; }
     else if (a === "slot") { return; }
+    else if (a === "shop") { if (H.openShop) H.openShop(); return; }
     else if (a === "fold") { S.open = !S.open; try { localStorage.setItem("swt-wd-open", S.open ? "1" : "0"); } catch (er) {} }   // 已擁有或已購買的裝備格只是顯示，不切換分頁
     else if (a === "sub") S.sub = +v;
     else if (a === "cat") S.cat = v;
