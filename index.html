@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>身心智慧學院</title><!-- 加入主畫面：名稱、圖示、獨立 App 視窗（PWA / iOS） --><link rel="manifest" href="manifest.webmanifest?v=2"><meta name="application-name" content="身心智慧學院"><meta name="theme-color" content="#0e1838"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="身心智慧學院"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"><link rel="apple-touch-icon" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png?v=2"><link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png?v=2"><link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120.png?v=2"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"><link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"><link rel="icon" href="favicon.ico?v=2" sizes="any"><meta name="app-version" content="20261123-005719"><script src="update.js?v=1"></script></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>身心智慧學院</title><!-- 加入主畫面：名稱、圖示、獨立 App 視窗（PWA / iOS） --><link rel="manifest" href="manifest.webmanifest?v=2"><meta name="application-name" content="身心智慧學院"><meta name="theme-color" content="#0e1838"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="身心智慧學院"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"><link rel="apple-touch-icon" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png?v=2"><link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png?v=2"><link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120.png?v=2"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"><link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"><link rel="icon" href="favicon.ico?v=2" sizes="any"><meta name="app-version" content="20261123-010602"><script src="update.js?v=1"></script></head><body>
 <title>身心智慧學院</title>
 <script src="diag.js?v=2"></script>
 <meta name="description" content="電影質感的身心智慧學院主畫面：光束、柔光暈、飛鳥與櫻花、雲海外圍、明亮的夜晚村莊。">
@@ -742,6 +742,24 @@
   .sh-new{position:absolute;right:8px;top:32px;font:700 10px var(--fun);color:#fff;background:linear-gradient(90deg,#ff9fb0,#ffcf5a,#8fd3ff,#ff9fb0);background-size:200% 100%;animation:shShine 2.4s linear infinite;padding:2px 7px;border-radius:999px}
   @keyframes shShine{to{background-position:-200% 0}}
   @media (prefers-reduced-motion:reduce){.sh-fig.idle,.sh-new,.sh-spark{animation:none}}
+  /* ---- 商店：時裝・整套造型（我的穿搭的套裝，分部位用智慧星星購買）---- */
+  .sh-stage.sw-stage{background:radial-gradient(ellipse 50% 12% at 50% 93%,rgba(70,50,110,.22),transparent 70%),radial-gradient(ellipse at 50% 35%,#fbf8ff,#e4dcf2 80%)}
+  .sw-fig{position:absolute;left:4%;right:4%;top:9%;bottom:3%}
+  .sw-box{position:relative;height:100%;aspect-ratio:410/575;max-width:100%;margin:0 auto;filter:drop-shadow(0 10px 12px rgba(60,40,90,.25))}
+  .sw-g{display:flex;gap:6px;justify-content:center;margin-top:10px}
+  .sw-g button{font:400 14px var(--round);color:#dbe7ff;padding:7px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06);cursor:pointer;-webkit-appearance:none;appearance:none}
+  .sw-g button[aria-pressed="true"]{background:linear-gradient(180deg,#ffe08a,#f2b33d);color:#3a2300;border-color:#ffe7a6}
+  .sw-parts{margin-top:10px;display:grid;gap:6px}
+  .sw-part{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;background:rgba(4,10,32,.35)}
+  .sw-part>div{flex:1;min-width:0}.sw-part b{display:block;font:400 14px var(--round);color:#ffd36b}
+  .sw-part small{display:block;font-size:12px;line-height:1.5;color:#c8d4f2}
+  .sw-part .sh-btn{flex:none;padding:6px 12px;font-size:13px}
+  .sw-part .sw-ok{flex:none;font-size:13px;color:#7fe0a0}
+  .sw-cats{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+  .sw-cats button{font:400 13px var(--round);color:#dbe7ff;padding:6px 11px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:transparent;cursor:pointer;-webkit-appearance:none;appearance:none}
+  .sw-cats button[aria-pressed="true"]{background:rgba(255,214,120,.22);border-color:#ffd36b;color:#ffe7a6}
+  .sw-main .sh-box .win{background:radial-gradient(ellipse at 50% 40%,#fbf8ff,#e6def3)}
+  .sw-main .sh-box .win .wd-th{margin-bottom:5px}
   .sh-tabs button .sh-tnew{font:700 9px var(--fun);font-style:normal;color:#fff;background:#e5484d;border-radius:999px;padding:2px 5px;margin-left:5px;vertical-align:2px}
   .sx-spec ol{margin:6px 0 6px 20px;padding:0;display:grid;gap:5px;font-size:14px;line-height:1.5}
   .sx-tog{display:flex;gap:8px;align-items:center;font-size:15px}
@@ -1155,7 +1173,7 @@
 </aside>
 <div id="lvup" hidden role="alert"></div>
 <section id="shop" hidden aria-label="商店">
-  <div class="sh-top"><h2>商店</h2><div class="sh-mode" id="sh-mode" role="tablist"><button data-shm="fig" aria-selected="true">套裝公仔</button><button data-shm="plant" aria-selected="false">植物圖鑑</button><button data-shm="food" aria-selected="false">寵物食物</button><button data-shm="fashion" aria-selected="false" id="sh-m-fashion" hidden>時裝</button></div><span class="sh-coin">🪙 <b id="sh-coins">0</b></span><span class="sh-coin sh-star" title="智慧星星：迷宮尋寶等遊戲依表現取得，未來可以兌換商品">⭐ <b id="sh-stars">0</b></span><button class="sh-x" id="sh-close" aria-label="關閉商店">×</button></div>
+  <div class="sh-top"><h2>商店</h2><div class="sh-mode" id="sh-mode" role="tablist"><button data-shm="fig" aria-selected="true">套裝公仔</button><button data-shm="plant" aria-selected="false">植物圖鑑</button><button data-shm="food" aria-selected="false">寵物食物</button><button data-shm="fashion" aria-selected="false" id="sh-m-fashion">時裝</button></div><span class="sh-coin">🪙 <b id="sh-coins">0</b></span><span class="sh-coin sh-star" title="智慧星星：迷宮尋寶等遊戲依表現取得，未來可以兌換商品">⭐ <b id="sh-stars">0</b></span><button class="sh-x" id="sh-close" aria-label="關閉商店">×</button></div>
   <div class="sh-body"><div class="sh-main">
     <section class="sh-card sh-left">
       <div class="sh-stage" id="sh-stage"><div class="sh-light"></div><div class="sh-tags" id="sh-tags"></div><div class="sh-fig idle" id="sh-fig"><img id="sh-img" alt=""></div></div>
@@ -1163,7 +1181,7 @@
       <div class="sh-act"><button class="sh-btn gold" id="sh-buy"></button><button class="sh-btn" id="sh-use">設為我的造型</button></div>
     </section>
     <section class="sh-card"><div class="sh-tabs" role="tablist" id="sh-tabs"></div><div class="sh-prog" id="sh-prog"></div><div class="sh-grid" id="sh-grid"></div></section>
-  </div><div class="sh-food" id="sh-food" hidden></div><div class="sh-main pl-main" id="sh-plant" hidden></div></div>
+  </div><div class="sh-food" id="sh-food" hidden></div><div class="sh-main pl-main" id="sh-plant" hidden></div><div class="sh-main sw-main" id="sh-wd" hidden></div></div>
 </section>
 <section id="album" hidden aria-label="圖鑑收藏">
   <div class="sh-top"><h2>圖鑑收藏</h2><div class="al-sum" id="al-sum"></div><button class="sh-x" id="al-close" aria-label="關閉圖鑑收藏">×</button></div>
@@ -1191,8 +1209,8 @@
 <script src="cloud.js?v=6"></script>
 <script src="q11/q11-data.js?v=1"></script>
 <script src="q11/q11.js?v=2"></script>
-<link rel="stylesheet" href="wardrobe/wardrobe.css?v=9">
-<script src="wardrobe/wardrobe.js?v=9"></script>
+<link rel="stylesheet" href="wardrobe/wardrobe.css?v=10">
+<script src="wardrobe/wardrobe.js?v=10"></script>
 <script>
 (function () {
   "use strict";
@@ -2599,7 +2617,7 @@
       (legacy ? '<button class="a-btn" data-sx="mig">把 ' + legacy + " 件存在雲端的圖片搬到 GitHub</button>" : "") + "</div></div></div>";
     // 時裝開放
     h += '<div class="rw-sec"><h4>👗 時裝兌換</h4><label class="sx-tog"><input type="checkbox" data-sx="fo"' + (sx.fo ? " checked" : "") + "> 開放玩家用智慧星星兌換時裝</label>" +
-      '<p class="muted small">未開放時，玩家看不到商店的「時裝」分頁；你（最高管理者）看得到「時裝（未開放）」分頁可以先預覽。</p></div>';
+      '<p class="muted small">未開放時，玩家看不到你在這裡上架的時裝系列（「時裝」分頁的「整套造型」照常販售）；你（最高管理者）看得到可以先預覽。</p></div>';
     // 新增商品
     h += '<div class="rw-sec"><h4>上架新商品</h4><div class="sx-new"><div class="sx-pic">' +
       '<label class="sx-drop" id="sx-drop"><input type="file" accept="image/png,image/webp,image/jpeg" id="sx-file" hidden><span id="sx-ph">＋ 選擇圖片<br><small>去背 PNG</small></span><img id="sx-prev" alt="" hidden></label>' +
@@ -3838,15 +3856,53 @@
     if ((f.lv || f.ach) && !f.price) return { free: 1, txt: f.lv ? "已達 Lv." + f.lv + "，可領取" : "成就達成，可領取" };   // 有價格的等級款：達到等級後才能購買
     return { buy: 1, price: f.price || 0, star: f.cur === "star" };
   }
-  var shMode = "fig";
+  var shMode = "fig", shWdOn = true, swCur = null, swCat = "全部";
+  // ---- 商店・時裝・整套造型：我的穿搭（wardrobe.js）的 11 套造型，分部位用智慧星星購買；和角色檔案的我的穿搭共用同一份資料 p.wd ----
+  function renderWd(anim) {
+    var el = document.getElementById("sh-wd"), WD = window.MFWardrobe && MFWardrobe.shop;
+    if (!WD) { el.innerHTML = '<section class="sh-card"><p>時裝載入中，請稍後再試。</p></section>'; return; }
+    var p = curP(); mazeProg(p);
+    document.getElementById("sh-coins").textContent = fmt(p.coins); document.getElementById("sh-stars").textContent = fmt(mazeProg(p) && p.stars);
+    var list = WD.list(), g = WD.gender(p), cur = WD.current(p), tm = testMode();
+    if (!list.some(function (o) { return o.id === swCur; })) swCur = cur;
+    var o = list.filter(function (x) { return x.id === swCur; })[0], own = WD.owns(p, o.id), pg = WD.progress(p, o.id), parts = WD.parts(p, o.id);
+    var left = parts.filter(function (x) { return !x.got; }), rest = left.reduce(function (t, x) { return t + x.price; }, 0);
+    var gl = o.g === "U" ? "男女共用" : g === "m" ? "男生版" : "女生版";
+    var h = '<section class="sh-card sh-left"><div class="sh-stage sw-stage"><div class="sh-light"></div><div class="sh-tags"><span>' + esc(o.cat) + "</span><span>" + gl + "</span><span>⭐ 智慧星星兌換</span></div>" +
+      '<div class="sh-fig idle sw-fig" id="sw-fig"><div class="sw-box"><i class="wd-sp" role="img" aria-label="' + esc(o.zh) + '" style="background-image:url(\'' + WD.img(o.id, g) + '\');background-position:0% 0"></i></div></div></div>' +
+      '<div class="sw-g" role="group" aria-label="男生版／女生版"><button type="button" data-swg="m" aria-pressed="' + (g === "m") + '">👦 男生版</button><button type="button" data-swg="f" aria-pressed="' + (g === "f") + '">👧 女生版</button></div>' +
+      '<div class="sh-info"><h3>' + esc(o.zh) + "</h3><p>" + (own ? (cur === o.id ? "目前穿著的造型" : "已擁有，可以換上這套") + "。到「角色檔案 → 我的穿搭」可以 360° 轉動。" :
+        "分部位購買，買齊 " + pg[1] + " 個部位就能收藏這套造型並 360° 轉動" + (pg[0] ? "（已購 " + pg[0] + "/" + pg[1] + "）" : "") + "。男生版、女生版共用的部位只要買一次。") + "</p></div>" +
+      '<div class="sw-parts">' + parts.map(function (x) {
+        return '<div class="sw-part"><div><b>' + esc(x.zh) + "</b><small>" + esc(x.items.join("、")) + "</small></div>" +
+          (own || x.got ? '<span class="sw-ok">✓ 已購買</span>' : '<button class="sh-btn gold" data-swb="' + x.id + '">' + (tm ? "免費" : "⭐ " + x.price) + "</button>") + "</div>"; }).join("") + "</div>" +
+      '<div class="sh-act"><button class="sh-btn gold" data-swall="1"' + (own ? " disabled" : "") + ">" + (own ? "已擁有 ✓" : (pg[0] ? "買齊剩下 " + left.length + " 個部位" : "整套購買") + (tm ? "（免費）" : " ⭐ " + rest)) + "</button>" +
+      '<button class="sh-btn" data-swwear="1"' + (own && cur !== o.id ? "" : " disabled") + ">" + (cur === o.id && own ? "穿戴中" : "換上這套") + '</button><button class="sh-btn" data-swgo="1">到我的穿搭 360° →</button></div></section>';
+    var cats = WD.cats(), shownL = list.filter(function (x) { return swCat === "全部" || x.cat === swCat; }), have = list.filter(function (x) { return WD.owns(p, x.id); }).length;
+    var ser = fashionTab(p) ? '<div class="sh-tabs" role="tablist"><button role="tab" aria-selected="true" data-shw="1">👕 整套造型</button>' + shopSeries(p).map(function (x) { return '<button role="tab" aria-selected="false" data-shs="' + x.id + '">' + esc(x.name) + "</button>"; }).join("") + "</div>" : "";
+    h += '<section class="sh-card">' + ser + '<div class="sw-cats" role="group" aria-label="分類">' + cats.map(function (c) { return '<button type="button" data-swc="' + c + '" aria-pressed="' + (c === swCat) + '">' + c + "</button>"; }).join("") + "</div>" +
+      '<div class="sh-prog">已擁有 <b>' + have + " / " + list.length + '</b> 套<span class="sh-bar"><i style="width:' + (have / list.length * 100) + '%"></i></span>買齊一套的所有部位就能收藏</div>' +
+      '<div class="sh-grid">' + shownL.map(function (x) {
+        var ow = WD.owns(p, x.id), q = WD.progress(p, x.id);
+        return '<button class="sh-box" style="--tint:#8c74c9" aria-pressed="' + (x.id === swCur) + '" data-swo="' + x.id + '"><span class="tp">' + esc(x.cat) + "</span>" +
+          (ow && cur === x.id ? '<span class="sh-wear">穿戴中</span>' : ow ? '<span class="sh-own">已擁有</span>' : "") + '<span class="win">' + WD.thumb(x.id, g, 104, x.zh) + "</span><b>" + esc(x.zh) + "</b>" +
+          '<span class="pr">' + (ow ? "收藏中" : q[0] ? "已購 " + q[0] + "/" + q[1] + " 部位" : x.price ? "⭐ " + x.price : "免費") + "</span></button>"; }).join("") + "</div></section>";
+    el.innerHTML = h;
+    if (anim) { var fg = document.getElementById("sw-fig"); fg.classList.remove("idle", "hop"); void fg.offsetWidth; fg.classList.add("hop"); setTimeout(function () { fg.classList.remove("hop"); fg.classList.add("idle"); }, 560); }
+  }
+  function swBuy(p, gids) {
+    var r = MFWardrobe.shop.buy(p, swCur, gids); if (r.msg) toast(r.msg); if (!r.ok) return;
+    if (r.done) shSparkle(); renderWd(true); renderPlayerHud(false);
+  }
   function openShop(mode) { shMode = mode === "food" || mode === "plant" || mode === "fashion" ? mode : "fig"; var p = curP(); if (p.fig && !FIGS.figs[p.fig]) p.fig = null; if (!FIGS.figs[shCur]) shCur = null; shCur = shCur || p.fig || FIGS.series[0].ids[0]; shSeries = figSeries(shCur).id; shopEl.hidden = false; document.body.classList.add("shop-open"); renderShop(false); }
   function closeShop() { shopEl.hidden = true; document.body.classList.remove("shop-open"); renderPlayerHud(false); }
   function renderShop(anim) {
     document.querySelectorAll("#sh-mode button").forEach(function (b) { b.setAttribute("aria-selected", b.dataset.shm === shMode); });
-    var fbt = document.getElementById("sh-m-fashion"); fbt.hidden = !fashionTab(curP()); fbt.textContent = "時裝" + (fashionOpen() ? "" : "（未開放）");
-    if (shMode === "fashion" && fbt.hidden) shMode = "fig";
-    document.querySelectorAll("#sh-mode button").forEach(function (b) { b.setAttribute("aria-selected", b.dataset.shm === shMode); });
-    document.querySelector("#shop .sh-main").hidden = shMode !== "fig" && shMode !== "fashion"; document.getElementById("sh-food").hidden = shMode !== "food"; document.getElementById("sh-plant").hidden = shMode !== "plant";
+    // 時裝分頁一定顯示：「整套造型」（我的穿搭的套裝）一直販售；最高管理者上架的時裝系列另外受「開放時裝兌換」控制
+    var swOn = shMode === "fashion" && (shWdOn || !fashionTab(curP()) || !window.MFWardrobe);
+    document.querySelector("#shop .sh-main").hidden = (shMode !== "fig" && shMode !== "fashion") || swOn; document.getElementById("sh-food").hidden = shMode !== "food"; document.getElementById("sh-plant").hidden = shMode !== "plant";
+    document.getElementById("sh-wd").hidden = !swOn;
+    if (swOn) return renderWd(anim);
     if (shMode === "food") return renderFood();
     if (shMode === "plant") return renderPlant(anim);
     var p = curP(), vis0 = shopSeries(p);
@@ -3863,7 +3919,7 @@
     document.getElementById("sh-use").disabled = !st.own || p.fig === shCur;
     var have = s.ids.filter(function (id) { return figOwned(p)[id]; }).length, done = (p.titlesGot || []).indexOf(s.reward) >= 0;
     var vis = shopSeries(p); if (!vis.some(function (x) { return x.id === shSeries; })) shSeries = vis[0].id;
-    document.getElementById("sh-tabs").innerHTML = vis.map(function (x) { var nw = x.ids.some(function (id) { var g = FIGS.figs[id]; return g.x && g.new && !figOwned(p)[id]; }); return '<button role="tab" aria-selected="' + (x.id === shSeries) + '" data-shs="' + x.id + '">' + esc(x.name) + (nw ? '<i class="sh-tnew">NEW</i>' : "") + "</button>"; }).join("");
+    document.getElementById("sh-tabs").innerHTML = (shMode === "fashion" ? '<button role="tab" aria-selected="false" data-shw="1">👕 整套造型</button>' : "") + vis.map(function (x) { var nw = x.ids.some(function (id) { var g = FIGS.figs[id]; return g.x && g.new && !figOwned(p)[id]; }); return '<button role="tab" aria-selected="' + (x.id === shSeries) + '" data-shs="' + x.id + '">' + esc(x.name) + (nw ? '<i class="sh-tnew">NEW</i>' : "") + "</button>"; }).join("");
     var cs = FIGS.series.filter(function (x) { return x.id === shSeries; })[0], ch = cs.ids.filter(function (id) { return figOwned(p)[id]; }).length;
     if (cs.retired) cs = { id: cs.id, name: cs.name, retired: 1, ids: cs.ids.filter(function (id) { return figOwned(p)[id]; }) };
     document.getElementById("sh-prog").innerHTML = cs.retired ? "經典收藏：已下架的公仔，你擁有的仍然可以穿戴（共 " + cs.ids.length + " 尊）" : "收集進度 <b>" + ch + " / " + cs.ids.length + '</b><span class="sh-bar"><i style="width:' + (ch / cs.ids.length * 100) + '%"></i></span>' + ((p.titlesGot || []).indexOf(cs.reward) >= 0 ? "已獲得稱號「" + cs.reward + "」✓" : "集滿得稱號「" + cs.reward + "」");
@@ -4123,7 +4179,15 @@
     var t = e.target.closest("button"); if (!t) return;
     var p = curP();
     if (t.id === "sh-close") return closeShop();
-    if (t.dataset.shs) { shSeries = t.dataset.shs; return renderShop(false); }
+    if (t.dataset.shw) { shWdOn = true; return renderShop(false); }
+    if (t.dataset.shs) { shSeries = t.dataset.shs; if (shMode === "fashion") shWdOn = false; return renderShop(false); }
+    if (t.dataset.swo) { swCur = t.dataset.swo; renderWd(true); if (window.innerWidth <= 820) document.querySelector("#shop .sh-body").scrollTo({ top: 0, behavior: "smooth" }); return; }
+    if (t.dataset.swc) { swCat = t.dataset.swc; return renderWd(false); }
+    if (t.dataset.swg) { MFWardrobe.shop.setGender(p, t.dataset.swg); return renderWd(true); }
+    if (t.dataset.swb) { mazeProg(p); return swBuy(p, [t.dataset.swb]); }
+    if (t.dataset.swall) { mazeProg(p); return swBuy(p, MFWardrobe.shop.parts(p, swCur).map(function (x) { return x.id; })); }
+    if (t.dataset.swwear) { if (MFWardrobe.shop.wear(p, swCur)) { toast("已換上「" + MFWardrobe.shop.list().filter(function (x) { return x.id === swCur; })[0].zh + "」"); renderWd(true); } return; }
+    if (t.dataset.swgo) { closeShop(); openDrawer("me"); return; }
     if (t.dataset.shm) { shMode = t.dataset.shm; return renderShop(false); }
     if (t.dataset.shg) { closeShop(); openDrawer("pet"); return; }
     if (t.dataset.food) {

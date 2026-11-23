@@ -17,7 +17,7 @@
  */
 (function (global) {
   "use strict";
-  var VER = "9";
+  var VER = "10";
   var BASE = (function () { var s = document.currentScript && document.currentScript.src; return s ? s.replace(/[^/]*$/, "") : "wardrobe/"; })();
 
   // 套裝：id、名稱、分類、價格（智慧星星）、g：MF＝分男女版、U＝男女共用；d：男／女的［斜側、側面］臉朝右＝1、朝左＝-1
@@ -217,6 +217,43 @@
     else { var pg = progress(p, id, w.g); S.try = id; S.msg = "試穿「" + o.zh + "」中：點有價格的裝備格，分別購買 " + pg[1] + " 個部位，買齊就能 360° 轉動並存成你的造型"; }
     S.frame = 0;
   }
+  // ---- 給商店「時裝」分頁用：一次購買一個或多個部位（星星不夠就整筆不買）
+  function buyParts(p, id, gids) {
+    var w = wd(p), g = w.g, o = outOf(id), need = needG(id, g);
+    if (owns(p, id, g)) return { ok: false, msg: "已經擁有「" + o.zh + "」" };
+    var list = need.filter(function (G) { return gids.indexOf(G.id) >= 0 && !hasPart(p, id, G.id); });
+    if (!list.length) return { ok: false, msg: "" };
+    var free = H.testMode(), cost = free ? 0 : list.reduce(function (t, G) { return t + partPrice(id, g, G.id); }, 0);
+    if (typeof p.stars !== "number") p.stars = 0;
+    if (p.stars < cost) return { ok: false, msg: "智慧星星不夠：需要 ⭐ " + cost + "，目前有 ⭐ " + p.stars + "。完成迷宮尋寶、記憶星球的關卡可以獲得星星。" };
+    p.stars -= cost;
+    if (!w.pt || typeof w.pt !== "object") w.pt = {};
+    if (!w.pt[id]) w.pt[id] = {};
+    list.forEach(function (G) { w.pt[id][G.id] = 1; });
+    var names = list.map(function (G) { return G.zh; }).join("、");
+    try { H.log(p, "在商店購買時裝「" + o.zh + "」的" + names + (free ? "（測試模式）" : "（⭐ −" + cost + "）")); } catch (e) {}
+    var pg = progress(p, id, g), done = owns(p, id, g);
+    if (done) { w.cur = id; if (S.try === id) S.try = null; }
+    H.save();
+    return { ok: true, done: done, cost: cost, msg: done ? "🎉「" + o.zh + "」" + pg[1] + " 個部位都買齊了！已換上，可以到我的穿搭 360° 轉動" : "👕 已購買「" + o.zh + "」的" + names + "（" + pg[0] + "/" + pg[1] + "）" };
+  }
+  var shopApi = {
+    list: function () { return OUT; }, cats: function () { return CATS; },
+    gender: function (p) { return wd(p).g; },
+    setGender: function (p, g) { wd(p).g = g === "f" ? "f" : "m"; H.save(); },
+    current: function (p) { return wd(p).cur; },
+    owns: function (p, id) { return owns(p, id); },
+    progress: function (p, id) { return progress(p, id, wd(p).g); },
+    parts: function (p, id) {   // 這套在目前性別要買的部位：[{ id, zh, items, price, got }]
+      var g = wd(p).g, ps = partsFor(id, g);
+      return needG(id, g).map(function (G) { var keys = G.subs.map(function (q) { return q[1]; });
+        return { id: G.id, zh: G.zh, items: ps.filter(function (x) { return keys.indexOf(x[1]) >= 0; }).map(function (x) { return x[0]; }), price: partPrice(id, g, G.id), got: hasPart(p, id, G.id) }; });
+    },
+    buy: buyParts,
+    wear: function (p, id) { if (!owns(p, id)) return false; wd(p).cur = id; S.try = null; H.save(); return true; },
+    img: function (id, g) { return src(id, g); },
+    thumb: function (id, g, size, alt) { return thumb(id, g, "whole", size, alt); }
+  };
   function buy(p) {
     var w = wd(p), g = w.g, id = shown(p), gid = S.pick; if (!gid || owns(p, id)) return;
     var G = GROUPS.filter(function (q) { return q.id === gid; })[0], o = outOf(id);
@@ -302,5 +339,5 @@
   /** 目前穿著的套裝與性別（給其他功能用，例如之後換頭像或遊戲角色） */
   function current(p) { var w = wd(p); return { id: w.cur, g: w.g, name: outOf(w.cur).zh, img: src(w.cur, w.g) }; }
 
-  global.MFWardrobe = { version: "1.0.0", init: init, html: html, mount: mount, current: current, OUTFITS: OUT, PARTS: PARTS, GROUPS: GROUPS };
+  global.MFWardrobe = { version: "1.0.0", init: init, html: html, mount: mount, current: current, OUTFITS: OUT, PARTS: PARTS, GROUPS: GROUPS, shop: shopApi };
 })(window);
