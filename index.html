@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>身心智慧學院</title><!-- 加入主畫面：名稱、圖示、獨立 App 視窗（PWA / iOS） --><link rel="manifest" href="manifest.webmanifest?v=2"><meta name="application-name" content="身心智慧學院"><meta name="theme-color" content="#0e1838"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="身心智慧學院"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"><link rel="apple-touch-icon" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png?v=2"><link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png?v=2"><link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120.png?v=2"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"><link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"><link rel="icon" href="favicon.ico?v=2" sizes="any"><meta name="app-version" content="20261123-012647"><script src="update.js?v=1"></script></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>身心智慧學院</title><!-- 加入主畫面：名稱、圖示、獨立 App 視窗（PWA / iOS） --><link rel="manifest" href="manifest.webmanifest?v=2"><meta name="application-name" content="身心智慧學院"><meta name="theme-color" content="#0e1838"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="身心智慧學院"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"><link rel="apple-touch-icon" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png?v=2"><link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png?v=2"><link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120.png?v=2"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"><link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"><link rel="icon" href="favicon.ico?v=2" sizes="any"><meta name="app-version" content="20261123-013205"><script src="update.js?v=1"></script></head><body>
 <title>身心智慧學院</title>
 <script src="diag.js?v=2"></script>
 <meta name="description" content="電影質感的身心智慧學院主畫面：光束、柔光暈、飛鳥與櫻花、雲海外圍、明亮的夜晚村莊。">
@@ -3864,6 +3864,12 @@
     if ((f.lv || f.ach) && !f.price) return { free: 1, txt: f.lv ? "已達 Lv." + f.lv + "，可領取" : "成就達成，可領取" };   // 有價格的等級款：達到等級後才能購買
     return { buy: 1, price: f.price || 0, star: f.cur === "star" };
   }
+  // 商店排列：NEW 商品置頂，其餘依價格由便宜到貴；同價格維持原本順序
+  function shopSort(list, priceOf, isNew) {
+    return list.map(function (x, i) { return [x, i]; }).sort(function (a, b) {
+      return ((isNew && isNew(b[0]) ? 1 : 0) - (isNew && isNew(a[0]) ? 1 : 0)) || ((+priceOf(a[0]) || 0) - (+priceOf(b[0]) || 0)) || a[1] - b[1];
+    }).map(function (x) { return x[0]; });
+  }
   var shMode = "fig", shWdOn = true, swCur = null, swCat = "全部";
   // ---- 商店・時裝・整套造型：我的穿搭（wardrobe.js）的 11 套造型，分部位用智慧星星購買；和角色檔案的我的穿搭共用同一份資料 p.wd ----
   function renderWd(anim) {
@@ -3886,7 +3892,7 @@
           (own || x.got ? '<span class="sw-ok">✓ 已購買</span>' : '<button class="sh-btn gold" data-swb="' + x.id + '">' + (tm ? "免費" : "⭐ " + x.price) + "</button>") + "</div>"; }).join("") + "</div>" +
       '<div class="sh-act"><button class="sh-btn gold" data-swall="1"' + (own ? " disabled" : "") + ">" + (own ? "已擁有 ✓" : (pg[0] ? "買齊剩下 " + left.length + " 個部位" : "整套購買") + (tm ? "（免費）" : " ⭐ " + rest)) + "</button>" +
       '<button class="sh-btn" data-swwear="1"' + (own && cur !== o.id ? "" : " disabled") + ">" + (cur === o.id && own ? "穿戴中" : "換上這套") + '</button><button class="sh-btn" data-swgo="1">到我的穿搭 360° →</button></div></section>';
-    var cats = WD.cats(), shownL = list.filter(function (x) { return swCat === "全部" || x.cat === swCat; }), have = list.filter(function (x) { return WD.owns(p, x.id); }).length;
+    var cats = WD.cats(), shownL = shopSort(list.filter(function (x) { return swCat === "全部" || x.cat === swCat; }), function (x) { return x.price; }, function (x) { return x.new && !WD.owns(p, x.id); }), have = list.filter(function (x) { return WD.owns(p, x.id); }).length;
     var ser = fashionTab(p) ? '<div class="sh-tabs" role="tablist"><button role="tab" aria-selected="true" data-shw="1">👕 整套造型</button>' + shopSeries(p).map(function (x) { return '<button role="tab" aria-selected="false" data-shs="' + x.id + '">' + esc(x.name) + "</button>"; }).join("") + "</div>" : "";
     h += '<section class="sh-card">' + ser + '<div class="sw-cats" role="group" aria-label="分類">' + cats.map(function (c) { return '<button type="button" data-swc="' + c + '" aria-pressed="' + (c === swCat) + '">' + c + "</button>"; }).join("") + "</div>" +
       '<div class="sh-prog">已擁有 <b>' + have + " / " + list.length + '</b> 套<span class="sh-bar"><i style="width:' + (have / list.length * 100) + '%"></i></span>買齊一套的所有部位就能收藏</div>' +
@@ -3931,7 +3937,7 @@
     var cs = FIGS.series.filter(function (x) { return x.id === shSeries; })[0], ch = cs.ids.filter(function (id) { return figOwned(p)[id]; }).length;
     if (cs.retired) cs = { id: cs.id, name: cs.name, retired: 1, ids: cs.ids.filter(function (id) { return figOwned(p)[id]; }) };
     document.getElementById("sh-prog").innerHTML = cs.retired ? "經典收藏：已下架的公仔，你擁有的仍然可以穿戴（共 " + cs.ids.length + " 尊）" : "收集進度 <b>" + ch + " / " + cs.ids.length + '</b><span class="sh-bar"><i style="width:' + (ch / cs.ids.length * 100) + '%"></i></span>' + ((p.titlesGot || []).indexOf(cs.reward) >= 0 ? "已獲得稱號「" + cs.reward + "」✓" : "集滿得稱號「" + cs.reward + "」");
-    document.getElementById("sh-grid").innerHTML = cs.ids.map(function (id) {
+    document.getElementById("sh-grid").innerHTML = shopSort(cs.ids, function (id) { return FIGS.figs[id].price; }, function (id) { return FIGS.figs[id].new && !figOwned(p)[id]; }).map(function (id) {
       var g = FIGS.figs[id], t = figState(p, id);
       return '<button class="sh-box' + (t.lock ? " locked" : "") + '" style="--tint:' + cs.color + '" aria-pressed="' + (shCur === id) + '" data-shf="' + id + '"><span class="tp">MINDFLOW</span>' +
         (p.fig === id ? '<span class="sh-wear">穿戴中</span>' : t.own ? '<span class="sh-own">已擁有</span>' : "") + (g.lim ? '<span class="sh-lim">限定</span>' : "") + (g.new && !t.own ? '<span class="sh-new">NEW</span>' : "") +
@@ -3949,7 +3955,7 @@
       '<div><h3>還沒有寵物</h3><p>先到「角色檔案 → 寵物」領養一隻，再來幫牠買食物。</p><button class="sh-btn" data-shg="adopt">去領養 →</button></div>') + "</div>";
     h += order.map(function (sp) {
       var info = petById(sp), mine = pt && pt.sp === sp;
-      return '<section class="sh-card sf-sec' + (mine ? " mine" : "") + '"><h4>' + info.zh + "的食物" + (mine ? '<span class="pd-chip">你的寵物</span>' : "") + '</h4><div class="sf-grid">' + FOODS[sp].map(function (f) {
+      return '<section class="sh-card sf-sec' + (mine ? " mine" : "") + '"><h4>' + info.zh + "的食物" + (mine ? '<span class="pd-chip">你的寵物</span>' : "") + '</h4><div class="sf-grid">' + shopSort(FOODS[sp], function (f) { return f[4]; }, function (f) { return f[5] === "new"; }).map(function (f) {
         var n = p.food[f[0]] || 0;
         return '<div class="sf-item"><span class="sf-ico">' + f[2] + '</span><b>' + f[1] + "</b><small>親密度 +" + f[3] + "</small><span class=\"sf-own\">背包 ×" + n + '</span><div class="sf-buy"><button class="sh-btn gold" data-food="' + f[0] + '" data-q="1">🪙 ' + f[4] + '</button><button class="sh-btn" data-food="' + f[0] + '" data-q="5">5 份 🪙 ' + f[4] * 5 + "</button></div></div>"; }).join("") + "</div></section>";
     }).join("");
@@ -3971,7 +3977,7 @@
     if (!f.price) return { free: 1, txt: "見面禮，免費領取" };
     return { buy: 1, price: f.price };
   }
-  function plSorted(c) { return c.ids.slice().sort(function (a, b) { var x = PLANTS.plants[a], y = PLANTS.plants[b]; return PL_ORD[x.rar] - PL_ORD[y.rar] || x.price - y.price; }); }
+  function plSorted(c) { return shopSort(c.ids.slice().sort(function (a, b) { return PL_ORD[PLANTS.plants[a].rar] - PL_ORD[PLANTS.plants[b].rar]; }), function (id) { return PLANTS.plants[id].price; }, function (id) { return PLANTS.plants[id].new && !plOwned(curP())[id]; }); }
   function renderPlant(anim) {
     var p = curP(), own = plOwned(p), c = PLANTS.cats.filter(function (x) { return x.id === plCat; })[0];
     document.getElementById("sh-coins").textContent = fmt(p.coins); document.getElementById("sh-stars").textContent = fmt(mazeProg(p) && p.stars);
