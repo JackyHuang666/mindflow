@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>身心智慧學院</title><!-- 加入主畫面：名稱、圖示、獨立 App 視窗（PWA / iOS） --><link rel="manifest" href="manifest.webmanifest?v=2"><meta name="application-name" content="身心智慧學院"><meta name="theme-color" content="#0e1838"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="身心智慧學院"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"><link rel="apple-touch-icon" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png?v=2"><link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png?v=2"><link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120.png?v=2"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"><link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"><link rel="icon" href="favicon.ico?v=2" sizes="any"><meta name="app-version" content="20261123-020321"><script src="update.js?v=1"></script></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>身心智慧學院</title><!-- 加入主畫面：名稱、圖示、獨立 App 視窗（PWA / iOS） --><link rel="manifest" href="manifest.webmanifest?v=2"><meta name="application-name" content="身心智慧學院"><meta name="theme-color" content="#0e1838"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="身心智慧學院"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"><link rel="apple-touch-icon" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png?v=2"><link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png?v=2"><link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120.png?v=2"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"><link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"><link rel="icon" href="favicon.ico?v=2" sizes="any"><meta name="app-version" content="20261123-021022"><script src="update.js?v=1"></script></head><body>
 <title>身心智慧學院</title>
 <script src="diag.js?v=2"></script>
 <meta name="description" content="電影質感的身心智慧學院主畫面：光束、柔光暈、飛鳥與櫻花、雲海外圍、明亮的夜晚村莊。">
@@ -79,6 +79,10 @@
     transition:transform .22s cubic-bezier(.3,1.6,.5,1),filter .2s,box-shadow .2s}
   #h-nav button:hover{transform:translateY(-4px);box-shadow:var(--gold-rim),var(--gloss),0 0 18px rgba(255,214,120,.7),0 12px 18px rgba(4,14,44,.5)}
   #h-nav .ico{position:absolute;left:14px;top:5px;width:48px;height:48px;filter:drop-shadow(0 0 6px rgba(255,214,120,.65)) drop-shadow(0 2px 1px rgba(60,30,0,.6));transition:transform .25s cubic-bezier(.3,1.6,.5,1)}
+  #h-nav button.nav-lock .ico{filter:grayscale(1) brightness(.75);opacity:.7}
+  #h-nav button.nav-lock span{filter:grayscale(.6) brightness(.85)}
+  #h-nav .nav-lv{position:absolute;left:50%;top:36px;transform:translateX(-50%);z-index:2;font:700 10px/1 var(--fun);font-style:normal;white-space:nowrap;color:#3a2300;background:linear-gradient(180deg,#ffe08a,#f2b33d);border:1px solid #7a4a10;border-radius:999px;padding:3px 6px;box-shadow:0 2px 4px rgba(0,0,0,.35);pointer-events:none}
+  #h-nav .nav-lv[hidden]{display:none}
   #h-nav button:hover .ico{transform:scale(1.1) rotate(-4deg)}
   #h-nav span{position:absolute;left:-6px;right:-6px;bottom:-3px;height:36px;border-radius:18px;background:linear-gradient(180deg,#3d64b0,#1f3b78);
     box-shadow:0 0 0 1.5px rgba(255,218,140,.55),inset 0 1px 0 rgba(255,255,255,.3),0 3px 6px rgba(0,0,0,.35);font:400 17px/36px var(--round);text-align:center;white-space:nowrap;letter-spacing:.02em}
@@ -1232,7 +1236,7 @@
     '<path fill="none" stroke="#7a4708" stroke-width="1.6" opacity=".55" d="M22 9l-2.5 14M32 9v14M42 9l2.5 14"/></svg>';
   var NAV = [["shop", "商店"], ["trophy", "成就"], ["book", "學習地圖"], ["team", "學院"], ["gear", "設定"]];
   document.getElementById("h-nav").innerHTML = NAV.map(function (x) {
-    return '<button ' + (x[0] === "gear" ? 'id="nav-settings" aria-haspopup="dialog" aria-expanded="false"' : x[0] === "shop" ? 'id="nav-shop"' : x[0] === "trophy" ? 'id="nav-album"' : x[0] === "book" ? 'id="nav-map"' : 'data-demo="' + x[1] + '"') + ' aria-label="' + x[1] + '">' + GOLD_ICONS[x[0]] + '<span>' + x[1] + "</span></button>"; }).join("");
+    return '<button ' + (x[0] === "gear" ? 'id="nav-settings" aria-haspopup="dialog" aria-expanded="false"' : x[0] === "shop" ? 'id="nav-shop"' : x[0] === "trophy" ? 'id="nav-album"' : x[0] === "book" ? 'id="nav-map"' : (x[0] === "team" ? 'id="nav-team" ' : "") + 'data-demo="' + x[1] + '"') + ' aria-label="' + x[1] + '">' + GOLD_ICONS[x[0]] + '<span>' + x[1] + "</span></button>"; }).join("");
   // 下方操作列 7 顆：遊戲挑戰、課程學習、冥想練習、團隊活動、成長紀錄、任務（原今日任務）、禮物（最高管理者發放的獎勵）
   GOLD_ICONS.task = '<svg class="ico" viewBox="0 0 64 64" aria-hidden="true"><rect fill="url(#mfGold)" stroke="#6e3f06" stroke-width="1.6" x="12" y="10" width="40" height="49" rx="6"/><rect fill="url(#mfGold)" stroke="#6e3f06" stroke-width="1.6" x="22" y="4" width="20" height="12" rx="4"/><path fill="none" stroke="#5a3205" stroke-opacity=".7" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" d="M21 36l8 8 15-17"/></svg>';
   GOLD_ICONS.gift = '<svg class="ico" viewBox="0 0 64 64" aria-hidden="true"><path fill="url(#mfGold)" stroke="#6e3f06" stroke-width="1.6" stroke-linejoin="round" d="M32 23c-5-10-16-13-17-6-1 5 8 6 17 6zM32 23c5-10 16-13 17-6 1 5-8 6-17 6z"/><rect fill="url(#mfGold)" stroke="#6e3f06" stroke-width="1.6" x="8" y="23" width="48" height="12" rx="3"/><rect fill="url(#mfGold)" stroke="#6e3f06" stroke-width="1.6" x="12" y="35" width="40" height="23" rx="3"/><path fill="#d8432f" stroke="#7a1e10" stroke-width="1.2" d="M28 23h8v35h-8z"/></svg>';
@@ -3047,7 +3051,26 @@
   // ---- 左上角玩家卡 ----
   var hpName = document.querySelector("#h-player .name"), hpRank = document.querySelector("#h-player .rank"),
     hpXp = document.querySelector("#h-player .xp"), hpAv = document.querySelector("#h-player .ring img"), hpBar = hpXp.querySelector("i"), hpTxt = hpXp.querySelector("b"), hpShown = null;
+  // 右上角功能的解鎖等級：成就 Lv.11、學習地圖 Lv.21、學院 Lv.31（最高管理者測試模式不受限）
+  var NAV_LV = { "nav-album": 11, "nav-map": 21, "nav-team": 31 };
+  function navLockLv(id) { var lv = NAV_LV[id]; return lv && !testMode() && (curP().level || 1) < lv ? lv : 0; }
+  function navLocks() {
+    Object.keys(NAV_LV).forEach(function (id) {
+      var b = document.getElementById(id); if (!b) return;
+      var lv = navLockLv(id), lab = b.querySelector("span").textContent;
+      b.classList.toggle("nav-lock", !!lv); b.setAttribute("aria-label", lab + (lv ? "（Lv." + lv + " 解鎖）" : ""));
+      var tag = b.querySelector(".nav-lv"); if (lv && !tag) { tag = document.createElement("i"); tag.className = "nav-lv"; tag.setAttribute("aria-hidden", "true"); b.appendChild(tag); }
+      if (tag) { tag.hidden = !lv; tag.textContent = "🔒 Lv." + lv; }
+    });
+  }
+  document.getElementById("h-nav").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b || !NAV_LV[b.id]) return;
+    var lv = navLockLv(b.id); if (!lv) return;
+    e.stopPropagation(); e.stopImmediatePropagation(); e.preventDefault();
+    toast("🔒「" + b.querySelector("span").textContent + "」在 Lv." + lv + " 解鎖（目前 Lv." + (curP().level || 1) + "）。玩遊戲、完成任務就能升級！");
+  }, true);
   function renderPlayerHud(anim) {
+    navLocks();
     if (typeof renderBuffs === "function" && bfEl) setTimeout(renderBuffs, 0);
     setTimeout(renderTasks, 0);
     if (typeof renderGiftBadge === "function") setTimeout(renderGiftBadge, 0);
