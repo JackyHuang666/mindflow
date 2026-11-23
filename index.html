@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>身心智慧學院</title><!-- 加入主畫面：名稱、圖示、獨立 App 視窗（PWA / iOS） --><link rel="manifest" href="manifest.webmanifest?v=2"><meta name="application-name" content="身心智慧學院"><meta name="theme-color" content="#0e1838"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="身心智慧學院"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"><link rel="apple-touch-icon" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png?v=2"><link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png?v=2"><link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120.png?v=2"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"><link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"><link rel="icon" href="favicon.ico?v=2" sizes="any"><meta name="app-version" content="20261123-025432"><script src="update.js?v=1"></script></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>身心智慧學院</title><!-- 加入主畫面：名稱、圖示、獨立 App 視窗（PWA / iOS） --><link rel="manifest" href="manifest.webmanifest?v=2"><meta name="application-name" content="身心智慧學院"><meta name="theme-color" content="#0e1838"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="身心智慧學院"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"><link rel="apple-touch-icon" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png?v=2"><link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png?v=2"><link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120.png?v=2"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"><link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"><link rel="icon" href="favicon.ico?v=2" sizes="any"><meta name="app-version" content="20261123-090716"><script src="update.js?v=1"></script></head><body>
 <title>身心智慧學院</title>
 <script src="diag.js?v=2"></script>
 <meta name="description" content="電影質感的身心智慧學院主畫面：光束、柔光暈、飛鳥與櫻花、雲海外圍、明亮的夜晚村莊。">
@@ -1019,6 +1019,7 @@
   .portrait #h-back{transform-origin:0 0}
   .card .next{font-size:12.5px;color:var(--muted);border-top:1px solid rgba(255,255,255,.15);padding-top:8px;margin:0}
   body.shop-open .toast{top:calc(env(safe-area-inset-top,0px) + 132px)}   /* 商店等全螢幕面板開著時，提示放在分頁列下方 */
+  .coin-i{display:inline-block;width:1.2em;height:1.2em;vertical-align:-.24em;margin:0 .05em;object-fit:contain;pointer-events:none;-webkit-user-drag:none}
   .toast{font-family:var(--round);left:50%;top:calc(var(--u) * 250);transform:translate(-50%,-8px);padding:9px 16px;border-radius:12px;font-size:13.5px;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:60;max-width:calc(100% - 32px);text-align:center}
   .toast.show{opacity:1;transform:translate(-50%,0)}
   .fallback{position:fixed;left:50%;top:calc(var(--u,0.64px) * 250);transform:translateX(-50%);z-index:20;max-width:min(560px,calc(100% - 32px));padding:14px 18px;border-radius:14px;
@@ -1368,6 +1369,27 @@
   try { if (localStorage.getItem("mf-hud-hidden") === "1") setHudHidden(true, true); } catch (e) {}
 
   var toastTimer = 0;
+  // 智慧幣圖示：畫面上所有「🪙」自動換成學院自己的身心古錢幣圖（icons/coin.png，原始設計在 tools/coin-source.html）
+  // 用 MutationObserver 處理，之後新增的文字也會自動替換；下拉選單、輸入框、屬性文字維持 🪙
+  (function () {
+    var C = "\uD83E\uDE99", SRC = "icons/coin.png?v=1", HTML = "http://www.w3.org/1999/xhtml";
+    function mk() { var i = document.createElement("img"); i.className = "coin-i"; i.src = SRC; i.alt = "智慧幣"; i.draggable = false; return i; }
+    function fix(t) {
+      var p = t.parentNode; if (!p || p.namespaceURI !== HTML || /^(OPTION|TEXTAREA|TITLE|SCRIPT|STYLE|SELECT)$/.test(p.nodeName)) return;
+      var parts = t.nodeValue.split(C); if (parts.length < 2) return;
+      var f = document.createDocumentFragment();
+      parts.forEach(function (x, i) { if (i) f.appendChild(mk()); if (x) f.appendChild(document.createTextNode(x)); });
+      p.replaceChild(f, t);
+    }
+    function scan(n) {
+      if (n.nodeType === 3) { if (n.nodeValue.indexOf(C) >= 0) fix(n); return; }
+      if (n.nodeType !== 1 || !n.textContent || n.textContent.indexOf(C) < 0) return;
+      var w = document.createTreeWalker(n, 4), a = [], x; while ((x = w.nextNode())) if (x.nodeValue.indexOf(C) >= 0) a.push(x); a.forEach(fix);
+    }
+    new MutationObserver(function (ms) { ms.forEach(function (m) { if (m.type === "characterData") scan(m.target); else m.addedNodes.forEach(scan); }); })
+      .observe(document.documentElement, { childList: true, subtree: true, characterData: true });
+    scan(document.body);
+  })();
   function toast(msg) {
     var t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show");
     clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove("show"); }, 3000);
