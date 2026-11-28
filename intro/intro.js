@@ -14,15 +14,18 @@
   "use strict";
   var BASE = (function () { var s = document.currentScript && document.currentScript.src; return s ? s.replace(/[^/]*$/, "") : "intro/"; })();
   var VER = "2";
-  var K_SEEN = "swt-intro-seen", K_VOICE = "swt-intro-voice", K_MUTE = "swt-intro-mute";   // 不以 mf- 開頭：只存在這台裝置，不同步雲端
+  var K_SEEN = "swt-intro-seen", K_VOICE = "swt-intro-voice", K_MUTE = "swt-intro-mute", K_SUB = "swt-intro-sub";   // 不以 mf- 開頭：只存在這台裝置，不同步雲端
   var DUR = 15;
+  // 字幕：[開始秒, 結束秒, 文字]。配合畫面分段，轉場閃光時字幕先淡出。
   var LINES = [
-    [0.2, "天地初開，女媧以五色泥土創造生命。"],
-    [3.2, "五色能量修補天地，喚醒沉睡的智慧。"],
-    [6.3, "如今，五大元素匯聚，開啟一座全新的智慧學院。"],
-    [10.6, "這一次，換你創造自己，探索無限可能！"],
-    [13.3, "歡迎來到 SWT MindFlow 身心智慧學院。"]
+    [0.45, 2.8, "天地初開，｜女媧以五色泥土創造生命。"],          // 女媧造人
+    [3.2, 5.85, "五色能量修補天地，｜喚醒沉睡的智慧。"],          // 五色補天
+    [6.35, 10.3, "如今，五大元素匯聚，｜開啟一座全新的智慧學院。"], // 學院誕生
+    [10.45, 12.75, "這一次，換你創造自己，｜探索無限可能！"],      // 學院全景
+    [12.9, 16.0, "歡迎來到｜SWT MindFlow 身心智慧學院。"]        // 品牌（影片結束後畫面停 1 秒）
   ];
+  var USE_TTS = false;     // 裝置語音旁白：目前關閉（之後若有配音檔會直接混進影片）
+  var END_HOLD = 1000;     // 影片播完後停在最後畫面的毫秒數，讓最後一句字幕看得完
   var BEATS = [2.99, 5.36, 8.05, 11.0];
 
   var ls = null; try { ls = window.localStorage; } catch (e) {}
@@ -31,7 +34,7 @@
   var forced = /[?&]intro=1(&|$)/.test(location.search);
 
   var el = null, video = null, subEl = null, fx = null, state = "idle", raf = 0, spoken = -1, subIdx = -1;
-  var voiceOn = get(K_VOICE) !== "0", muted = get(K_MUTE) === "1";
+  var voiceOn = get(K_VOICE) !== "0", muted = get(K_MUTE) === "1", subOn = get(K_SUB) !== "0";
   var lastT = -1, stallAt = 0, endWait = 0, closing = false;
 
   function isPhone() {
@@ -62,11 +65,11 @@
   }
   if (TTS) { zhVoice = pickVoice(); try { TTS.addEventListener("voiceschanged", function () { zhVoice = pickVoice(); }); } catch (e) {} }
   function speak(i) {
-    if (!TTS || !voiceOn || muted) return;
+    if (!USE_TTS || !TTS || !voiceOn || muted) return;
     if (!zhVoice) zhVoice = pickVoice();
     if (!zhVoice) return;   // 沒有中文語音：只顯示字幕
     try {
-      var u = new SpeechSynthesisUtterance(LINES[i][1].replace("SWT MindFlow", "S W T Mind Flow"));
+      var u = new SpeechSynthesisUtterance(LINES[i][2].replace("｜", "").replace("SWT MindFlow", "S W T Mind Flow"));
       u.voice = zhVoice; u.lang = zhVoice.lang || "zh-TW"; u.rate = 1.14; u.pitch = 1.0; u.volume = 1;
       TTS.speak(u);
     } catch (e) {}
@@ -141,7 +144,9 @@
   // ---------- 播放器 ----------
   function btnLabels() {
     if (!el) return;
-    var bm = el.querySelector('[data-it="mute"]'), bv = el.querySelector('[data-it="voice"]');
+    var bm = el.querySelector('[data-it="mute"]'), bv = el.querySelector('[data-it="voice"]'), bs = el.querySelector('[data-it="sub"]');
+    bs.textContent = subOn ? "字幕 開" : "字幕 關"; bs.setAttribute("aria-pressed", subOn ? "true" : "false"); bs.title = subOn ? "關閉字幕" : "開啟字幕"; bs.style.opacity = subOn ? "1" : ".6";
+    el.classList.toggle("it-nosub", !subOn); bv.hidden = !USE_TTS;
     bm.textContent = muted ? "🔇" : "🔊"; bm.setAttribute("aria-label", muted ? "開啟聲音" : "關閉聲音"); bm.title = bm.getAttribute("aria-label");
     bv.textContent = voiceOn ? "💬 旁白" : "💬 旁白關"; bv.setAttribute("aria-pressed", voiceOn ? "true" : "false"); bv.title = voiceOn ? "關閉旁白語音（字幕保留）" : "開啟旁白語音"; bv.style.opacity = voiceOn ? "1" : ".6";
   }
@@ -154,7 +159,7 @@
       '<canvas class="it-fx" aria-hidden="true"></canvas><div class="it-sub" aria-live="polite"></div>' +
       '<div class="it-start"><div class="it-kicker">SWT MINDFLOW ・ 序章</div><button class="it-go" type="button" data-it="go" aria-label="開啟序章動畫"></button>' +
       '<div class="it-title">天地初開・智慧學院誕生</div><div class="it-hint">🔊 建議開啟聲音・約 15 秒</div></div>' +
-      '<div class="it-bar"><button type="button" data-it="mute"></button><button type="button" data-it="voice"></button><button type="button" class="it-skip" data-it="skip">略過動畫 ⏭</button></div>';
+      '<div class="it-bar"><button type="button" data-it="mute"></button><button type="button" data-it="voice"></button><button type="button" data-it="sub"></button><button type="button" class="it-skip" data-it="skip">略過動畫 ⏭</button></div>';
     document.body.appendChild(el);
     video = el.querySelector("video"); subEl = el.querySelector(".it-sub");
     video.muted = muted; video.src = pickSrc();
@@ -169,6 +174,7 @@
     var b = e.target.closest ? e.target.closest("[data-it]") : null, act = b ? b.getAttribute("data-it") : "";
     if (act === "skip") { e.stopPropagation(); return close(); }
     if (act === "mute") { muted = !muted; put(K_MUTE, muted ? "1" : "0"); if (video) video.muted = muted; if (muted) hush(); btnLabels(); return; }
+    if (act === "sub") { subOn = !subOn; put(K_SUB, subOn ? "1" : "0"); btnLabels(); return; }
     if (act === "voice") { voiceOn = !voiceOn; put(K_VOICE, voiceOn ? "1" : "0"); if (!voiceOn) hush(); btnLabels(); return; }
     if (state === "ready") play();   // 開始畫面任何地方都能開始
   }
@@ -194,10 +200,21 @@
       if (t !== lastT) { lastT = t; stallAt = now; }
       else if (now - stallAt > 9000 && !video.paused) { close(); return; }   // 網路卡住太久就直接進登入，不擋住玩家
       for (var i = spoken + 1; i < LINES.length; i++) { if (t >= LINES[i][0]) { spoken = i; speak(i); } else break; }
-      var si = -1; for (var k = 0; k < LINES.length; k++) if (t >= LINES[k][0] - 0.05) si = k;
-      if (si !== subIdx) { subIdx = si; subEl.classList.remove("on"); if (si >= 0) { subEl.textContent = LINES[si][1]; void subEl.offsetWidth; subEl.classList.add("on"); } }
+      showSub(t);
     }
     if (fx) fx.frame(state === "ending" ? DUR : t, now / 1000);
+  }
+  function showSub(t) {
+    var si = -1; for (var k = 0; k < LINES.length; k++) if (t >= LINES[k][0] && t < LINES[k][1]) si = k;
+    if (si === subIdx) return;
+    subIdx = si; subEl.classList.remove("on");
+    if (si >= 0) {
+      // 「｜」是窄螢幕的換行點：寬螢幕一行顯示；放不下時在逗號處換行，不會只剩一兩個字掉到第二行
+      var parts = LINES[si][2].split("｜"); subEl.innerHTML = "";
+      parts.forEach(function (p, i) { var sp = document.createElement("span"); sp.textContent = p; if (i) sp.className = "it-br"; subEl.appendChild(sp); });
+      subEl.classList.toggle("it-wrap", subEl.scrollWidth > subEl.parentNode.clientWidth * 0.92 || window.innerWidth < 600 && LINES[si][2].length > 17);
+      void subEl.offsetWidth; subEl.classList.add("on");
+    }
   }
   function onEnded() {
     if (state !== "playing") return;
@@ -206,8 +223,8 @@
     var t0 = Date.now();
     (function wait() {
       if (!el || closing) return;
-      var talking = TTS && voiceOn && !muted && (TTS.speaking || TTS.pending);
-      if (talking && Date.now() - t0 < 3500) { endWait = setTimeout(wait, 150); return; }
+      var talking = USE_TTS && TTS && voiceOn && !muted && (TTS.speaking || TTS.pending);
+      if ((talking && Date.now() - t0 < 3500) || Date.now() - t0 < END_HOLD) { endWait = setTimeout(wait, 100); return; }
       close();
     })();
   }

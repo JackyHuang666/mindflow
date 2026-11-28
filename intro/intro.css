@@ -9,8 +9,9 @@
 #mf-intro.it-contain:before{top:0;transform:scaleY(-1)}
 #mf-intro.it-contain:after{bottom:0}
 /* 字幕（旁白） */
-#mf-intro .it-sub{position:absolute;left:50%;transform:translateX(-50%);bottom:var(--it-sub-b,9%);width:min(92vw,980px);text-align:center;font-size:clamp(16px,2.6vmin + 6px,30px);line-height:1.5;font-weight:700;letter-spacing:.06em;color:#fff8e8;text-shadow:0 2px 6px rgba(0,0,0,.95),0 0 18px rgba(20,8,40,.9);opacity:0;transition:opacity .45s ease;pointer-events:none}
-#mf-intro .it-sub.on{opacity:1}
+#mf-intro .it-sub{position:absolute;left:50%;bottom:var(--it-sub-b,9%);transform:translate(-50%,8px);max-width:min(94vw,1040px);width:max-content;box-sizing:border-box;padding:.28em 1.1em .34em;border-radius:999px;text-align:center;font-size:clamp(16px,2.4vmin + 7px,32px);line-height:1.45;font-weight:700;letter-spacing:.08em;color:#fff7e2;background:radial-gradient(closest-side,rgba(8,4,24,.55),rgba(8,4,24,.28) 70%,rgba(8,4,24,0));text-shadow:0 1px 3px rgba(0,0,0,.95),0 0 14px rgba(20,8,40,.85),0 0 22px rgba(255,200,120,.25);opacity:0;transition:opacity .45s ease,transform .6s ease;pointer-events:none;white-space:normal}
+#mf-intro .it-sub.it-wrap .it-br{display:block}#mf-intro .it-sub.it-wrap{border-radius:22px}
+#mf-intro .it-sub.on{opacity:1;transform:translate(-50%,0)}
 #mf-intro.it-nosub .it-sub{display:none}
 /* 右上控制列 */
 #mf-intro .it-bar{position:absolute;top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));display:flex;gap:8px;z-index:3;opacity:0;transition:opacity .4s}
