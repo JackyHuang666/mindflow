@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>身心智慧學院</title><!-- 加入主畫面：名稱、圖示、獨立 App 視窗（PWA / iOS） --><link rel="manifest" href="manifest.webmanifest?v=2"><meta name="application-name" content="身心智慧學院"><meta name="theme-color" content="#0e1838"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="身心智慧學院"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"><link rel="apple-touch-icon" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png?v=2"><link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png?v=2"><link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120.png?v=2"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"><link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"><link rel="icon" href="favicon.ico?v=2" sizes="any"><meta name="app-version" content="20261128-050611"><script src="update.js?v=1"></script></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>身心智慧學院</title><!-- 加入主畫面：名稱、圖示、獨立 App 視窗（PWA / iOS） --><link rel="manifest" href="manifest.webmanifest?v=2"><meta name="application-name" content="身心智慧學院"><meta name="theme-color" content="#0e1838"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="身心智慧學院"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"><link rel="apple-touch-icon" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png?v=2"><link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png?v=2"><link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120.png?v=2"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"><link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"><link rel="icon" href="favicon.ico?v=2" sizes="any"><meta name="app-version" content="20261128-052531"><script src="update.js?v=1"></script></head><body>
 <title>身心智慧學院</title>
 <script src="diag.js?v=3"></script>
 <meta name="description" content="電影質感的身心智慧學院主畫面：光束、柔光暈、飛鳥與櫻花、雲海外圍、明亮的夜晚村莊。">
@@ -1257,10 +1257,24 @@
   var safeProbe = document.createElement("div");
   safeProbe.style.cssText = "position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)";
   document.body.appendChild(safeProbe);
+  // 操作介面固定位置（v116）：iPhone／iPad 在輸入框打字時會自動放大頁面、鍵盤會把頁面往上推，收起後常停在放大或捲動的狀態，
+  // 固定位置的操作介面就整個偏移（上方被推出畫面、下方浮到中間）。現在：不允許自動放大、鍵盤收起後把頁面捲回原位、
+  // 打字中或頁面被放大時不用可見範圍重排，維持原本的位置
+  function typing() { var a = document.activeElement; return !!(a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA" || a.tagName === "SELECT" || a.isContentEditable)); }
+  function unscroll() { if (!typing() && (window.scrollX || window.scrollY || document.documentElement.scrollTop || document.body.scrollTop)) { window.scrollTo(0, 0); document.documentElement.scrollTop = document.body.scrollTop = 0; } }
+  function unzoom() {   // 頁面還停在放大狀態：重新套用 viewport 設定，iOS 會縮回 1 倍
+    var vv = window.visualViewport, m = document.querySelector('meta[name=viewport]');
+    if (!vv || !m || typing() || (vv.scale || 1) < 1.02) return;
+    var c = m.getAttribute("content"); m.setAttribute("content", c + ",minimum-scale=1"); setTimeout(function () { m.setAttribute("content", c); }, 60);
+  }
+  document.addEventListener("focusout", function () { setTimeout(function () { unzoom(); unscroll(); layoutHud(); }, 120); }, true);
+  window.addEventListener("scroll", function () { if (!typing()) unscroll(); }, { passive: true });
   function layoutHud() {
+    unscroll();
     var cs = getComputedStyle(safeProbe), sT = parseFloat(cs.paddingTop) || 0, sR = parseFloat(cs.paddingRight) || 0, sB = parseFloat(cs.paddingBottom) || 0, sL = parseFloat(cs.paddingLeft) || 0;
-    // 用 visualViewport 取得實際可見範圍（平板瀏覽器的工具列、主畫面指示條不算在內）
-    var VW = window.visualViewport ? window.visualViewport.width : window.innerWidth, VH = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    // 用 visualViewport 取得實際可見範圍（平板瀏覽器的工具列、主畫面指示條不算在內）；打字中（鍵盤開著）或頁面被放大時改用整個視窗
+    var vv = window.visualViewport, useVV = vv && !typing() && Math.abs((vv.scale || 1) - 1) < 0.02;
+    var VW = useVV ? vv.width : window.innerWidth, VH = useVV ? vv.height : window.innerHeight;
     var W = Math.min(window.innerWidth, VW) - sL - sR, H = Math.min(window.innerHeight, VH) - sT - sB, portrait = W < H;
     var u = portrait ? Math.min(W / 1000, H / 1150) : Math.min(W / HUD_W, H / HUD_H);
     document.documentElement.style.setProperty("--u", u + "px");
