@@ -1,0 +1,35 @@
+/* SWT MindFlow 開場序章播放器（intro/intro.js）。全部以 it- / #mf-intro 開頭，不影響其他畫面。 */
+#mf-intro{position:fixed;inset:0;z-index:99995;background:#05040f radial-gradient(120% 80% at 50% 30%,#1c1446 0%,#080616 60%,#03020a 100%);color:#f6efe0;overflow:hidden;opacity:1;transition:opacity .8s ease;font-family:"Noto Sans TC",-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei",sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+#mf-intro.it-out{opacity:0;pointer-events:none}
+#mf-intro video{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:100%;height:100%;object-fit:cover;background:transparent}
+#mf-intro.it-contain video{object-fit:contain}
+#mf-intro .it-fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:screen}
+/* 直式畫面上下的空白：淡淡的星雲漸層，和影片自然銜接 */
+#mf-intro.it-contain:before,#mf-intro.it-contain:after{content:"";position:absolute;left:0;right:0;height:var(--it-bar,0px);pointer-events:none;background:linear-gradient(180deg,rgba(40,24,90,.0),rgba(60,36,120,.25))}
+#mf-intro.it-contain:before{top:0;transform:scaleY(-1)}
+#mf-intro.it-contain:after{bottom:0}
+/* 字幕（旁白） */
+#mf-intro .it-sub{position:absolute;left:50%;transform:translateX(-50%);bottom:var(--it-sub-b,9%);width:min(92vw,980px);text-align:center;font-size:clamp(16px,2.6vmin + 6px,30px);line-height:1.5;font-weight:700;letter-spacing:.06em;color:#fff8e8;text-shadow:0 2px 6px rgba(0,0,0,.95),0 0 18px rgba(20,8,40,.9);opacity:0;transition:opacity .45s ease;pointer-events:none}
+#mf-intro .it-sub.on{opacity:1}
+#mf-intro.it-nosub .it-sub{display:none}
+/* 右上控制列 */
+#mf-intro .it-bar{position:absolute;top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));display:flex;gap:8px;z-index:3;opacity:0;transition:opacity .4s}
+#mf-intro.it-playing .it-bar,#mf-intro.it-ready .it-bar{opacity:1}
+#mf-intro .it-bar button{min-width:44px;height:44px;padding:0 14px;border-radius:22px;border:1px solid rgba(255,230,180,.45);background:rgba(10,8,30,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);color:#fff4dc;font:inherit;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap}
+#mf-intro .it-bar button:active{transform:scale(.96)}
+#mf-intro .it-bar button:focus-visible,#mf-intro .it-go:focus-visible{outline:3px solid #f3c969;outline-offset:2px}
+#mf-intro .it-bar .it-skip{background:rgba(243,201,105,.2);border-color:rgba(243,201,105,.8)}
+/* 開始畫面 */
+#mf-intro .it-start{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:2;background:radial-gradient(60% 50% at 50% 50%,rgba(8,4,24,.25),rgba(4,2,14,.72));transition:opacity .5s;text-align:center;padding:20px}
+#mf-intro.it-playing .it-start{opacity:0;pointer-events:none}
+#mf-intro .it-kicker{font-size:13px;letter-spacing:.35em;color:#f3c969;opacity:.9;text-shadow:0 1px 8px rgba(0,0,0,.8)}
+#mf-intro .it-go{position:relative;width:96px;height:96px;border-radius:50%;border:2px solid rgba(255,220,150,.9);background:radial-gradient(circle at 50% 40%,rgba(255,214,140,.35),rgba(120,70,200,.25));color:#fff;cursor:pointer;box-shadow:0 0 30px rgba(255,190,90,.45),inset 0 0 18px rgba(255,220,160,.35);animation:itPulse 2.2s ease-in-out infinite}
+#mf-intro .it-go:before{content:"";position:absolute;left:50%;top:50%;transform:translate(-36%,-50%);border-style:solid;border-width:16px 0 16px 26px;border-color:transparent transparent transparent #fff6dc}
+#mf-intro .it-title{font-size:clamp(18px,3.2vmin + 8px,30px);font-weight:900;letter-spacing:.12em;text-shadow:0 2px 12px rgba(0,0,0,.9)}
+#mf-intro .it-hint{font-size:13px;opacity:.85;text-shadow:0 1px 6px rgba(0,0,0,.9)}
+@keyframes itPulse{0%,100%{box-shadow:0 0 22px rgba(255,190,90,.35),inset 0 0 14px rgba(255,220,160,.3)}50%{box-shadow:0 0 46px rgba(255,190,90,.7),inset 0 0 22px rgba(255,220,160,.5)}}
+@media (prefers-reduced-motion:reduce){#mf-intro .it-go{animation:none}}
+/* 登入畫面上的「重播序章」 */
+#mf-intro-replay{position:fixed;top:max(10px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));z-index:99991;height:36px;padding:0 12px;border-radius:18px;border:1px solid rgba(243,201,105,.6);background:rgba(12,10,34,.6);color:#f8e7bd;font:700 13px/1 "Noto Sans TC",-apple-system,sans-serif;cursor:pointer;display:none;align-items:center;gap:6px;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+#mf-intro-replay.on{display:flex}
+#mf-intro-replay:focus-visible{outline:3px solid #f3c969;outline-offset:2px}

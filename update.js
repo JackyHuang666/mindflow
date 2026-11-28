@@ -39,6 +39,7 @@
 
   function playing() {
     if (document.getElementById("mfc-lab")) return true;   // 遊戲覆蓋層開著
+    if (document.getElementById("mf-intro")) return true;  // 序章動畫播放中
     var a = document.activeElement;
     return !!(a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA" || a.isContentEditable));
   }
