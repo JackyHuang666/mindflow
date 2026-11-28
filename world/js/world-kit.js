@@ -333,6 +333,7 @@
     this.tex = makeTextures(THREE, opt.aniso || 1);
     this.mats = {}; this.geos = {};
     this.anims = []; this.labels = []; this.portals = []; this.railJobs = []; this.lights = [];
+    this.glowables = []; this.glowSprites = []; this.glow = 1;   // 時段切換時調整：發光材質、光暈、點光源的強度
     this.root = new THREE.Group(); this.root.name = "World"; scene.add(this.root);
     this.live = new THREE.Group(); this.live.name = "WorldLive"; scene.add(this.live);
     this.rand = rng(opt.seed || 1234);
@@ -346,41 +347,43 @@
     var THREE = this.THREE, L = this.lin.bind(this), t = this.tex, m;
     var std = function (o) { return new THREE.MeshStandardMaterial(Object.assign({ roughness: 0.75, metalness: 0 }, o)); };
     var basic = function (o) { return new THREE.MeshBasicMaterial(o); };
+    var self = this, glow = function (m, base) { self.glowables.push({ m: m, base: base, kind: m.isMeshBasicMaterial ? "basic" : "emissive" }); return m; };
     switch (key) {
-      case "stone": m = std({ color: L("#efe6d6"), roughness: 0.62 }); break;
-      case "stoneDark": m = std({ color: L("#d6c7ae"), roughness: 0.7 }); break;
-      case "gold": m = std({ color: L("#e6bd62"), metalness: 0.65, roughness: 0.32, emissive: L("#4a3208"), emissiveIntensity: 0.35 }); break;
-      case "goldRoof": m = std({ color: L("#e0a948"), metalness: 0.45, roughness: 0.4, emissive: L("#5a3606"), emissiveIntensity: 0.3 }); break;
-      case "violetRoof": m = std({ color: L("#9b7ee6"), metalness: 0.3, roughness: 0.4, emissive: L("#2c1660"), emissiveIntensity: 0.4 }); break;
-      case "blueRoof": m = std({ color: L("#6fa9e8"), metalness: 0.35, roughness: 0.35 }); break;
-      case "pave": m = std({ map: t.pave(), roughness: 0.55 }); break;
-      case "road": m = std({ map: t.road(), roughness: 0.6 }); break;
-      case "grass": m = std({ map: t.grass(), roughness: 0.95 }); break;
-      case "rock": m = std({ map: t.rock(), color: L("#ffffff"), roughness: 0.95, flatShading: true }); break;
-      case "rockDark": m = std({ map: t.rock(), color: L("#c9c0b4"), roughness: 0.95, flatShading: true }); break;
-      case "earth": m = std({ color: L("#a88f6b"), roughness: 1, flatShading: true }); break;
-      case "trunk": m = std({ color: L("#9c7650"), roughness: 0.9, flatShading: true }); break;
-      case "worldTrunk": m = std({ color: L("#cfa874"), roughness: 0.8, emissive: L("#6a3f10"), emissiveIntensity: 0.35, flatShading: true }); break;
-      case "leaf": m = std({ color: L("#6fb34a"), roughness: 0.85, flatShading: true }); break;
-      case "leaf2": m = std({ color: L("#9ccf5a"), roughness: 0.85, flatShading: true }); break;
-      case "leafDark": m = std({ color: L("#4f9440"), roughness: 0.9, flatShading: true }); break;
-      case "leafGold": m = std({ color: L("#b9d65e"), roughness: 0.8, emissive: L("#6a6a10"), emissiveIntensity: 0.25, flatShading: true }); break;
-      case "pink": m = std({ color: L("#f5b3cf"), roughness: 0.85, flatShading: true }); break;
-      case "pink2": m = std({ color: L("#fbd3e4"), roughness: 0.85, flatShading: true }); break;
-      case "flower": m = std({ color: L("#ffffff"), roughness: 0.8, flatShading: true, emissive: L("#ffffff"), emissiveIntensity: 0.05 }); break;
-      case "glass": m = std({ color: L("#cdeeff"), metalness: 0.2, roughness: 0.08, transparent: true, opacity: 0.32, depthWrite: false, emissive: L("#6fc6f0"), emissiveIntensity: 0.18, side: THREE.DoubleSide }); break;
-      case "glassViolet": m = std({ color: L("#d9c9ff"), metalness: 0.2, roughness: 0.08, transparent: true, opacity: 0.4, depthWrite: false, emissive: L("#9a6cf0"), emissiveIntensity: 0.35, side: THREE.DoubleSide }); break;
-      case "glassBlue": m = std({ color: L("#9fd4ff"), metalness: 0.3, roughness: 0.1, transparent: true, opacity: 0.55, depthWrite: false, emissive: L("#3f9be6"), emissiveIntensity: 0.4, side: THREE.DoubleSide }); break;
-      case "water": m = std({ color: L("#73cdf5"), roughness: 0.15, metalness: 0.1, emissive: L("#2f9bd6"), emissiveIntensity: 0.45, transparent: true, opacity: 0.92 }); break;
-      case "winWarm": m = std({ map: t.windows("warm"), emissiveMap: t.windows("warm"), emissive: L("#ffffff"), emissiveIntensity: 0.45, roughness: 0.6 }); break;
-      case "winCyan": m = std({ map: t.windows("cyan"), emissiveMap: t.windows("cyan"), emissive: L("#ffffff"), emissiveIntensity: 0.45, roughness: 0.6 }); break;
-      case "winViolet": m = std({ map: t.windows("violet"), emissiveMap: t.windows("violet"), emissive: L("#ffffff"), emissiveIntensity: 0.45, roughness: 0.6 }); break;
-      case "glowCyan": m = basic({ color: L("#9cecff") }); break;
-      case "glowGold": m = basic({ color: L("#ffe39a") }); break;
-      case "glowViolet": m = basic({ color: L("#d6b8ff") }); break;
-      case "glowPink": m = basic({ color: L("#ffd4e6") }); break;
-      case "banner": m = std({ color: L("#2f5fbf"), roughness: 0.8, side: THREE.DoubleSide }); break;
-      case "bannerViolet": m = std({ color: L("#6a46c8"), roughness: 0.8, side: THREE.DoubleSide }); break;
+      case "stone": m = std({ color: L("#f7f0e3"), roughness: 0.5, emissive: L("#3a2e1c"), emissiveIntensity: 0.08 }); break;
+      case "stoneDark": m = std({ color: L("#e6d7bc"), roughness: 0.6 }); break;
+      case "gold": m = std({ color: L("#f0c25e"), metalness: 0.85, roughness: 0.25, emissive: L("#6a4408"), emissiveIntensity: 0.45 }); break;
+      case "goldRoof": m = std({ color: L("#f2b648"), metalness: 0.6, roughness: 0.3, emissive: L("#6a3c06"), emissiveIntensity: 0.4 }); break;
+      case "violetRoof": m = std({ color: L("#a07ef0"), metalness: 0.35, roughness: 0.35, emissive: L("#3a1c80"), emissiveIntensity: 0.45 }); break;
+      case "blueRoof": m = std({ color: L("#5c9df0"), metalness: 0.45, roughness: 0.28, emissive: L("#123c80"), emissiveIntensity: 0.25 }); break;
+      case "pave": m = std({ map: t.pave(), roughness: 0.4, metalness: 0.05 }); break;
+      case "road": m = std({ map: t.road(), roughness: 0.45 }); break;
+      case "grass": m = std({ map: t.grass(), roughness: 0.95, emissive: L("#2c5a12"), emissiveIntensity: 0.12 }); break;
+      case "rock": m = std({ map: t.rock(), color: L("#f2ece2"), roughness: 0.92, flatShading: true }); break;
+      case "rockDark": m = std({ map: t.rock(), color: L("#d4ccc0"), roughness: 0.92, flatShading: true }); break;
+      case "earth": m = std({ color: L("#b39268"), roughness: 1 }); break;
+      case "trunk": m = std({ color: L("#a57a4e"), roughness: 0.85 }); break;
+      case "worldTrunk": m = glow(std({ color: L("#e2b97c"), roughness: 0.6, emissive: L("#c07a20"), emissiveIntensity: 0.4 }), 0.4); break;
+      case "leaf": m = std({ color: L("#5fb544"), roughness: 0.8, emissive: L("#1f5a12"), emissiveIntensity: 0.18 }); break;
+      case "leaf2": m = std({ color: L("#93d454"), roughness: 0.8, emissive: L("#3a6a10"), emissiveIntensity: 0.18 }); break;
+      case "leafDark": m = std({ color: L("#3e9440"), roughness: 0.85, emissive: L("#123f12"), emissiveIntensity: 0.15 }); break;
+      case "leafGold": m = glow(std({ color: L("#cfe266"), roughness: 0.7, emissive: L("#8a7a10"), emissiveIntensity: 0.3 }), 0.3); break;
+      case "pink": m = std({ color: L("#f7a6c8"), roughness: 0.75, emissive: L("#6a2040"), emissiveIntensity: 0.18 }); break;
+      case "pink2": m = std({ color: L("#ffd2e6"), roughness: 0.75, emissive: L("#6a3048"), emissiveIntensity: 0.15 }); break;
+      case "flower": m = std({ color: L("#ffffff"), roughness: 0.7, emissive: L("#ffffff"), emissiveIntensity: 0.12 }); break;
+      case "cloud": m = std({ color: L("#ffffff"), roughness: 1, emissive: L("#ffffff"), emissiveIntensity: 0.32 }); break;
+      case "glass": m = glow(std({ color: L("#d6f2ff"), metalness: 0.6, roughness: 0.05, transparent: true, opacity: 0.3, depthWrite: false, emissive: L("#7fd3ff"), emissiveIntensity: 0.22, side: THREE.DoubleSide }), 0.22); break;
+      case "glassViolet": m = glow(std({ color: L("#e2d2ff"), metalness: 0.6, roughness: 0.05, transparent: true, opacity: 0.42, depthWrite: false, emissive: L("#a06cf5"), emissiveIntensity: 0.4, side: THREE.DoubleSide }), 0.4); break;
+      case "glassBlue": m = glow(std({ color: L("#a8d8ff"), metalness: 0.6, roughness: 0.06, transparent: true, opacity: 0.6, depthWrite: false, emissive: L("#3f9be6"), emissiveIntensity: 0.45, side: THREE.DoubleSide }), 0.45); break;
+      case "water": m = glow(std({ color: L("#6fd6ff"), roughness: 0.05, metalness: 0.4, emissive: L("#26a8e6"), emissiveIntensity: 0.55, transparent: true, opacity: 0.9 }), 0.55); break;
+      case "winWarm": m = glow(std({ map: t.windows("warm"), emissiveMap: t.windows("warm"), emissive: L("#ffffff"), emissiveIntensity: 0.5, roughness: 0.5 }), 0.5); break;
+      case "winCyan": m = glow(std({ map: t.windows("cyan"), emissiveMap: t.windows("cyan"), emissive: L("#ffffff"), emissiveIntensity: 0.5, roughness: 0.5 }), 0.5); break;
+      case "winViolet": m = glow(std({ map: t.windows("violet"), emissiveMap: t.windows("violet"), emissive: L("#ffffff"), emissiveIntensity: 0.5, roughness: 0.5 }), 0.5); break;
+      case "glowCyan": m = glow(basic({ color: L("#a6f0ff") }), 1); break;
+      case "glowGold": m = glow(basic({ color: L("#ffe39a") }), 1); break;
+      case "glowViolet": m = glow(basic({ color: L("#dcc2ff") }), 1); break;
+      case "glowPink": m = glow(basic({ color: L("#ffd4e6") }), 1); break;
+      case "banner": m = std({ color: L("#2e62d0"), roughness: 0.7, side: THREE.DoubleSide, emissive: L("#0a2470"), emissiveIntensity: 0.3 }); break;
+      case "bannerViolet": m = std({ color: L("#6a46c8"), roughness: 0.7, side: THREE.DoubleSide }); break;
       default: throw new Error("unknown material " + key);
     }
     m.name = key; this.mats[key] = m; return m;
@@ -528,25 +531,48 @@
     this.cyl("stone", x, y + 0.9, z, 0.09, 0.13, 1.8, 6, { cast: false });
     this.cyl("gold", x, y + 1.85, z, 0.2, 0.12, 0.14, 6, { cast: false });
     this.put(this.geo("crystal", function () { return new THREE.OctahedronGeometry(0.2, 0); }), "glowCyan", x, y + 2.15, z, 0, 1, 1.6, 1, { cast: false });
+    if (!this.low) (this.lampPts || (this.lampPts = [])).push([x, y + 2.15, z]);
+  };
+  /** 蓬鬆的樹冠塊：表面有起伏的圓球（畫質高時更圓滑） */
+  P.puff = function (variant) {
+    var THREE = this.THREE, det = this.q === "high" || this.q === "ultra" ? 2 : 1;
+    return this.geo("puff" + det + "_" + variant, function () {
+      var g = new THREE.IcosahedronGeometry(1, det), p = g.attributes.position, r = rng(900 + variant), v = new THREE.Vector3(), nor = new Float32Array(p.count * 3);
+      var bumps = []; for (var i = 0; i < 7; i++) bumps.push(new THREE.Vector3(r() - 0.5, r() - 0.3, r() - 0.5).normalize());
+      for (var j = 0; j < p.count; j++) {
+        v.fromBufferAttribute(p, j); var n = v.clone().normalize(), k = 1;
+        bumps.forEach(function (b) { k += Math.max(0, n.dot(b) - 0.55) * 0.55; });
+        if (n.y < -0.3) k *= 0.85 + (n.y + 1) * 0.2;                       // 底部稍微平一點，像插畫裡的樹冠
+        v.copy(n).multiplyScalar(k); p.setXYZ(j, v.x, v.y, v.z); nor[j * 3] = n.x; nor[j * 3 + 1] = n.y; nor[j * 3 + 2] = n.z;
+      }
+      g.setAttribute("normal", new THREE.BufferAttribute(nor, 3));   // 用球面方向當法線：圓滑柔和，沒有稜角
+      return g;
+    });
   };
   P.tree = function (x, y, z, s, kind, solid) {
-    var THREE = this.THREE, r = this.rand, blob = this.geo("blob", function () { return new THREE.IcosahedronGeometry(1, 1); });
+    var THREE = this.THREE, r = this.rand;
     s = s || 1; kind = kind || "round";
     if (kind === "cypress") {
-      this.cyl("trunk", x, y + 0.4 * s, z, 0.12 * s, 0.16 * s, 0.8 * s, 5);
-      this.put(this.geo("cone8", function () { return new THREE.ConeGeometry(1, 1, 8); }), "leafDark", x, y + 2.2 * s, z, r() * 3, 0.65 * s, 3.4 * s, 0.65 * s);
+      this.cyl("trunk", x, y + 0.4 * s, z, 0.12 * s, 0.16 * s, 0.8 * s, 6);
+      var cone = this.geo("cypress", function () { var g = new THREE.SphereGeometry(1, 12, 10); g.scale(1, 1, 1); var p = g.attributes.position; for (var i = 0; i < p.count; i++) { var yy = p.getY(i), k = Math.pow((1 - yy) / 2, 0.75) * 1.15; p.setX(i, p.getX(i) * k); p.setZ(i, p.getZ(i) * k); } g.computeVertexNormals(); return g; });
+      this.put(cone, "leafDark", x, y + 2.3 * s, z, r() * 3, 0.62 * s, 1.9 * s, 0.62 * s);
     } else {
-      this.cyl("trunk", x, y + 0.8 * s, z, 0.14 * s, 0.24 * s, 1.6 * s, 6);
-      var leafs = kind === "pink" ? ["pink", "pink2"] : kind === "gold" ? ["leafGold", "leaf2"] : ["leaf", "leaf2", "leafDark"];
-      var n = kind === "pink" ? 5 : 4;
+      this.cyl("trunk", x, y + 0.9 * s, z, 0.13 * s, 0.24 * s, 1.8 * s, 8);
+      var leafs = kind === "pink" ? ["pink", "pink2", "pink"] : kind === "gold" ? ["leafGold", "leaf2", "leafGold"] : ["leaf", "leaf2", "leaf"];
+      var n = kind === "pink" ? 7 : 6;
       for (var i = 0; i < n; i++) {
-        var a = i / n * 6.28 + r(), d = i ? 0.55 * s : 0, sc = (i ? 0.75 : 1) * s * (0.9 + r() * 0.3);
-        this.put(blob, leafs[i % leafs.length], x + Math.cos(a) * d, y + (1.9 + (i ? -0.15 : 0.35)) * s + r() * 0.3 * s, z + Math.sin(a) * d, r() * 3, sc, sc * 0.82, sc);
+        var a = i / (n - 1) * 6.28 + r(), top = i === 0, d = top ? 0 : (0.6 + r() * 0.25) * s, sc = (top ? 1.05 : 0.68 + r() * 0.2) * s;
+        this.put(this.puff(i % 4), leafs[i % leafs.length], x + Math.cos(a) * d, y + (top ? 2.55 : 1.95 + r() * 0.5) * s, z + Math.sin(a) * d, r() * 6, sc, sc * 0.85, sc);
       }
+      if (kind === "pink" && !this.low) for (var f = 0; f < 6; f++) { var af = r() * 6.28; this.put(this.geo("dot", function () { return new THREE.IcosahedronGeometry(0.12, 0); }), "pink2", x + Math.cos(af) * (0.6 + r() * 1.2) * s, y + 0.06, z + Math.sin(af) * (0.6 + r() * 1.2) * s, 0, 1.2, 0.3, 1.2, { cast: false }); }
     }
     if (solid) this.phys.addCircleObstacle(x, z, 0.32 * s, y, y + 2.5 * s);
   };
-  P.bush = function (x, y, z, s, matKey) { var THREE = this.THREE; this.put(this.geo("blob0", function () { return new THREE.IcosahedronGeometry(1, 0); }), matKey || "leafDark", x, y + 0.3 * s, z, this.rand() * 3, s, s * 0.65, s, { cast: false }); };
+  P.bush = function (x, y, z, s, matKey) {
+    var r = this.rand;
+    for (var i = 0; i < 3; i++) { var a = r() * 6.28, d = i ? 0.45 * s : 0, sc = (i ? 0.55 : 0.7) * s; this.put(this.puff(i), matKey || "leafDark", x + Math.cos(a) * d, y + 0.35 * s, z + Math.sin(a) * d, r() * 6, sc, sc * 0.75, sc, { cast: false }); }
+    if (r() < 0.5) for (var f = 0; f < 5; f++) { var af = r() * 6.28; this.put(this.geo("dot", function () { return new this.THREE.IcosahedronGeometry(0.12, 0); }.bind(this)), r() < 0.5 ? "pink" : "flower", x + Math.cos(af) * 0.55 * s, y + (0.4 + r() * 0.35) * s, z + Math.sin(af) * 0.55 * s, 0, 1, 1, 1, { cast: false }); }
+  };
   P.flowerBed = function (x, y, z, r, colorKey) {
     var THREE = this.THREE, n = Math.round(r * r * 5), rr = this.rand, dot = this.geo("dot", function () { return new THREE.IcosahedronGeometry(0.12, 0); });
     this.put(this.geo("disc48", function () { var g = new THREE.CircleGeometry(1, 48); g.rotateX(-Math.PI / 2); return g; }), "leafDark", x, y + 0.03, z, 0, r, 1, r, { cast: false });
@@ -556,27 +582,31 @@
     var THREE = this.THREE, self = this;
     if (!this.fallMat) {
       var t = this.tex.fall(); t.repeat.set(1, 2);
-      this.fallMat = new THREE.MeshBasicMaterial({ map: t, color: this.lin("#eaf8ff"), transparent: true, opacity: 0.9, depthWrite: false, side: THREE.DoubleSide, fog: true });
+      this.fallMat = new THREE.MeshBasicMaterial({ map: t, color: this.lin("#f4fcff"), transparent: true, opacity: 0.95, depthWrite: false, side: THREE.DoubleSide, fog: true });
       this.anims.push(function (tt) { t.offset.y = (tt * 0.9) % 1; });
     }
     var g = new THREE.PlaneGeometry(wd, len, 1, 6), p = g.attributes.position;
-    for (var i = 0; i < p.count; i++) { var k = (p.getY(i) + len / 2) / len; p.setZ(i, Math.pow(1 - k, 2.2) * 1.8); }   // 上緣往外拋出一點的弧線
+    for (var i = 0; i < p.count; i++) { var k = (p.getY(i) + len / 2) / len; p.setZ(i, Math.pow(clamp(1 - k, 0, 1), 2.2) * 1.8); }   // 上緣往外拋出一點的弧線
     g.translate(0, -len / 2, 0);
     var m = new THREE.Mesh(g, this.fallMat); m.position.set(x, y, z); m.rotation.y = Math.PI / 2 - ang; m.userData.live = true; m.renderOrder = 2;
     this.live.add(m);
-    if (!this.low) { var mist = new THREE.Sprite(this.spriteMat("mist", "#ffffff", 0.55)); mist.position.set(x + Math.cos(ang) * 1.5, y - len * 0.92, z + Math.sin(ang) * 1.5); mist.scale.set(wd * 3.2, wd * 2, 1); this.live.add(mist); }
+    // 瀑布頂端的白色水花、底部的水霧雲團
+    for (var k = 0; k < 3; k++) this.put(this.puff(k), "cloud", x + Math.cos(ang) * (0.6 + k * 0.2) + Math.sin(ang) * (k - 1) * wd * 0.3, y - 0.2, z + Math.sin(ang) * (0.6 + k * 0.2) - Math.cos(ang) * (k - 1) * wd * 0.3, k, wd * 0.22, wd * 0.14, wd * 0.22, { cast: false });
+    for (var q = 0; q < (this.low ? 2 : 5); q++) { var ox = (q - 2) * wd * 0.35, sz = wd * (0.7 + q % 2 * 0.3); this.put(this.puff(q % 4), "cloud", x + Math.cos(ang) * (1.6 + q % 2) + Math.sin(ang) * ox, y - len * 0.93 + (q % 2) * 1.2, z + Math.sin(ang) * (1.6 + q % 2) - Math.cos(ang) * ox, q, sz, sz * 0.6, sz, { cast: false }); }
   };
   P.spriteMat = function (key, color, opacity, tex, additive) {
     var k = "spr" + key + color + opacity; if (this.mats[k]) return this.mats[k];
     var THREE = this.THREE;
+    if (additive) this.mats[k + "_glow"] = 1;
     return (this.mats[k] = new THREE.SpriteMaterial({ map: tex || this.tex.glow(), color: this.lin(color), transparent: true, opacity: opacity, depthWrite: false, blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending, fog: true }));
   };
   P.glowSprite = function (x, y, z, size, color, opacity) {
-    var s = new this.THREE.Sprite(this.spriteMat("glow", color, opacity == null ? 0.7 : opacity, null, true)); s.position.set(x, y, z); s.scale.set(size, size, 1); this.live.add(s); return s;
+    var s = new this.THREE.Sprite(this.spriteMat("glow", color, opacity == null ? 0.7 : opacity, null, true)); s.position.set(x, y, z); s.scale.set(size, size, 1); this.live.add(s);
+    this.glowSprites.push({ s: s, size: size }); return s;
   };
   P.light = function (x, y, z, color, intensity, dist) {
     if (this.low || this.lights.length >= (this.phone ? 3 : 6)) return null;
-    var l = new this.THREE.PointLight(this.lin(color), intensity, dist, 2); l.position.set(x, y, z); this.live.add(l); this.lights.push(l); return l;
+    var l = new this.THREE.PointLight(this.lin(color), intensity, dist, 2); l.position.set(x, y, z); l.userData.base = intensity; this.live.add(l); this.lights.push(l); return l;
   };
   /** 地名牌（靠近時才清楚顯示） */
   P.label = function (x, y, z, text, sub, tint) {
@@ -600,7 +630,14 @@
     add(new THREE.TorusGeometry(r + 0.55, 0.16, 6, 40), "stone", 0, drumH + 0.45, 0, 0, 1, 1, 1, Math.PI / 2);
     var dome = add(new THREE.SphereGeometry(r, 32, 14, 0, Math.PI * 2, 0, Math.PI / 2), glass, 0, drumH, 0); dome.castShadow = false;
     for (var k = 0; k < 10; k++) add(new THREE.TorusGeometry(r, 0.07, 4, 20, Math.PI), "gold", 0, drumH, 0, k / 10 * Math.PI, 1, 1, 1);
-    add(new THREE.TorusGeometry(r * 0.72, 0.06, 4, 32), "gold", 0, drumH + r * 0.69, 0, 0, 1, 1, 1, Math.PI / 2);
+    [0.35, 0.69, 0.9].forEach(function (k) { var rr = r * Math.sqrt(1 - k * k); add(new THREE.TorusGeometry(rr, 0.06, 4, 32), "gold", 0, drumH + r * k, 0, 0, 1, 1, 1, Math.PI / 2); });
+    add(new THREE.TorusGeometry(r + 1.05, 0.08, 4, 48), "glow" + (o.glow || "Cyan"), 0, 0.08, 0, 0, 1, 1, 1, Math.PI / 2);
+    // 門口兩側的旗幟（同分鏡圖的藍色學院旗）
+    [-1.9, 1.9].forEach(function (bx) {
+      add(new THREE.CylinderGeometry(0.06, 0.08, 4.2, 6), "gold", bx, 2.1, r + 1.4);
+      add(new THREE.PlaneGeometry(0.9, 2.2), o.glow === "Violet" ? "bannerViolet" : "banner", bx + (bx > 0 ? 0.5 : -0.5), 3, r + 1.4);
+      add(new THREE.OctahedronGeometry(0.16, 0), "gold", bx, 4.35, r + 1.4);
+    });
     add(new THREE.CylinderGeometry(0.25, 0.5, 0.8, 10), "gold", 0, drumH + r + 0.3, 0);
     add(new THREE.OctahedronGeometry(0.4, 0), "glowCyan", 0, drumH + r + 1.1, 0, 0, 1, 1.8, 1);
     // 正門（朝區域 +Z）
@@ -655,7 +692,17 @@
     add(gab, roof, 0, 0.6 + 3.4, dp / 2 + 0.8, 4.4, 1.4, 1.9, 0);
     add(new THREE.PlaneGeometry(2.2, 2.6), o.door || "glowGold", 0, 0.6 + 1.3, dp / 2 + 1.61);
     [-1.6, 1.6].forEach(function (cx) { add(cyl, "stone", cx, 0.6 + 1.7, dp / 2 + 1.7, 0.18, 3.4, 0.18); });
+    // 屋脊金線、四角小尖塔、門前燈籠
+    var pin = new THREE.ConeGeometry(0.25, 1.4, 8);
+    add(box, "gold", 0, 0.6 + ht + 2.85, 0, 0.18, 0.18, dp + 0.7);
+    [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(function (q) {
+      add(cyl, "stone", q[0] * (wd / 2 + 4.3), 0.6 + ht * 0.4, q[1] * (dp / 2 - 0.2) + 0.6, 0.35, ht * 0.8 + 0.4, 0.35);
+      add(pin, roof, q[0] * (wd / 2 + 4.3), 0.6 + ht * 0.8 + 1.1, q[1] * (dp / 2 - 0.2) + 0.6);
+      add(pin, roof, q[0] * (wd / 2 + 0.1), 0.6 + ht + 0.9, q[1] * (dp / 2 + 0.1));
+    });
     this.batch.addObject(g);
+    var cR = Math.cos(o.rot || 0), sR = Math.sin(o.rot || 0);
+    [-2.6, 2.6].forEach(function (lx) { var wx = o.x + lx * cR + (dp / 2 + 2.2) * sR, wz = o.z - lx * sR + (dp / 2 + 2.2) * cR; self.lamp(wx, y, wz); self.glowSprite(wx, y + 2.15, wz, 1.8, "#ffe2a0", 0.6); });
     if (o.emblem) {   // 門上的徽章（發光，正對前方）
       var em = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 1.8), new THREE.MeshBasicMaterial({ map: this.tex.emblem(o.emblem, o.emblemColor || "#ffe9a8"), transparent: true, depthWrite: false }));
       var c = Math.cos(o.rot || 0), s = Math.sin(o.rot || 0), lz = dp / 2 + 0.33;
@@ -666,55 +713,100 @@
     return { door: [o.x + s2 * (dp / 2 + 3.6), o.z + c2 * (dp / 2 + 3.6)] };
   };
 
-  /* ---------------- 天空與遠景（雲海、遠山、漂浮小島、光點） ---------------- */
+  /* ---------------- 天空與遠景（漸層天空、太陽／月亮、星星、立體積雲、雲海、遠山、漂浮小島、光點） ---------------- */
   P.environment = function (o) {
     o = o || {};
     var THREE = this.THREE, self = this, L = this.lin.bind(this), r = rng(o.seed || 77);
-    // 天空：漸層球（不受霧影響）
-    var sky = new THREE.Mesh(new THREE.SphereGeometry(900, 32, 16), new THREE.ShaderMaterial({
-      side: THREE.BackSide, depthWrite: false, fog: false,
-      uniforms: { top: { value: L(o.top || "#2c79dc") }, mid: { value: L(o.mid || "#86c4ff") }, hor: { value: L(o.horizon || "#eaf5ff") }, sunDir: { value: new THREE.Vector3(-0.35, 0.55, -0.75).normalize() } },
+    var U = { top: { value: L("#1f6fe0") }, mid: { value: L("#6fb6ff") }, hor: { value: L("#e6f4ff") }, sunCol: { value: L("#fff2d0") }, sunDir: { value: new THREE.Vector3(-0.35, 0.55, -0.75).normalize() }, stars: { value: 0 }, sunSize: { value: 1 } };
+    var sky = new THREE.Mesh(new THREE.SphereGeometry(900, 48, 24), new THREE.ShaderMaterial({
+      side: THREE.BackSide, depthWrite: false, fog: false, uniforms: U,
       vertexShader: "varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
-      fragmentShader: "uniform vec3 top; uniform vec3 mid; uniform vec3 hor; uniform vec3 sunDir; varying vec3 vP;" +
-        "void main(){ float h = vP.y; vec3 c = h > 0.18 ? mix(mid, top, smoothstep(0.18, 0.75, h)) : mix(hor, mid, smoothstep(-0.05, 0.18, h));" +
-        " float s = max(dot(normalize(vP), sunDir), 0.0); c += vec3(1.0,0.93,0.78) * (pow(s, 60.0) * 0.9 + pow(s, 6.0) * 0.18); gl_FragColor = vec4(c, 1.0); }"
+      fragmentShader: [
+        "uniform vec3 top; uniform vec3 mid; uniform vec3 hor; uniform vec3 sunCol; uniform vec3 sunDir; uniform float stars; uniform float sunSize; varying vec3 vP;",
+        "float h21(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }",
+        "void main(){",
+        "  vec3 d = normalize(vP); float h = d.y;",
+        "  vec3 c = h > 0.12 ? mix(mid, top, smoothstep(0.12, 0.8, h)) : mix(hor, mid, smoothstep(-0.08, 0.12, h));",
+        "  float s = max(dot(d, normalize(sunDir)), 0.0);",
+        "  c += sunCol * (smoothstep(0.9993 - 0.0006 * sunSize, 0.9997, s) * 2.2 + pow(s, 80.0) * 0.6 + pow(s, 7.0) * 0.22 + pow(s, 2.0) * 0.06 * (1.0 - h));",
+        "  if (stars > 0.0 && h > 0.0) { vec2 g = vec2(atan(d.z, d.x) * 180.0, h * 260.0); vec2 id = floor(g); float st = step(0.985, h21(id)) * h21(id + 7.0); vec2 f = fract(g) - 0.5; c += vec3(0.9, 0.95, 1.0) * st * smoothstep(0.35, 0.0, length(f)) * stars * 1.6 * smoothstep(0.0, 0.25, h); }",
+        "  gl_FragColor = vec4(c, 1.0);",
+        "}"].join("\n")
     }));
-    sky.renderOrder = -10; sky.frustumCulled = false; this.live.add(sky); this.sky = sky;
-    // 雲海：大平面＋緩慢流動
+    sky.renderOrder = -10; sky.frustumCulled = false; this.live.add(sky); this.sky = sky; this.skyU = U;
+    // 雲海：大平面（底色）＋流動貼圖
     var seaT = this.tex.cloudSea(); seaT.repeat.set(7, 7);
-    var sea = new THREE.Mesh(new THREE.PlaneGeometry(1800, 1800), new THREE.MeshBasicMaterial({ map: seaT, color: L("#ffffff"), fog: true }));
-    sea.rotation.x = -Math.PI / 2; sea.position.y = o.seaY || -30; this.live.add(sea);
+    var seaMat = new THREE.MeshBasicMaterial({ map: seaT, color: L("#ffffff"), fog: true });
+    var sea = new THREE.Mesh(new THREE.PlaneGeometry(1800, 1800), seaMat);
+    sea.rotation.x = -Math.PI / 2; sea.position.y = o.seaY || -30; this.live.add(sea); this.seaMat = seaMat;
     this.anims.push(function (t) { seaT.offset.set(t * 0.002, t * 0.001); });
-    // 雲朵（sprite，數量依畫質）
-    var nC = this.low ? 18 : this.phone ? 34 : 60, cm = this.spriteMat("cloud", "#ffffff", 0.85, this.tex.cloud());
-    for (var i = 0; i < nC; i++) {
-      var a = r() * Math.PI * 2, d = i < nC * 0.45 ? 25 + r() * 60 : 90 + r() * 240, sc = 18 + r() * 40, cl = new THREE.Sprite(cm);
-      cl.position.set(Math.cos(a) * d, (i < nC * 0.45 ? -12 - r() * 14 : -18 + r() * 40), Math.sin(a) * d); cl.scale.set(sc, sc * 0.5, 1); this.live.add(cl);
-    }
-    // 遠山（低多邊形，淡藍色）
-    var mtn = new THREE.MeshBasicMaterial({ color: L("#a9c3e2"), fog: false }), mtn2 = new THREE.MeshBasicMaterial({ color: L("#c7d9ee"), fog: false });
-    var cone = new THREE.ConeGeometry(1, 1, 6);
+    // 立體積雲：一團團白色蓬鬆球（雲海表面的雲浪、浮島下方的雲、地平線上的大積雲）
+    var nNear = this.low ? 30 : this.phone ? 45 : 110, nFar = this.low ? 10 : this.phone ? 18 : 30;
+    var cloudCluster = function (cx, cy, cz, size, flat) {
+      var n = 4 + (r() * 4 | 0);
+      for (var i = 0; i < n; i++) {
+        var a = r() * 6.28, dd = r() * size * 0.9, sc = size * (0.45 + r() * 0.45);
+        self.put(self.puff(i % 4), "cloud", cx + Math.cos(a) * dd, cy + (i ? r() * size * 0.35 : size * 0.2), cz + Math.sin(a) * dd * (flat ? 1 : 0.6), r() * 6, sc, sc * (flat ? 0.45 : 0.7), sc, { cast: false, receive: false });
+      }
+    };
+    for (var i = 0; i < nNear; i++) { var a = r() * Math.PI * 2, d = 20 + Math.sqrt(r()) * 110; cloudCluster(Math.cos(a) * d, (o.seaY || -30) + 3 + r() * 10, Math.sin(a) * d - 8, 5 + r() * 7, true); }
+    for (var j = 0; j < nFar; j++) { var a2 = r() * Math.PI * 2, d2 = 170 + r() * 170; cloudCluster(Math.cos(a2) * d2, -10 + r() * 45, Math.sin(a2) * d2, 14 + r() * 16, false); }
+    var nC = this.low ? 8 : this.phone ? 16 : 26, cm = this.spriteMat("cloud", "#ffffff", 0.8, this.tex.cloud());
+    for (var k = 0; k < nC; k++) { var a3 = r() * Math.PI * 2, d3 = 60 + r() * 260, sc3 = 18 + r() * 40, cl = new THREE.Sprite(cm); cl.position.set(Math.cos(a3) * d3, -20 + r() * 12, Math.sin(a3) * d3); cl.scale.set(sc3, sc3 * 0.45, 1); this.live.add(cl); }
+    // 遠山（淡藍、受天空顏色影響）
+    var mtnA = new THREE.MeshBasicMaterial({ color: L("#9dbbe6"), fog: false }), mtnB = new THREE.MeshBasicMaterial({ color: L("#c3d8f2"), fog: false }); this.mtnMats = [mtnA, mtnB];
+    var cone = new THREE.ConeGeometry(1, 1, 7);
     for (var m = 0; m < 34; m++) {
-      var am = m / 34 * Math.PI * 2 + r() * 0.15, dm = 380 + r() * 120, hm = 50 + r() * 110, wm = 40 + r() * 50;
+      var am = m / 34 * Math.PI * 2 + r() * 0.15, dm = 380 + r() * 120, hm = 50 + r() * 120, wm = 40 + r() * 50;
       var mm = new THREE.Matrix4().compose(new THREE.Vector3(Math.cos(am) * dm, -40 + hm / 2, Math.sin(am) * dm), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, r() * 3, 0)), new THREE.Vector3(wm, hm, wm));
-      this.batch.add(cone, m % 2 ? mtn : mtn2, mm, { cast: false, receive: false });
+      this.batch.add(cone, m % 2 ? mtnA : mtnB, mm, { cast: false, receive: false });
     }
-    // 漂浮小島
+    // 漂浮小島（有的帶小瀑布）
     var nI = this.low ? 8 : 18;
-    for (var k = 0; k < nI; k++) {
+    for (var q = 0; q < nI; q++) {
       var ai = r() * Math.PI * 2, di = 75 + r() * 170, yi = 8 + r() * 55, si = 2 + r() * 6;
-      this.island({ x: Math.cos(ai) * di, z: Math.sin(ai) * di, r: si, h: yi, rim: 0.4, walk: false, rail: false, depth: si * 2.2, seed: 500 + k, dark: k % 2 });
-      this.tree(Math.cos(ai) * di, yi, Math.sin(ai) * di, si * 0.45, k % 3 ? "round" : "cypress");
+      this.island({ x: Math.cos(ai) * di, z: Math.sin(ai) * di, r: si, h: yi, rim: 0.4, walk: false, rail: false, depth: si * 2.2, seed: 500 + q, dark: q % 2, falls: q % 3 === 0 && !this.low ? [{ a: ai + Math.PI, w: si * 0.35, len: si * 3 }] : [] });
+      this.tree(Math.cos(ai) * di, yi, Math.sin(ai) * di, si * 0.45, q % 3 ? "round" : "cypress");
     }
     // 金色光點
     if (!this.low) {
-      var nP = this.phone ? 220 : 420, pos = new Float32Array(nP * 3);
-      for (var p = 0; p < nP; p++) { var ap = r() * Math.PI * 2, dp = r() * 55; pos[p * 3] = Math.cos(ap) * dp; pos[p * 3 + 1] = r() * 18; pos[p * 3 + 2] = Math.sin(ap) * dp - 8; }
+      var nP = this.phone ? 260 : 520, pos = new Float32Array(nP * 3);
+      for (var p = 0; p < nP; p++) { var ap = r() * Math.PI * 2, dp = r() * 60; pos[p * 3] = Math.cos(ap) * dp; pos[p * 3 + 1] = r() * 20; pos[p * 3 + 2] = Math.sin(ap) * dp - 8; }
       var pg = new THREE.BufferGeometry(); pg.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-      var pts = new THREE.Points(pg, new THREE.PointsMaterial({ map: this.tex.glow(), color: L("#ffe9a6"), size: 0.45, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.8 }));
-      this.live.add(pts);
+      var pm = new THREE.PointsMaterial({ map: this.tex.glow(), color: L("#ffe9a6"), size: 0.5, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.8 });
+      var pts = new THREE.Points(pg, pm); this.live.add(pts); this.sparkMat = pm;
       this.anims.push(function (t) { pts.rotation.y = t * 0.02; pts.position.y = Math.sin(t * 0.4) * 0.4; });
     }
+  };
+
+  /** 燈柱光暈（地圖建完後一次產生，時段切換時一起調整亮度） */
+  P._lampGlows = function () {
+    if (!this.lampPts || !this.lampPts.length) return;
+    var THREE = this.THREE, n = this.lampPts.length, pos = new Float32Array(n * 3);
+    this.lampPts.forEach(function (p, i) { pos[i * 3] = p[0]; pos[i * 3 + 1] = p[1]; pos[i * 3 + 2] = p[2]; });
+    var g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    this.lampMat = new THREE.PointsMaterial({ map: this.tex.glow(), color: this.lin("#9feeff"), size: 2.2, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.35 });
+    this.live.add(new THREE.Points(g, this.lampMat));
+  };
+
+  /** 時段（白天／黃昏／夜晚）：由 world.js 傳入混合好的設定，這裡負責場景內的天空、雲、發光強度 */
+  P.applyTime = function (T) {
+    var U = this.skyU, self = this;
+    if (U) { U.top.value.copy(T.top); U.mid.value.copy(T.mid); U.hor.value.copy(T.hor); U.sunCol.value.copy(T.sunCol); U.sunDir.value.copy(T.skySun); U.stars.value = T.stars; U.sunSize.value = T.sunSize; }
+    if (this.seaMat) this.seaMat.color.copy(T.sea);
+    if (this.mats.cloud) { this.mats.cloud.color.copy(T.cloud); this.mats.cloud.emissive.copy(T.cloud); this.mats.cloud.emissiveIntensity = T.cloudGlow; }
+    Object.keys(this.mats).forEach(function (k) { if (k.indexOf("sprcloud") === 0) self.mats[k].color.copy(T.cloud); });
+    if (this.mtnMats) { this.mtnMats[0].color.copy(T.mtn).multiplyScalar(0.85); this.mtnMats[1].color.copy(T.mtn); }
+    if (this.fallMat) this.fallMat.color.copy(T.fall);
+    var g = T.glow; this.glow = g;
+    this.glowables.forEach(function (q) {
+      if (q.kind === "emissive") q.m.emissiveIntensity = q.base * g;
+      else { if (!q.col) q.col = q.m.color.clone(); q.m.color.copy(q.col).multiplyScalar(Math.min(1.6, 0.75 + g * 0.35)); }
+    });
+    this.glowSprites.forEach(function (q) { q.s.material.opacity = Math.min(1, (q.s.material.userData.base || (q.s.material.userData.base = q.s.material.opacity)) * (0.55 + g * 0.45)); });
+    this.lights.forEach(function (l) { l.intensity = l.userData.base * (0.5 + g * 0.5); });
+    if (this.lampMat) { this.lampMat.opacity = Math.min(0.95, 0.12 + (g - 1) * 0.5 + 0.2); this.lampMat.size = 1.6 + g * 0.7; }
+    if (this.sparkMat) this.sparkMat.opacity = Math.min(1, 0.55 + g * 0.2);
   };
 
   /** 每幀動畫 */
@@ -728,6 +820,7 @@
   /** 地圖建完後呼叫：產生欄杆、合併靜態網格 */
   P.finish = function () {
     this.railJobs.forEach(function (f) { f(); }); this.railJobs = [];
+    this._lampGlows();
     this.meshes = this.batch.build(this.root);
     var tris = 0; this.meshes.forEach(function (m) { tris += m.geometry.attributes.position.count / 3; });
     this.stats = { staticMeshes: this.meshes.length, staticTris: Math.round(tris), materials: Object.keys(this.mats).length };

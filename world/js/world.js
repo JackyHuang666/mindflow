@@ -38,7 +38,7 @@
   var scene = new THREE.Scene();
   scene.fog = new THREE.Fog(lin(MAP.fog.color), MAP.fog.near, MAP.fog.far);
   var camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1600);
-  scene.add(new THREE.HemisphereLight(lin("#cfe6ff"), lin("#cdb48a"), 0.72));
+  var hemi = new THREE.HemisphereLight(lin("#cfe6ff"), lin("#cdb48a"), 0.72); scene.add(hemi);
   var sun = new THREE.DirectionalLight(lin(MAP.sun.color), MAP.sun.intensity), SUN = new THREE.Vector3().fromArray(MAP.sun.dir).normalize();
   sun.castShadow = renderer.shadowMap.enabled;
   var SM = Q === "mid" ? 1024 : 2048; sun.shadow.mapSize.set(SM, SM);
@@ -53,6 +53,87 @@
   var stats = c.finish();
   stats.buildMs = Math.round(performance.now() - t0b);
   var phys = c.phys;
+  // 反射：金色、玻璃、水面會映出天空（材質依種類設定反射強度）
+  Object.keys(c.mats).forEach(function (k) {
+    var m = c.mats[k]; if (!m || !m.isMeshStandardMaterial) return;
+    m.envMapIntensity = /^(gold|goldRoof|glass|glassBlue|glassViolet|water|blueRoof|violetRoof)/.test(k) ? 1.1 : /^(stone|pave|road)/.test(k) ? 0.3 : 0.2;
+  });
+
+  /* ===== 時段：白天／黃昏／夜晚（依時間＝跟學院主畫面相同的規則） ===== */
+  var TOD = {
+    day: { top: "#1f6fe0", mid: "#6fb6ff", hor: "#e8f5ff", sunCol: "#fff2d0", sunDir: [-0.35, 0.8, 0.55], skySun: [-0.35, 0.55, -0.75], sunSize: 1, sun: "#fff1d8", sunI: 1.7, hemiS: "#cfe6ff", hemiG: "#d8c08f", hemiI: 0.45, fog: "#d6ebfc", near: 110, far: 520, exp: 0.82, glow: 1, stars: 0, sea: "#ffffff", cloud: "#ffffff", cloudGlow: 0.32, mtn: "#c3d8f2", fall: "#f4fcff", bloom: 0.42, thr: 0.86, sat: 1.12, tint: "#ffffff" },
+    dusk: { top: "#33478f", mid: "#e7908a", hor: "#ffcf8f", sunCol: "#ffb060", sunDir: [-0.3, 0.3, -0.9], skySun: [-0.3, 0.06, -0.95], sunSize: 2.4, sun: "#ffb27a", sunI: 1.35, hemiS: "#ffc8a6", hemiG: "#7a5a5a", hemiI: 0.55, fog: "#f2bc98", near: 90, far: 460, exp: 0.98, glow: 1.6, stars: 0.12, sea: "#ffd9bf", cloud: "#ffcfb0", cloudGlow: 0.42, mtn: "#c9a3b8", fall: "#ffe9d6", bloom: 0.5, thr: 0.88, sat: 1.18, tint: "#fff0e0" },
+    night: { top: "#040a22", mid: "#0f2352", hor: "#29457a", sunCol: "#cfe0ff", sunDir: [0.45, 0.7, -0.45], skySun: [0.4, 0.45, -0.8], sunSize: 1.5, sun: "#9db6ff", sunI: 0.5, hemiS: "#5f78c0", hemiG: "#1a1d33", hemiI: 0.45, fog: "#16294f", near: 70, far: 380, exp: 1.05, glow: 2.4, stars: 1, sea: "#55689a", cloud: "#6b80b2", cloudGlow: 0.22, mtn: "#3b5285", fall: "#bcd6ff", bloom: 0.9, thr: 0.72, sat: 1.1, tint: "#e6eeff" }
+  };
+  function prep(p) { var o = {}; Object.keys(p).forEach(function (k) { var v = p[k]; o[k] = typeof v === "string" ? lin(v) : Array.isArray(v) ? new THREE.Vector3().fromArray(v).normalize() : v; }); return o; }
+  Object.keys(TOD).forEach(function (k) { TOD[k] = prep(TOD[k]); });
+  function mixT(a, b, k) { var o = {}; Object.keys(a).forEach(function (n) { var x = a[n], y = b[n]; o[n] = x.isColor ? x.clone().lerp(y, k) : x.isVector3 ? x.clone().lerp(y, k).normalize() : x + (y - x) * k; }); return o; }
+  var TIME_KEY = "mf-world-time", TIME_ORDER = ["auto", "day", "dusk", "night"], TIME_LABEL = { auto: "🕒 依時間", day: "☀️ 白天", dusk: "🌇 黃昏", night: "🌙 夜晚" };
+  var timeMode = QS.get("time"); if (TIME_ORDER.indexOf(timeMode) < 0) { try { timeMode = localStorage.getItem(TIME_KEY); } catch (e) { timeMode = null; } } if (TIME_ORDER.indexOf(timeMode) < 0) timeMode = "auto";
+  function wantedTime() {
+    if (timeMode !== "auto") return timeMode;
+    var dd = new Date(), h = dd.getHours() + dd.getMinutes() / 60;
+    return h >= 6.5 && h < 16.5 ? "day" : (h >= 16.5 && h < 18.5) || (h >= 5.5 && h < 6.5) ? "dusk" : "night";
+  }
+  var todCur = TOD[wantedTime()], todFrom = todCur, todTo = todCur, todK = 1, todName = wantedTime(), envDirty = true, POST = null;
+  function applyTod(T) {
+    c.applyTime(T);
+    scene.fog.color.copy(T.fog); scene.fog.near = T.near; scene.fog.far = T.far;
+    hemi.color.copy(T.hemiS); hemi.groundColor.copy(T.hemiG); hemi.intensity = T.hemiI;
+    sun.color.copy(T.sun); sun.intensity = T.sunI; SUN.copy(T.sunDir);
+    renderer.toneMappingExposure = T.exp;
+    if (POST) { POST.bloom.strength = T.bloom; POST.bloom.threshold = T.thr; POST.grade.uniforms.sat.value = T.sat; POST.grade.uniforms.tint.value.copy(T.tint); }
+  }
+  function setTime(mode, instant) {
+    timeMode = mode; try { localStorage.setItem(TIME_KEY, mode); } catch (e) { /* ignore */ }
+    $("wTime").textContent = TIME_LABEL[mode];
+    var nm = wantedTime(); if (nm === todName && !instant) return;
+    todName = nm; todFrom = todCur; todTo = TOD[nm]; todK = instant ? 1 : 0; if (instant) { todCur = todTo; applyTod(todCur); envDirty = true; }
+  }
+  $("wTime").onclick = function () { setTime(TIME_ORDER[(TIME_ORDER.indexOf(timeMode) + 1) % TIME_ORDER.length]); toast("時段：" + TIME_LABEL[timeMode].slice(2) + (timeMode === "auto" ? "（現在是" + { day: "白天", dusk: "黃昏", night: "夜晚" }[todName] + "）" : "")); };
+  setInterval(function () { if (timeMode === "auto") setTime("auto"); }, 60000);
+  // 天空反射貼圖：用目前時段的天空顏色畫一張全景漸層圖，再轉成反射用的貼圖（換時段時重算一次）
+  var pmrem = Q === "low" ? null : new THREE.PMREMGenerator(renderer), envCv = d.createElement("canvas"), envRT = null, envTex = null;
+  envCv.width = 256; envCv.height = 128;
+  function hex(cl) { return "#" + cl.clone().convertLinearToSRGB().getHexString(); }
+  function updateEnv() {
+    envDirty = false; if (!pmrem) return;
+    var T = todCur, g = envCv.getContext("2d"), gr = g.createLinearGradient(0, 0, 0, 128);
+    gr.addColorStop(0, hex(T.top)); gr.addColorStop(0.32, hex(T.mid)); gr.addColorStop(0.5, hex(T.hor)); gr.addColorStop(0.56, hex(T.cloud)); gr.addColorStop(1, hex(T.hemiG));
+    g.fillStyle = gr; g.fillRect(0, 0, 256, 128);
+    var sx = (Math.atan2(T.skySun.z, T.skySun.x) / (Math.PI * 2) + 0.5) * 256, sy = (0.5 - Math.asin(T.skySun.y) / Math.PI) * 128, rg = g.createRadialGradient(sx, sy, 0, sx, sy, 26);
+    rg.addColorStop(0, hex(T.sunCol)); rg.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = rg; g.fillRect(0, 0, 256, 128);
+    if (envTex) envTex.dispose(); envTex = new THREE.CanvasTexture(envCv); envTex.encoding = THREE.sRGBEncoding; envTex.mapping = THREE.EquirectangularReflectionMapping;
+    var old = envRT; envRT = pmrem.fromEquirectangular(envTex); scene.environment = envRT.texture; if (old) old.dispose();
+  }
+
+  /* ===== 柔光暈（畫質高／超高才開；中畫質用光暈貼圖代替；低畫質關閉） ===== */
+  function loadScript(src) { return new Promise(function (ok, no) { var e = d.createElement("script"); e.src = src; e.onload = ok; e.onerror = no; d.head.appendChild(e); }); }
+  if (Q === "high" || Q === "ultra") {
+    var EX = window.WORLD_THREE_EXAMPLES || "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/";
+    ["shaders/CopyShader.js", "shaders/LuminosityHighPassShader.js", "postprocessing/EffectComposer.js", "postprocessing/RenderPass.js", "postprocessing/ShaderPass.js", "postprocessing/UnrealBloomPass.js"]
+      .reduce(function (p, f) { return p.then(function () { return loadScript(EX + f); }); }, Promise.resolve())
+      .then(function () {
+        var W = renderer.domElement.clientWidth || innerWidth, H = renderer.domElement.clientHeight || innerHeight;
+        var rt = new THREE.WebGLRenderTarget(W, H, { type: renderer.capabilities.isWebGL2 ? THREE.HalfFloatType : THREE.UnsignedByteType });
+        var comp = new THREE.EffectComposer(renderer, rt);
+        comp.addPass(new THREE.RenderPass(scene, camera));
+        var bloom = new THREE.UnrealBloomPass(new THREE.Vector2(W, H), todCur.bloom, 0.55, todCur.thr); comp.addPass(bloom);
+        // 最後一道：線性 → sRGB、飽和度、色調、暗角（畫面更接近分鏡圖的插畫色彩）
+        var grade = new THREE.ShaderPass({
+          uniforms: { tDiffuse: { value: null }, sat: { value: todCur.sat }, tint: { value: todCur.tint.clone() }, vig: { value: 0.35 } },
+          vertexShader: "varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
+          fragmentShader: "uniform sampler2D tDiffuse; uniform float sat; uniform vec3 tint; uniform float vig; varying vec2 vUv;" +
+            "vec3 srgb(vec3 c){ return mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, step(0.0031308, c)); }" +
+            "void main(){ vec3 c = clamp(texture2D(tDiffuse, vUv).rgb, 0.0, 1.0); float l = dot(c, vec3(0.2126, 0.7152, 0.0722)); c = clamp(mix(vec3(l), c, sat) * tint, 0.0, 1.0);" +
+            " c = srgb(c); vec2 q = vUv - 0.5; c *= 1.0 - dot(q, q) * vig; gl_FragColor = vec4(c, 1.0); }"
+        });
+        comp.addPass(grade);
+        POST = { comp: comp, bloom: bloom, grade: grade };
+        resize(); applyTod(todCur);
+      })
+      .catch(function (e) { console.warn("柔光暈載入失敗，改用一般畫面", e); });
+  }
 
   /* ===== 玩家（沿用原本的背包客模型、動畫與控制） ===== */
   var inter = new NS.InteractionManager(); inter.bounds = 1e6;
@@ -122,7 +203,7 @@
     player.object.visible = cam.cur > 0.9;                                   // 鏡頭被擠到角色身上時暫時隱藏角色
     sun.position.set(P.x + SUN.x * 50, P.y + SUN.y * 50, P.z + SUN.z * 50); sun.target.position.set(P.x, P.y, P.z);
   }
-  function resize() { var cv = renderer.domElement, W = cv.clientWidth || innerWidth, H = cv.clientHeight || innerHeight; renderer.setSize(W, H, false); camera.aspect = W / H; camera.fov = W < H ? 62 : 50; camera.updateProjectionMatrix(); }
+  function resize() { var cv = renderer.domElement, W = cv.clientWidth || innerWidth, H = cv.clientHeight || innerHeight; renderer.setSize(W, H, false); if (typeof POST !== "undefined" && POST) { POST.comp.setPixelRatio(renderer.getPixelRatio()); POST.comp.setSize(W, H); } camera.aspect = W / H; camera.fov = W < H ? 62 : 50; camera.updateProjectionMatrix(); }
   addEventListener("resize", resize); resize();
   (function () { var lw = -1, lh = -1; function chk() { var cv = renderer.domElement; if (cv.clientWidth !== lw || cv.clientHeight !== lh) { lw = cv.clientWidth; lh = cv.clientHeight; resize(); } } addEventListener("orientationchange", function () { [80, 250, 500, 900, 1500].forEach(function (t) { setTimeout(chk, t); }); }); if (window.visualViewport) visualViewport.addEventListener("resize", chk); setInterval(chk, 400); })();
 
@@ -203,6 +284,7 @@
   var last = performance.now(), readyFlag = false, clockT = 0;
   function ready() { readyFlag = true; boot.classList.add("done"); toast("歡迎來到 " + MAP.title.split("・")[0] + "！走到建築大門前可以進入"); }
   toSpawn(); updateCamera(0, true, false, null);
+  $("wTime").textContent = TIME_LABEL[timeMode]; applyTod(todCur);
   if (AI.length) { player.object.visible = false; applyChar(function () { player.object.visible = true; ready(); }); } else ready();
   function frame(now) {
     requestAnimationFrame(frame);
@@ -216,15 +298,17 @@
     if (C.pos.y < -20) { toSpawn(); toast("回到觀景台"); }                  // 保險：不應該發生，但萬一掉下去就回起點
     setActBtn();
     checkPortal();
+    if (todK < 1) { todK = Math.min(1, todK + dt / 1.6); var e = todK * todK * (3 - 2 * todK); todCur = mixT(todFrom, todTo, e); applyTod(todCur); if (todK >= 1) envDirty = true; }
+    if (envDirty) updateEnv();
     c.update(clockT, dt, camera.position);
     updateCamera(dt, false, s.mag > 0.05, s);
     drawMap(now);
     if (toastT > 0 && (toastT -= dt) <= 0) $("wToast").classList.remove("on");
-    renderer.render(scene, camera);
+    if (POST) POST.comp.render(dt); else renderer.render(scene, camera);
   }
   requestAnimationFrame(frame);
 
   // 給自動化測試使用
   window.__world = { THREE: THREE, scene: scene, camera: camera, renderer: renderer, player: player, input: input, phys: phys, ctx: c, cam: cam, stats: stats, quality: Q,
-    get ready() { return readyFlag; }, get near() { return near; }, toSpawn: toSpawn, enter: enter };
+    get ready() { return readyFlag; }, get near() { return near; }, get post() { return !!POST; }, get time() { return todName; }, toSpawn: toSpawn, enter: enter, setTime: setTime };
 })();

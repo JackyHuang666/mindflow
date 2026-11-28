@@ -11,6 +11,7 @@
     var k = key + "@" + rx + "x" + ry; if (this.mats[k]) return this.mats[k];
     var base = this.mat(key), m = base.clone(), THREE = this.THREE;
     ["map", "emissiveMap"].forEach(function (p) { if (base[p]) { m[p] = base[p].clone(); m[p].wrapS = m[p].wrapT = THREE.RepeatWrapping; m[p].repeat.set(rx, ry); m[p].needsUpdate = true; } });
+    var gq = this.glowables.filter(function (q) { return q.m === base; })[0]; if (gq) this.glowables.push({ m: m, base: gq.base, kind: gq.kind });
     m.name = k; this.mats[k] = m; return m;
   };
 
@@ -58,7 +59,31 @@
       g.addM(new THREE.PlaneGeometry(1.5, 4.6), "banner", sd * 5.6, 6.2, -0.75);
       g.addM(box, "gold", sd * 5.6, 8.6, -0.72, 1.9, 0.12, 0.12);
     });
+    // 屋頂欄杆與金色小尖塔（主體、第二層）
+    var pin = new THREE.ConeGeometry(0.22, 1.1, 8), post = new THREE.CylinderGeometry(0.08, 0.1, 0.7, 6);
+    [[24, 10, 10.8, -7], [15, 8, 17.25, -8]].forEach(function (L) {
+      var w2 = L[0] / 2, d2 = L[1] / 2, y0 = L[2], zc = L[3];
+      for (var px = -w2; px <= w2 + 0.01; px += 1.2) { g.addM(post, "stone", px, y0 + 0.35, zc + d2); g.addM(post, "stone", px, y0 + 0.35, zc - d2); }
+      for (var pz = -d2; pz <= d2 + 0.01; pz += 1.2) { g.addM(post, "stone", -w2, y0 + 0.35, zc + pz); g.addM(post, "stone", w2, y0 + 0.35, zc + pz); }
+      g.addM(box, "gold", 0, y0 + 0.75, zc + d2, L[0], 0.12, 0.25); g.addM(box, "gold", -w2, y0 + 0.75, zc, 0.25, 0.12, L[1]); g.addM(box, "gold", w2, y0 + 0.75, zc, 0.25, 0.12, L[1]);
+      for (var k2 = 0; k2 <= 6; k2++) { var xx = -w2 + k2 * L[0] / 6; g.addM(cyl, "stone", xx, y0 + 0.9, zc + d2, 0.22, 1.8, 0.22); g.addM(pin, "gold", xx, y0 + 2.35, zc + d2); }
+    });
+    // 圓頂周圍四座小尖塔
+    [[-4.6, -3.6], [4.6, -3.6], [-4.6, -12.4], [4.6, -12.4]].forEach(function (q) {
+      g.addM(cyl, "stone", q[0], 19.2, q[1], 0.45, 4, 0.45); g.addM(cone, "blueRoof", q[0], 22.4, q[1], 0.6, 2.4, 0.6); g.addM(pin, "gold", q[0], 24.1, q[1]);
+    });
+    // 主塔的拱窗帶與金冠
+    [-1, 1].forEach(function (sd) {
+      g.addM(new THREE.CylinderGeometry(1.36, 1.36, 3.4, 14, 1, true), winW, sd * 9.6, 11.5, -2.6);
+      g.addM(new THREE.TorusGeometry(1.75, 0.14, 6, 24), "gold", sd * 9.6, 18.1, -2.6, 1, 1, 1, 0, Math.PI / 2);
+    });
     this.batch.addObject(g);
+    // 第二層正面的玫瑰窗（發光）
+    var rose = new THREE.Mesh(new THREE.CircleGeometry(1.9, 40), new THREE.MeshBasicMaterial({ map: this.tex.emblem("star", "#bff3ff"), transparent: true, depthWrite: false }));
+    var rc = Math.cos(o.rot || 0), rs = Math.sin(o.rot || 0);
+    rose.position.set(x + rs * -3.93, y + 14.2, zf + rc * -3.93); rose.rotation.y = o.rot || 0; this.live.add(rose);
+    this.glowSprite(x + rs * -3.6, y + 14.2, zf + rc * -3.6, 6, "#9fe9ff", 0.45);
+    [-4.4, 4.4].forEach(function (lx) { this.glowSprite(x + lx, y + 2.2, zf + 0.4, 2.4, "#ffe2a0", 0.7); this.lamp(x + lx, y, zf + 0.6); }, this);
     // 發光水晶與天空光環（動畫）
     var self = this, crystals = [];
     [[0, 18.7 + 10.5, -8, 1.3], [-9.6, 26.6, -2.6, 0.7], [9.6, 26.6, -2.6, 0.7], [-13.6, 19.4, -3.4, 0.5], [13.6, 19.4, -3.4, 0.5]].forEach(function (p) {
