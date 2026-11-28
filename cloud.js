@@ -112,20 +112,44 @@
     if (/Email not confirmed/i.test(m)) return "這個帳號還沒到信箱完成確認";
     if (/already registered|already been registered/i.test(m)) return "這個 Email 已經註冊過，請直接登入";
     if (/Password should be at least/i.test(m)) return "密碼至少要 6 個字";
+    if (/provider is not enabled|Unsupported provider/i.test(m)) return "Google 登入還沒開放，請先用 Email 登入";
     if (/rate limit/i.test(m)) return "嘗試太多次，請稍後再試";
     if (/Failed to fetch|NetworkError/i.test(m)) return "連不上雲端，請檢查網路";
     if (/row-level security|permission denied/i.test(m)) return "權限不足";
     return m;
   }
 
-  // ---- 確認信連結回來時（網址 #access_token=...）自動登入 ----
+  // ---- Google 快速登入（Supabase OAuth）----
+  // 流程：先確認 Supabase 已開啟 Google 登入 → 整頁跳到 Google 選帳號 → 回到本頁網址 #access_token=...（下方自動登入）
+  // 第一次用 Google 登入會自動建立帳號（註冊＝登入）；同一個 Gmail 之前用 Email 註冊過，Supabase 會連到同一個帳號
+  function inApp() { return /Line\/|FBAN|FBAV|FB_IAB|Instagram|MicroMessenger|; wv\)/i.test(navigator.userAgent || ""); }
+  function google() {
+    if (inApp()) { lastErr = "Google 不允許在 LINE、Facebook 等 App 內建的瀏覽器登入。請點右上角選單，選「用瀏覽器開啟」（Safari 或 Chrome）後再登入。"; return setState("err"); }
+    setState("busy");
+    api("/auth/v1/settings").then(function (s) {
+      if (!(s && s.external && s.external.google)) throw new Error("google-off");
+      rawSet("mf-cloud-note", "已用 Google 帳號登入");
+      var back = location.origin + location.pathname;
+      location.href = SB_URL + "/auth/v1/authorize?provider=google&redirect_to=" + encodeURIComponent(back) + "&query_params=" + encodeURIComponent("prompt=select_account");
+    }).catch(function (e) { rawRemove("mf-cloud-note"); lastErr = e.message === "google-off" ? "Google 登入還沒開放，請先用 Email 登入。" : zh(e.message); setState("err"); });
+  }
+
+  // ---- 確認信連結、Google 登入回來時（網址 #access_token=... 或 #error=...）自動登入 ----
   (function () {
-    var h = location.hash; if (h.indexOf("access_token=") < 0) return;
-    var q = {}; h.slice(1).split("&").forEach(function (s) { var p = s.split("="); q[p[0]] = decodeURIComponent(p[1] || ""); });
+    var h = location.hash; if (h.indexOf("access_token=") < 0 && h.indexOf("error=") < 0) return;
+    var q = {}; h.slice(1).split("&").forEach(function (s) { var p = s.split("="); q[p[0]] = decodeURIComponent((p[1] || "").replace(/\+/g, " ")); });
     history.replaceState(null, "", location.pathname + location.search);
+    if (!q.access_token) {                                         // 使用者取消、或 Google 設定有問題
+      rawRemove("mf-cloud-note");
+      lastErr = /access_denied/i.test(q.error) ? "已取消 Google 登入" : "Google 登入失敗：" + zh(q.error_description || q.error); state = "err";
+      window.addEventListener("load", function () { var b = B(); if (b) b.toast("⚠️ " + lastErr); });
+      return;
+    }
     sess = { access_token: q.access_token, refresh_token: q.refresh_token, expires_at: Date.now() + (+q.expires_in || 3600) * 1000, user: null };
-    api("/auth/v1/user", { auth: true }).then(function (u) { sess.user = { id: u.id, email: u.email }; writeJSON(SESS_KEY, sess); pull(true); })
-      .catch(function (e) { dropSession(); lastErr = zh(e.message); setState("err"); });
+    state = "busy";
+    api("/auth/v1/user", { auth: true }).then(function (u) { sess.user = { id: u.id, email: u.email }; writeJSON(SESS_KEY, sess); return pull(true); })
+      .then(function () { return pullOrg(); })
+      .catch(function (e) { rawRemove("mf-cloud-note"); dropSession(); lastErr = zh(e.message); setState("err"); });
   })();
 
   // ---- 介面（設定 → 遊戲登出/登入 裡的 #cloud-box）----
@@ -133,7 +157,7 @@
   css.textContent = ".cl-box{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:12px 14px;margin:10px 0}" +
     ".cl-box h5{margin:0 0 6px;font-size:15px}.cl-box p{margin:4px 0;font-size:13px;opacity:.85}#cloud-box .cl-box input{width:100%;height:auto;accent-color:auto;box-sizing:border-box;margin:4px 0;padding:9px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.25);color:inherit;font-size:14px}" +
     ".cl-row{display:flex;gap:8px;margin-top:6px}.cl-row button{flex:1;padding:9px;border-radius:10px;border:0;font-weight:700;cursor:pointer;background:#f3c969;color:#3a2a10}.cl-row button.sec{background:rgba(255,255,255,.18);color:inherit}" +
-    ".cl-pw{position:relative}#cloud-box .cl-pw input{padding-right:44px}#cloud-box .cl-eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:36px;height:36px;margin:0;padding:0;border:0;background:none;color:inherit;opacity:.75;cursor:pointer;display:flex;align-items:center;justify-content:center}#cloud-box .cl-eye:hover{opacity:1}#cloud-box .cl-eye svg{width:20px;height:20px}.cl-err{color:#ffb4a8}.cl-ok{color:#bfe8a8}.adm-code{display:block;font-size:11px;color:#f3c969;margin-top:2px}.adm-code b{letter-spacing:1px}";
+    ".cl-pw{position:relative}#cloud-box .cl-pw input{padding-right:44px}#cloud-box .cl-eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:36px;height:36px;margin:0;padding:0;border:0;background:none;color:inherit;opacity:.75;cursor:pointer;display:flex;align-items:center;justify-content:center}#cloud-box .cl-eye:hover{opacity:1}#cloud-box .cl-eye svg{width:20px;height:20px}#cloud-box .cl-google{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:auto;margin:8px 0 2px;padding:10px 12px;border-radius:10px;border:1px solid #dadce0;background:#fff;color:#3c4043;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.25)}#cloud-box .cl-google:active{background:#f1f3f4}#cloud-box .cl-google svg{width:20px;height:20px;flex:none}.cl-box p.cl-gtip{font-size:12px;opacity:.7;text-align:center;margin:2px 0 6px}.cl-or{display:flex;align-items:center;gap:8px;margin:8px 0 4px;font-size:12px;opacity:.7}.cl-or:before,.cl-or:after{content:'';flex:1;height:1px;background:rgba(255,255,255,.25)}.cl-err{color:#ffb4a8}.cl-ok{color:#bfe8a8}.adm-code{display:block;font-size:11px;color:#f3c969;margin-top:2px}.adm-code b{letter-spacing:1px}";
   document.head.appendChild(css);
   var STATE_TXT = { idle: "", busy: "連線中…", dirty: "有新的進度，稍後自動上傳…", ok: "☁️ 已同步到雲端", confirm: "註冊成功！請到信箱點確認連結，再回來登入。" };
   function setState(s) { state = s; render(); }
@@ -148,10 +172,13 @@
         '<div class="cl-row"><button data-cl="sync">立即同步</button><button class="sec" data-cl="out">登出雲端帳號</button></div></div>';
     } else {
       box.innerHTML = '<div class="cl-box"><h5>☁️ 雲端存檔</h5><p>登入後進度會存到雲端，換手機、平板或電腦都能接著玩。</p>' +
+        '<button type="button" class="cl-google" data-cl="google">' + G_LOGO + '<span>使用 Google 帳號登入</span></button><p class="cl-gtip">第一次使用會自動建立帳號，不用另外註冊。</p>' +
+        '<div class="cl-or"><span>或使用 Email</span></div>' +
         '<input id="cl-mail" type="email" placeholder="Email" autocomplete="username"><div class="cl-pw"><input id="cl-pw" type="password" placeholder="密碼（至少 6 個字）" autocomplete="current-password"><button type="button" class="cl-eye" data-eye aria-label="顯示密碼" title="顯示密碼">' + EYE[0] + "</button></div>" + msg +
         '<div class="cl-row"><button data-cl="in">登入</button><button class="sec" data-cl="up">註冊新帳號</button></div></div>';
     }
   }
+  var G_LOGO = '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>';
   var EYE = ['<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>',
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 19c-7 0-11-7-11-7a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 7 11 7a18.5 18.5 0 0 1-2.16 3.19M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/></svg>'];
   document.addEventListener("click", function (e) {
@@ -159,6 +186,7 @@
     if (ey) { var pw = document.getElementById("cl-pw"), show = pw.type === "password"; pw.type = show ? "text" : "password"; ey.innerHTML = EYE[show ? 1 : 0]; ey.title = ey.ariaLabel = show ? "隱藏密碼" : "顯示密碼"; pw.focus(); return; }
     var b = e.target.closest && e.target.closest("[data-cl]"); if (!b) return;
     var act = b.dataset.cl;
+    if (act === "google") return google();
     if (act === "sync") { pullOrg(); return push(); }
     if (act === "claim") { var cd = ((document.getElementById("cl-code") || {}).value || "").trim(); if (!cd) { lastErr = "請輸入加入碼"; return setState("err"); } return claim(cd); }
     if (act === "out") { if (confirm("登出後，這台裝置上的進度會清除（雲端存檔會保留）。確定登出？")) logout(); return; }
