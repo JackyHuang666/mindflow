@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>身心智慧學院</title><!-- 加入主畫面：名稱、圖示、獨立 App 視窗（PWA / iOS） --><link rel="manifest" href="manifest.webmanifest?v=2"><meta name="application-name" content="身心智慧學院"><meta name="theme-color" content="#0e1838"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="身心智慧學院"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"><link rel="apple-touch-icon" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png?v=2"><link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png?v=2"><link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120.png?v=2"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"><link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"><link rel="icon" href="favicon.ico?v=2" sizes="any"><meta name="app-version" content="20261128-052531"><script src="update.js?v=1"></script></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>身心智慧學院</title><!-- 加入主畫面：名稱、圖示、獨立 App 視窗（PWA / iOS） --><link rel="manifest" href="manifest.webmanifest?v=2"><meta name="application-name" content="身心智慧學院"><meta name="theme-color" content="#0e1838"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="身心智慧學院"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"><link rel="apple-touch-icon" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png?v=2"><link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png?v=2"><link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120.png?v=2"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"><link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"><link rel="icon" href="favicon.ico?v=2" sizes="any"><meta name="app-version" content="20261128-053018"><script src="update.js?v=1"></script></head><body>
 <title>身心智慧學院</title>
 <script src="diag.js?v=3"></script>
 <meta name="description" content="電影質感的身心智慧學院主畫面：光束、柔光暈、飛鳥與櫻花、雲海外圍、明亮的夜晚村莊。">
@@ -5854,7 +5854,7 @@
   var big = maxTex >= 16384 && !isSafari && (navigator.deviceMemory || 8) >= 8 && !(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
   function texSizeFor(sc) {
     var eq = typeof effQ === "function" && typeof gfx !== "undefined" && gfx ? effQ() : "high", lowQ = eq === "low" || eq === "mid";
-    var w = TIER === "phone" || lowQ ? 2048 : TIER === "tablet" ? 4096 : sc.main && big ? 8192 : 4096; w = Math.min(w, maxTex); return [w, w / 2]; }
+    var w = TIER === "phone" || lowQ ? 2048 : TIER === "tablet" ? 4096 : sc.main && big && eq === "ultra" ? 8192 : 4096; w = Math.min(w, maxTex); return [w, w / 2]; }   // 8192 只在「超高」
   function sameOrigin(u) { try { return new URL(u, location.href).origin === location.origin; } catch (e) { return true; } }
   var glLost = false, released = false;
   function loadSceneTex(sc, done) {
@@ -6393,10 +6393,10 @@
     mid: { scale: 0.8, cap: 1.25, hint: "中：較省電，畫面略柔。" },
     high: { scale: 1, cap: 1.5, hint: "高：清晰與流暢的平衡。" },
     ultra: { scale: 1, cap: 2, hint: "超高：完整解析度，最清晰（需要較好的顯示卡）。" } };
-  // 推薦畫質（v114）：手機、平板、記憶體 ≤ 4GB 的電腦是「高」（解析度上限 1.5 倍），其他電腦是「超高」。
+  // 推薦畫質（v117）：手機、平板、記憶體 ≤ 4GB 的電腦是「中」（解析度上限 1.25 倍、場景貼圖 2048），其他電腦是「高」。
   //   - 新玩家、以及 v114 以前存過畫質的玩家，一律改成這台裝置的推薦值（qv:2 表示已套用新規則）
   //   - 玩家之後自己選的畫質會記住（qUser:1）；選得比推薦高時，先溫馨提醒、確認後才套用
-  var Q_ORDER = ["low", "mid", "high", "ultra"], Q_REC = TIER === "desktop" ? "ultra" : "high";
+  var Q_ORDER = ["low", "mid", "high", "ultra"], Q_REC = TIER === "desktop" ? "high" : "mid";
   function qRank(q) { return Q_ORDER.indexOf(q); }
   var GFX_DEFAULT = { bright: 100, contrast: 100, sat: 100, quality: Q_REC, qv: 2 }, gfx = Object.assign({}, GFX_DEFAULT);
   try {
@@ -6410,11 +6410,12 @@
   function saveGfx() { try { localStorage.setItem("mf-gfx", JSON.stringify(gfx)); } catch (e) {} }
   saveGfx();
   // 實際使用的畫質（v115）：省電保護（diag.js 偵測到開站不久就被系統關閉）會暫時壓低畫質，不改玩家存的設定
-  //   第 1 級最多「中」，第 2 級「低」；正常使用滿 10 分鐘自動降一級
+  //   第 1 級比推薦畫質再低一級（手機、平板是「低」），第 2 級「低」；正常使用滿 10 分鐘自動降一級
   var effLow = false;
   function effQ() {
     var q = gfx.quality, lv = window.MF_SAFE || 0;
-    if (lv >= 2) q = "low"; else if (lv >= 1 && qRank(q) > qRank("mid")) q = "mid";
+    var cap = Q_ORDER[Math.max(0, qRank(Q_REC) - 1)];
+    if (lv >= 2) q = "low"; else if (lv >= 1 && qRank(q) > qRank(cap)) q = cap;
     effLow = q === "low"; return q;
   }
   var GFX_INPUTS = { bright: "g-bright", contrast: "g-contrast", sat: "g-sat" };
