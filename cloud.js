@@ -8,8 +8,8 @@
   "use strict";
   var SB_URL = "https://dphmvbgkvwnuyhznofav.supabase.co";
   var SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwaG12YmdrdndudXloem5vZmF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ5MTI0NjQsImV4cCI6MjExMDQ4ODQ2NH0.ok96ObLiWAQglToVBCRn13yv4fsV7RiFgwJ1lTXfCV0";
-  var SESS_KEY = "mf-cloud-session", META_KEY = "mf-cloud-meta";
-  var LOCAL_ONLY = { "mf-gfx": 1, "mf-hud-hidden": 1, "mf-minipet-pos": 1, "mf-floatbtn-pos": 1, "mf-auth-v1": 1 };   // 和裝置有關的設定不上雲端；學院身分與授權（mf-auth-v1）另外由 MFOrg 同步到共用資料表
+  var SESS_KEY = "mf-cloud-session", META_KEY = "mf-cloud-meta", PLAYER_KEY = "mf-cloud-player", ENTRY_KEY = "mf-entry";
+  var LOCAL_ONLY = { "mf-gfx": 1, "mf-hud-hidden": 1, "mf-minipet-pos": 1, "mf-floatbtn-pos": 1, "mf-auth-v1": 1, "mf-entry": 1 };   // 和裝置有關的設定不上雲端；學院身分與授權（mf-auth-v1）另外由 MFOrg 同步到共用資料表
   var ls = window.localStorage, rawSet = ls.setItem.bind(ls), rawRemove = ls.removeItem.bind(ls);
 
   function synced(k) { return typeof k === "string" && k.indexOf("mf-") === 0 && k.indexOf("mf-cloud-") !== 0 && !LOCAL_ONLY[k]; }
@@ -22,7 +22,15 @@
     Object.keys(o || {}).forEach(function (k) { if (synced(k)) try { rawSet(k, o[k]); } catch (e) {} });
   }
 
-  var sess = readJSON(SESS_KEY), meta = readJSON(META_KEY) || {}, state = "idle", lastErr = "";
+  var sess = readJSON(SESS_KEY), meta = readJSON(META_KEY) || {}, state = "idle", lastErr = "", player = readJSON(PLAYER_KEY), formMode = "in";
+  // 遊戲 ID：每個雲端帳號一個 8 位數字（public.players，由 rpc ensure_player 產生；獎勵發放、個人雲端紀錄都用這個編號）
+  function ensurePlayer(name) {
+    return fresh().then(function () { return api("/rest/v1/rpc/ensure_player", { method: "POST", auth: true, body: { p_name: name || null } }); })
+      .then(function (r) { var x = r && r[0]; if (!x) return; player = { uid: sess.user.id, game_id: x.game_id, name: x.name || "" }; writeJSON(PLAYER_KEY, player);
+        var b = B(); if (b && b.setCloudName && player.name) b.setCloudName(player.name); if (b) b.refresh(); render(); })
+      .catch(function (e) { console.warn("[MFCloud] 遊戲 ID", e); });
+  }
+  function gameId() { return sess && sess.user && player && player.uid === sess.user.id ? player.game_id : ""; }
 
   // ---- Supabase REST ----
   function api(path, opt) {
@@ -87,20 +95,20 @@
   function login(email, pw) {
     setState("busy");
     return api("/auth/v1/token?grant_type=password", { method: "POST", body: { email: email, password: pw } })
-      .then(function (j) { keepSession(j); return pull(true); }).then(function () { return pullOrg(); })
+      .then(function (j) { keepSession(j); rawRemove(ENTRY_KEY); return ensurePlayer(); }).then(function () { return pull(true); }).then(function () { return pullOrg(); }).then(entered)
       .catch(function (e) { lastErr = zh(e.message); setState("err"); throw e; });
   }
-  function signup(email, pw) {
+  function signup(email, pw, name) {
     setState("busy");
-    return api("/auth/v1/signup", { method: "POST", body: { email: email, password: pw } }).then(function (j) {
-      if (keepSession(j)) return pull(true).then(function () { return pullOrg(); });
+    return api("/auth/v1/signup", { method: "POST", body: { email: email, password: pw, data: { full_name: name } } }).then(function (j) {
+      if (keepSession(j)) { rawRemove(ENTRY_KEY); return ensurePlayer(name).then(function () { return pull(true); }).then(function () { return pullOrg(); }).then(function () { entered(true); }); }
       lastErr = ""; setState("confirm");                          // 需要到信箱點確認連結
     }).catch(function (e) { lastErr = zh(e.message); setState("err"); throw e; });
   }
   function logout() {
     var done = function () {
       if (sess) api("/auth/v1/logout", { method: "POST", auth: true }).catch(function () {});
-      dropSession(); rawRemove(META_KEY);
+      dropSession(); rawRemove(META_KEY); rawRemove(PLAYER_KEY); rawRemove(ENTRY_KEY);
       applySnapshot({});                                          // 清掉這台裝置上的進度，避免下一位使用者看到
       rawRemove("mf-auth-v1");
       location.reload();
@@ -147,7 +155,8 @@
     }
     sess = { access_token: q.access_token, refresh_token: q.refresh_token, expires_at: Date.now() + (+q.expires_in || 3600) * 1000, user: null };
     state = "busy";
-    api("/auth/v1/user", { auth: true }).then(function (u) { sess.user = { id: u.id, email: u.email }; writeJSON(SESS_KEY, sess); return pull(true); })
+    api("/auth/v1/user", { auth: true }).then(function (u) { sess.user = { id: u.id, email: u.email }; writeJSON(SESS_KEY, sess); rawRemove(ENTRY_KEY);
+      var md = u.user_metadata || {}; return ensurePlayer(md.full_name || md.name || ""); }).then(function () { return pull(true); })
       .then(function () { return pullOrg(); })
       .catch(function (e) { rawRemove("mf-cloud-note"); dropSession(); lastErr = zh(e.message); setState("err"); });
   })();
@@ -157,42 +166,99 @@
   css.textContent = ".cl-box{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:12px 14px;margin:10px 0}" +
     ".cl-box h5{margin:0 0 6px;font-size:15px}.cl-box p{margin:4px 0;font-size:13px;opacity:.85}#cloud-box .cl-box input{width:100%;height:auto;accent-color:auto;box-sizing:border-box;margin:4px 0;padding:9px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.25);color:inherit;font-size:14px}" +
     ".cl-row{display:flex;gap:8px;margin-top:6px}.cl-row button{flex:1;padding:9px;border-radius:10px;border:0;font-weight:700;cursor:pointer;background:#f3c969;color:#3a2a10}.cl-row button.sec{background:rgba(255,255,255,.18);color:inherit}" +
-    ".cl-pw{position:relative}#cloud-box .cl-pw input{padding-right:44px}#cloud-box .cl-eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:36px;height:36px;margin:0;padding:0;border:0;background:none;color:inherit;opacity:.75;cursor:pointer;display:flex;align-items:center;justify-content:center}#cloud-box .cl-eye:hover{opacity:1}#cloud-box .cl-eye svg{width:20px;height:20px}#cloud-box .cl-google{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:auto;margin:8px 0 2px;padding:10px 12px;border-radius:10px;border:1px solid #dadce0;background:#fff;color:#3c4043;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.25)}#cloud-box .cl-google:active{background:#f1f3f4}#cloud-box .cl-google svg{width:20px;height:20px;flex:none}.cl-box p.cl-gtip{font-size:12px;opacity:.7;text-align:center;margin:2px 0 6px}.cl-or{display:flex;align-items:center;gap:8px;margin:8px 0 4px;font-size:12px;opacity:.7}.cl-or:before,.cl-or:after{content:'';flex:1;height:1px;background:rgba(255,255,255,.25)}.cl-err{color:#ffb4a8}.cl-ok{color:#bfe8a8}.adm-code{display:block;font-size:11px;color:#f3c969;margin-top:2px}.adm-code b{letter-spacing:1px}";
+    ".cl-pw{position:relative;display:block}.cl-pw input{padding-right:44px}.cl-eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:36px;height:36px;margin:0;padding:0;border:0;background:none;color:inherit;opacity:.75;cursor:pointer;display:flex;align-items:center;justify-content:center}.cl-eye:hover{opacity:1}.cl-eye svg{width:20px;height:20px}.cl-google{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:auto;margin:8px 0 2px;padding:10px 12px;border-radius:10px;border:1px solid #dadce0;background:#fff;color:#3c4043;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.25)}.cl-google:active{background:#f1f3f4}.cl-google svg{width:20px;height:20px;flex:none}.cl-form p.cl-gtip{font-size:12px;opacity:.7;text-align:center;margin:2px 0 6px}.cl-or{display:flex;align-items:center;gap:8px;margin:8px 0 4px;font-size:12px;opacity:.7}.cl-or:before,.cl-or:after{content:'';flex:1;height:1px;background:rgba(255,255,255,.25)}.cl-form input{width:100%;height:auto;accent-color:auto;box-sizing:border-box;margin:3px 0 0;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.25);color:inherit;font-size:16px}.cl-lb{display:block;margin:8px 0 0;font-size:13px;opacity:.95}.cl-tabs{display:flex;gap:4px;padding:3px;border-radius:12px;background:rgba(0,0,0,.25);margin:4px 0 2px}.cl-tabs button{flex:1;min-height:40px;border:0;border-radius:9px;background:none;color:inherit;font-weight:700;font-size:14px;cursor:pointer;opacity:.7}.cl-tabs button[aria-selected=true]{background:rgba(255,255,255,.16);opacity:1}.cl-form .cl-row button{min-height:44px;font-size:15px}.cl-gid{display:flex;align-items:center;gap:8px;margin:6px 0;padding:8px 10px;border-radius:10px;background:rgba(243,201,105,.14);border:1px solid rgba(243,201,105,.4)}.cl-gid span{font-size:13px;opacity:.85}.cl-gid b{flex:1;font-size:20px;letter-spacing:2px;color:#f3c969;font-variant-numeric:tabular-nums}.cl-gid button{padding:6px 10px;border-radius:8px;border:0;background:rgba(255,255,255,.18);color:inherit;font-weight:700;cursor:pointer}#mf-gate{position:fixed;inset:0;z-index:99990;overflow-y:auto;display:flex;justify-content:center;align-items:flex-start;padding:max(24px,env(safe-area-inset-top)) 16px 32px;background:radial-gradient(900px 500px at 70% -10%,rgba(60,96,170,.75),transparent 60%),linear-gradient(180deg,rgba(12,20,42,.9),rgba(20,16,40,.94));backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:#f4f1e8;font-family:inherit}#mf-gate .gt-card{width:100%;max-width:420px;margin:auto 0}#mf-gate h1{margin:4px 0 2px;text-align:center;font-size:30px;line-height:1.15;color:#f3c969;text-shadow:0 2px 12px rgba(243,201,105,.35)}#mf-gate h1 span{font-size:24px;color:#fff}#mf-gate .gt-lead{text-align:center;margin:4px 0 14px;opacity:.8;font-size:14px}#mf-gate .gt-sec{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:14px 16px}#mf-gate h2{margin:0;font-size:18px}#mf-gate .gt-note{margin:4px 0 2px;font-size:13px;opacity:.8;line-height:1.5}#mf-gate .gt-guest button{width:100%;min-height:50px;border-radius:12px;border:1.5px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:inherit;font-size:16px;font-weight:700;cursor:pointer}#mf-gate button:focus-visible,#mf-gate input:focus-visible{outline:3px solid #f3c969;outline-offset:2px}.cl-err{color:#ffb4a8}.cl-ok{color:#bfe8a8}.adm-code{display:block;font-size:11px;color:#f3c969;margin-top:2px}.adm-code b{letter-spacing:1px}";
   document.head.appendChild(css);
   var STATE_TXT = { idle: "", busy: "連線中…", dirty: "有新的進度，稍後自動上傳…", ok: "☁️ 已同步到雲端", confirm: "註冊成功！請到信箱點確認連結，再回來登入。" };
   function setState(s) { state = s; render(); }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  // 登入／註冊表單：設定面板（#cloud-box）和開場入口（#mf-gate）共用，各自用 .cl-form 範圍找欄位
+  function formHTML(where) {
+    var up = formMode === "up", msg = state === "err" ? '<p class="cl-err">⚠️ ' + esc(lastErr || "發生錯誤") + "</p>" : STATE_TXT[state] ? '<p class="cl-ok">' + STATE_TXT[state] + "</p>" : "";
+    return '<div class="cl-form" data-where="' + where + '">' +
+      '<button type="button" class="cl-google" data-cl="google">' + G_LOGO + "<span>使用 Google 帳號" + (up ? "註冊" : "登入") + "</span></button>" +
+      '<p class="cl-gtip">第一次使用 Google 會自動建立帳號，不用另外填寫。</p><div class="cl-or"><span>或使用 Email</span></div>' +
+      '<div class="cl-tabs" role="tablist"><button type="button" role="tab" data-cl="mode-in" aria-selected="' + !up + '">登入</button><button type="button" role="tab" data-cl="mode-up" aria-selected="' + up + '">註冊新帳號</button></div>' +
+      (up ? '<label class="cl-lb">玩家名稱<input data-f="name" maxlength="30" placeholder="例如：林小明" autocomplete="nickname"></label>' : "") +
+      '<label class="cl-lb">Email<input data-f="mail" type="email" placeholder="name@example.com" autocomplete="username"></label>' +
+      '<label class="cl-lb">密碼<span class="cl-pw"><input data-f="pw" type="password" placeholder="至少 6 個字" autocomplete="' + (up ? "new-password" : "current-password") + '"><button type="button" class="cl-eye" data-eye aria-label="顯示密碼" title="顯示密碼">' + EYE[0] + "</button></span></label>" +
+      (up ? '<label class="cl-lb">再輸入一次密碼<input data-f="pw2" type="password" placeholder="確認密碼" autocomplete="new-password"></label>' : "") +
+      msg + '<div class="cl-row"><button data-cl="' + (up ? "up" : "in") + '">' + (up ? "建立學員帳號" : "登入") + "</button></div>" +
+      (up ? '<p class="cl-gtip">完成後會得到專屬的 8 位數字「遊戲 ID」。</p>' : "") + "</div>";
+  }
+  function keepVals(el) { var k = {}; if (el) el.querySelectorAll("[data-f]").forEach(function (i) { k[i.dataset.f] = i.value; }); return k; }
+  function putVals(el, k) { if (el) el.querySelectorAll("[data-f]").forEach(function (i) { if (k[i.dataset.f]) i.value = k[i.dataset.f]; }); }
   function render() {
+    renderGate();
     var box = document.getElementById("cloud-box"); if (!box) return;
+    var kv = keepVals(box);
     var msg = state === "err" ? '<p class="cl-err">⚠️ ' + esc(lastErr || "發生錯誤") + "</p>" : STATE_TXT[state] ? '<p class="cl-ok">' + STATE_TXT[state] + "</p>" : "";
     if (sess && sess.user) {
       var om = typeof org === "object" && org ? org : {}; var who = om.me ? "<p>學院身分：<b>" + esc(om.me.name) + "</b>（" + ROLE_ZH[om.me.role] + "）</p>"
         : om.loaded ? '<p>還沒有學院身分。請輸入老師給你的加入碼：</p><input id="cl-code" placeholder="加入碼（6 碼）" maxlength="12" autocapitalize="characters"><div class="cl-row"><button data-cl="claim">綁定身分</button></div>' : "";
-      box.innerHTML = '<div class="cl-box"><h5>☁️ 雲端帳號</h5><p>已登入：<b>' + esc(sess.user.email) + "</b></p>" + who + msg +
-        '<div class="cl-row"><button data-cl="sync">立即同步</button><button class="sec" data-cl="out">登出雲端帳號</button></div></div>';
+      var gid = gameId();
+      box.innerHTML = '<div class="cl-box"><h5>☁️ 學員帳號</h5>' +
+        (gid ? '<div class="cl-gid"><span>🆔 遊戲 ID</span><b>' + gid + '</b><button type="button" data-cl="copyid">複製</button></div>' : "<p>遊戲 ID 產生中…</p>") +
+        (player && player.name ? "<p>玩家名稱：<b>" + esc(player.name) + "</b></p>" : "") +
+        "<p>已登入：<b>" + esc(sess.user.email) + "</b></p>" + who + msg +
+        '<div class="cl-row"><button data-cl="sync">立即同步</button><button class="sec" data-cl="out">登出學員帳號</button></div></div>';
     } else {
-      box.innerHTML = '<div class="cl-box"><h5>☁️ 雲端存檔</h5><p>登入後進度會存到雲端，換手機、平板或電腦都能接著玩。</p>' +
-        '<button type="button" class="cl-google" data-cl="google">' + G_LOGO + '<span>使用 Google 帳號登入</span></button><p class="cl-gtip">第一次使用會自動建立帳號，不用另外註冊。</p>' +
-        '<div class="cl-or"><span>或使用 Email</span></div>' +
-        '<input id="cl-mail" type="email" placeholder="Email" autocomplete="username"><div class="cl-pw"><input id="cl-pw" type="password" placeholder="密碼（至少 6 個字）" autocomplete="current-password"><button type="button" class="cl-eye" data-eye aria-label="顯示密碼" title="顯示密碼">' + EYE[0] + "</button></div>" + msg +
-        '<div class="cl-row"><button data-cl="in">登入</button><button class="sec" data-cl="up">註冊新帳號</button></div></div>';
+      box.innerHTML = '<div class="cl-box"><h5>🙋 目前是訪客模式</h5><p>訪客的進度只存在這台裝置，不會計入雲端玩家資料。登入或註冊學員帳號後，進度會存到雲端，換手機、平板或電腦都能接著玩，並取得專屬遊戲 ID。</p>' + formHTML("box") + "</div>";
+      putVals(box, kv);
     }
   }
+  // ---- 開場入口：沒登入、也還沒選訪客時，先選「學員登入」或「訪客快速體驗」----
+  function needGate() { return !sess && ls.getItem(ENTRY_KEY) !== "guest" && location.hash.indexOf("access_token=") < 0; }
+  function renderGate() {
+    var g = document.getElementById("mf-gate");
+    if (!needGate()) { if (g) g.remove(); return; }
+    if (!document.body) return;
+    if (!g) { g = document.createElement("div"); g.id = "mf-gate"; g.setAttribute("role", "dialog"); g.setAttribute("aria-label", "進入學院"); document.body.appendChild(g); }
+    var keep = keepVals(g);
+    g.innerHTML = '<div class="gt-card"><h1>SWT MindFlow<br><span>身心智慧學院</span></h1><p class="gt-lead">在遊戲中覺察，在學習中成長</p>' +
+      '<section class="gt-sec"><h2>🎒 學員登入</h2><p class="gt-note">進度存到雲端、取得專屬遊戲 ID，可以領取獎勵與禮物。</p>' + formHTML("gate") + "</section>" +
+      '<div class="cl-or"><span>還沒有帳號，只想先玩玩看？</span></div>' +
+      '<section class="gt-sec gt-guest"><button type="button" data-cl="guest">🙋 訪客快速體驗</button><p class="gt-note">不用帳號密碼，馬上開始玩。進度只存在這台裝置，不會計入雲端玩家資料。之後隨時可以到「設定 → 遊戲登出/登入」註冊成學員。</p></section></div>';
+    putVals(g, keep);
+  }
+  function entered(isNew) {
+    var g = document.getElementById("mf-gate"); if (g) g.remove();
+    var gid = gameId(); if (gid) say((isNew ? "學員帳號建立完成！" : "歡迎回來！") + "你的遊戲 ID：" + gid);
+    var b = B(); if (b) b.refresh();
+  }
+  document.addEventListener("DOMContentLoaded", renderGate);
   var G_LOGO = '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>';
   var EYE = ['<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>',
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 19c-7 0-11-7-11-7a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 7 11 7a18.5 18.5 0 0 1-2.16 3.19M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/></svg>'];
   document.addEventListener("click", function (e) {
     var ey = e.target.closest && e.target.closest("[data-eye]");
-    if (ey) { var pw = document.getElementById("cl-pw"), show = pw.type === "password"; pw.type = show ? "text" : "password"; ey.innerHTML = EYE[show ? 1 : 0]; ey.title = ey.ariaLabel = show ? "隱藏密碼" : "顯示密碼"; pw.focus(); return; }
+    if (ey) { var f0 = ey.closest(".cl-form"), pws = f0.querySelectorAll('[data-f="pw"],[data-f="pw2"]'), show = pws[0].type === "password";
+      pws.forEach(function (x) { x.type = show ? "text" : "password"; }); ey.innerHTML = EYE[show ? 1 : 0]; ey.title = ey.ariaLabel = show ? "隱藏密碼" : "顯示密碼"; pws[0].focus(); return; }
     var b = e.target.closest && e.target.closest("[data-cl]"); if (!b) return;
     var act = b.dataset.cl;
+    if (act === "guest") { rawSet(ENTRY_KEY, "guest"); lastErr = ""; state = "idle"; entered(); say("以訪客身分進入：進度只存在這台裝置。"); return; }
+    if (act === "mode-in" || act === "mode-up") { formMode = act.slice(5); lastErr = ""; if (state === "err") state = "idle"; return render(); }
     if (act === "google") return google();
+    if (act === "copyid") { var id = gameId(); if (navigator.clipboard) navigator.clipboard.writeText(id).then(function () { say("已複製遊戲 ID：" + id); }, function () { say("遊戲 ID：" + id); }); else say("遊戲 ID：" + id); return; }
     if (act === "sync") { pullOrg(); return push(); }
     if (act === "claim") { var cd = ((document.getElementById("cl-code") || {}).value || "").trim(); if (!cd) { lastErr = "請輸入加入碼"; return setState("err"); } return claim(cd); }
     if (act === "out") { if (confirm("登出後，這台裝置上的進度會清除（雲端存檔會保留）。確定登出？")) logout(); return; }
-    var mail = (document.getElementById("cl-mail") || {}).value || "", pw = (document.getElementById("cl-pw") || {}).value || "";
-    mail = mail.trim(); if (!mail || !pw) { lastErr = "請輸入 Email 和密碼"; return setState("err"); }
-    (act === "in" ? login : signup)(mail, pw).catch(function () {});
+    var f = b.closest(".cl-form"); if (!f) return;
+    var v = function (k) { var i = f.querySelector('[data-f="' + k + '"]'); return i ? i.value : ""; };
+    var mail = v("mail").trim(), pw = v("pw");
+    if (act === "in") { if (!mail || !pw) { lastErr = "請輸入 Email 和密碼"; return setState("err"); } return login(mail, pw).catch(function () {}); }
+    if (act === "up") {
+      var name = v("name").trim(), miss = [];
+      if (!name) miss.push("玩家名稱"); if (!mail) miss.push("Email"); if (!pw) miss.push("密碼"); if (!v("pw2")) miss.push("確認密碼");
+      if (miss.length) { lastErr = "請填寫：" + miss.join("、"); return setState("err"); }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) { lastErr = "Email 格式不正確"; return setState("err"); }
+      if (pw.length < 6) { lastErr = "密碼至少要 6 個字"; return setState("err"); }
+      if (pw !== v("pw2")) { lastErr = "兩次輸入的密碼不一樣"; return setState("err"); }
+      return signup(mail, pw, name).catch(function () {});
+    }
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Enter" || !e.target.dataset || !e.target.dataset.f) return;
+    var f = e.target.closest(".cl-form"), btn = f && f.querySelector('[data-cl="in"],[data-cl="up"]'); if (btn) { e.preventDefault(); btn.click(); }
   });
 
 
@@ -292,10 +358,10 @@
   function sbPost(path, body) { var a = !!sess; return (a ? fresh().catch(function () {}) : Promise.resolve()).then(function () { return api(path, { method: "POST", auth: a && !!sess, headers: { Prefer: "return=minimal" }, body: body, keepalive: true }); }); }
   function sbGet(path) { return fresh().then(function () { return api(path, { auth: true }); }); }
   function sbDelete(path) { return fresh().then(function () { return api(path, { method: "DELETE", auth: true, headers: { Prefer: "return=minimal" } }); }); }
-  window.MFCloud = { render: render, push: push, logout: logout, user: function () { return sess && sess.user; }, sbPost: sbPost, sbGet: sbGet, sbDelete: sbDelete };
+  window.MFCloud = { gameId: gameId, player: function () { return gameId() ? player : null; }, isGuest: function () { return !sess && ls.getItem(ENTRY_KEY) === "guest"; }, render: render, push: push, logout: logout, user: function () { return sess && sess.user; }, sbPost: sbPost, sbGet: sbGet, sbDelete: sbDelete };
 
   // 開啟時：已登入就檢查雲端有沒有比較新的進度
-  if (sess && sess.user) pull(false);
+  if (sess && sess.user) { pull(false); if (!gameId()) ensurePlayer(); }
   window.addEventListener("load", function () { setTimeout(pullOrg, 0); });
   window.addEventListener("load", function () {
     var n = ls.getItem("mf-cloud-note"); if (!n) return; rawRemove("mf-cloud-note");
