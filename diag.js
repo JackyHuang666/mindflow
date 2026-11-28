@@ -2,7 +2,7 @@
  * 記錄玩家裝置上的 JS 錯誤、3D 繪圖被系統回收、記憶體偏高，以及「疑似閃退」（頁面在使用中被系統關掉、下次開啟才發現）。
  * - 每筆紀錄附上裝置資訊、記憶體與最近 15 個操作（麵包屑），方便找出是哪個畫面出問題
  * - 紀錄先存在這台裝置（swt-diag-log，不是 mf- 開頭，不會進雲端存檔），有 Supabase crash_logs 資料表時自動上傳
- * - 最高管理者在「遊戲授權中心 → 🩺 閃退紀錄」查看
+ * - GM在「遊戲授權中心 → 🩺 閃退紀錄」查看
  */
 (function () {
   "use strict";
@@ -203,7 +203,7 @@
     var week = Date.now() - 7 * 864e5, cnt = {}, devs = {};
     rows.forEach(function (r) { if (r.t < week) return; cnt[r.kind] = (cnt[r.kind] || 0) + (r.n || 1); var dn = devName(r.env && r.env.ua, r.env).split("・")[0]; devs[dn] = (devs[dn] || 0) + (r.n || 1); });
     var shown = rows.filter(function (r) { return view.filter === "all" || r.kind === view.filter || (view.filter === "error" && r.kind === "rejection"); }).slice(0, 150);
-    var h = '<div class="cert-head"><h3>🩺 閃退紀錄</h3><p class="muted small">自動記錄玩家裝置上的疑似閃退、3D 畫面被系統回收、程式錯誤與記憶體偏高，每筆都附上裝置、記憶體和閃退前的最後操作。紀錄會從玩家裝置上傳到雲端（需要先建立資料表），這裡只有最高管理者看得到。</p></div>';
+    var h = '<div class="cert-head"><h3>🩺 閃退紀錄</h3><p class="muted small">自動記錄玩家裝置上的疑似閃退、3D 畫面被系統回收、程式錯誤與記憶體偏高，每筆都附上裝置、記憶體和閃退前的最後操作。紀錄會從玩家裝置上傳到雲端（需要先建立資料表），這裡只有GM看得到。</p></div>';
     h += '<div class="rw-sec"><h4>近 7 天概況　<small class="muted">' + (view.src === "cloud" ? "雲端・全體玩家" : "只有這台裝置") + "</small></h4>" +
       '<div style="display:flex;flex-wrap:wrap;gap:8px;margin:6px 0">' +
       ["crash", "gl-lost", "error", "mem"].map(function (k) { var n = (cnt[k] || 0) + (k === "error" ? cnt.rejection || 0 : 0); return '<button class="a-btn sm" data-dg-f="' + k + '"' + (view.filter === k ? ' style="outline:2px solid var(--gold)"' : "") + ">" + KIND[k][0] + " " + KIND[k][1] + " <b>" + n + "</b></button>"; }).join("") +
@@ -235,7 +235,7 @@
         var c = b.getAttribute("data-dg");
         if (c === "reload") { upState = "idle"; upload(); fetchCloud(el); }
         else if (c === "sql") { var done = function () { b.textContent = "✅ 已複製"; }; if (navigator.clipboard) navigator.clipboard.writeText(SQL).then(done, function () { prompt("複製這段 SQL：", SQL); }); else prompt("複製這段 SQL：", SQL); }
-        else if (c === "test") { log("test", "最高管理者寫入的測試紀錄"); upState = "idle"; setTimeout(function () { upload(); setTimeout(function () { fetchCloud(el); }, 1500); }, 200); }
+        else if (c === "test") { log("test", "GM寫入的測試紀錄"); upState = "idle"; setTimeout(function () { upload(); setTimeout(function () { fetchCloud(el); }, 1500); }, 200); }
         else if (c === "clear") { if (confirm("清除這台裝置上的閃退紀錄？（雲端的不受影響）")) { save([]); draw(el); } }
         else if (c === "purge") {
           if (!confirm("刪除雲端 30 天前的閃退紀錄？")) return;

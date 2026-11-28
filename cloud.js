@@ -272,7 +272,7 @@
 
 
   // ================= 學院身分與授權（共用資料表）=================
-  var ROLE_ZH = { SUPER_ADMIN: "最高管理者", ACADEMY_ADMIN: "學院管理者", INSTRUCTOR: "講師", STUDENT: "學員", GUEST: "訪客" };
+  var ROLE_ZH = { SUPER_ADMIN: "GM", ACADEMY_ADMIN: "學院管理者", INSTRUCTOR: "講師", STUDENT: "學員", GUEST: "訪客" };
   var ACAD_IDS = ["earth", "water", "fire", "wind", "light"];
   var org = { loaded: false, me: null, base: null, applying: false, timer: 0, busy: false, again: false };
   function B() { return window.MFAppBridge; }
