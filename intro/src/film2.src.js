@@ -160,7 +160,7 @@ void main(){vec2 s=vUv;float d=smoothstep(.7,.05,s.y);vec2 uv=cam(s,d);
  float n=fbm3(vec3(uv*4.5,uSeed))*.09+fbm3(vec3(uv*14.,uSeed+3.))*.025;
  float e=dist+n;
  float rv=smoothstep(uRev,uRev-.06,e);
- float keep=texture2D(tKeep,uv).r;
+ float keep=0.;   // v3：雲霧階段不再保留前景平台與人物，學院浮現時才一起出現
  vec2 rq=(uv-vec2(.5,1.-.08))/vec2(.34,.13);
  float sky=smoothstep(.15,.11,yd)*smoothstep(1.15,1.4,length(rq));
  float vis=max(rv,max(keep,sky));

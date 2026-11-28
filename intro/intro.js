@@ -16,7 +16,7 @@
 (function () {
   "use strict";
   var BASE = (function () { var s = document.currentScript && document.currentScript.src; return s ? s.replace(/[^/]*$/, "") : "intro/"; })();
-  var VER = "2";
+  var VER = "3";
   var K_SEEN = "swt-intro-seen", K_VOICE = "swt-intro-voice", K_MUTE = "swt-intro-mute", K_SUB = "swt-intro-sub";   // 不以 mf- 開頭：只存在這台裝置，不同步雲端
   var DUR = 15;
   // 字幕：[開始秒, 結束秒, 文字]。配合畫面分段，轉場閃光時字幕先淡出。
