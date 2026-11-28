@@ -1,0 +1,52 @@
+/* 3D 全景頁面（world/）：觸控按鈕沿用 character/css/controls.css */
+[hidden] { display: none !important; }
+:root { --sa-t: env(safe-area-inset-top, 0px); --sa-r: env(safe-area-inset-right, 0px); --sa-b: env(safe-area-inset-bottom, 0px); --sa-l: env(safe-area-inset-left, 0px); }
+html, body { margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none; background: #86c4ff; color: #fff;
+  font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif; }
+#stage { position: fixed; inset: 0; }
+#cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+
+.whud { position: absolute; z-index: 30; left: 0; right: 0; top: 0; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  padding: calc(10px + var(--sa-t)) calc(12px + var(--sa-r)) 0 calc(12px + var(--sa-l)); pointer-events: none; }
+.whud > * { pointer-events: auto; }
+.wspacer { flex: 1; }
+.wbtn { font: 600 13px/1 inherit; font-family: inherit; color: #fff; border: 1px solid rgba(255,255,255,.35); border-radius: 12px; padding: 9px 11px; min-height: 38px;
+  box-sizing: border-box; display: inline-flex; align-items: center; gap: 4px; background: rgba(18,44,78,.55); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); cursor: pointer; }
+.wbtn:active { transform: scale(.96); }
+.wbtn:disabled { opacity: .55; cursor: default; }
+.wbtn.go { white-space: nowrap; background: linear-gradient(180deg, #f6d27a, #e0a940); color: #3a2600; border-color: #fff2c4; font-size: 15px; padding: 10px 16px; }
+.wchip { font: 700 13px/1 inherit; font-family: inherit; padding: 9px 12px; border-radius: 999px; background: rgba(18,44,78,.55); border: 1px solid rgba(242,207,122,.6); color: #fff2cf; }
+
+.wprompt { position: absolute; z-index: 35; left: 50%; bottom: calc(22px + var(--sa-b)); transform: translateX(-50%); display: flex; align-items: center; gap: 12px;
+  background: rgba(14,34,58,.8); border: 1px solid rgba(242,207,122,.75); border-radius: 18px; padding: 10px 12px 10px 16px; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+.wprompt b { display: block; font-size: 17px; color: #fff2cf; }
+.wprompt small { display: block; font-size: 12px; color: #cfe2f6; margin-top: 3px; }
+html.mfc-touch .wprompt { bottom: auto; top: calc(62px + var(--sa-t)); left: calc(12px + var(--sa-l)); transform: none; max-width: calc(100vw - 172px - var(--sa-l) - var(--sa-r)); box-sizing: border-box; }
+
+.wtoast { position: absolute; z-index: 40; left: 50%; top: calc(64px + var(--sa-t)); transform: translate(-50%, -10px); opacity: 0; pointer-events: none; max-width: 88vw;
+  background: rgba(14,34,58,.86); color: #fff; padding: 9px 16px; border-radius: 999px; font-size: 14px; font-weight: 600; transition: opacity .2s, transform .2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wtoast.on { opacity: 1; transform: translate(-50%, 0); }
+html.mfc-touch .wtoast { top: calc(128px + var(--sa-t)); }
+.wkeys { position: absolute; z-index: 25; left: 50%; bottom: calc(10px + var(--sa-b)); transform: translateX(-50%); font-size: 12px; color: #eef6ff;
+  background: rgba(14,34,58,.55); padding: 6px 12px; border-radius: 999px; white-space: nowrap; pointer-events: none; }
+html:not(.mfc-touch) .wprompt { bottom: calc(46px + var(--sa-b)); }
+html.mfc-touch .desk-only { display: none !important; }
+
+.wmap { position: absolute; z-index: 29; right: calc(12px + var(--sa-r)); top: calc(58px + var(--sa-t)); width: 128px; height: 128px; border-radius: 14px;
+  background: rgba(30,80,140,.45); border: 1px solid rgba(255,255,255,.45); box-shadow: 0 6px 18px rgba(0,0,0,.2); cursor: pointer; transition: width .2s, height .2s; }
+.wmap.big { width: min(320px, 72vmin); height: min(320px, 72vmin); }
+@media (max-height: 460px) { .wmap { width: 96px; height: 96px; top: calc(52px + var(--sa-t)); } html.mfc-touch .wprompt { top: calc(52px + var(--sa-t)); } }
+
+.whelp { position: absolute; inset: 0; z-index: 45; display: grid; place-items: center; background: rgba(5,16,30,.45); }
+.whelp .card { background: rgba(14,34,58,.95); border: 1px solid rgba(242,207,122,.6); border-radius: 18px; padding: 18px 22px; max-width: min(420px, 88vw); line-height: 1.6; font-size: 14px; }
+.whelp h3 { margin: 0 0 6px; color: #fff2cf; }
+.whelp p { margin: 6px 0; color: #dbe9f6; }
+.whelp .small { font-size: 12px; color: #9fb6cc; text-align: center; }
+.wboot { position: absolute; inset: 0; z-index: 50; display: grid; place-items: center; background: linear-gradient(#2a74d8, #bfe0ff); font-size: 15px; color: #fff; transition: opacity .5s; }
+.wboot.done { opacity: 0; pointer-events: none; }
+
+@media (max-width: 560px) {
+  .wbtn { padding: 8px 9px; font-size: 12px; min-height: 34px; }
+  .wchip { padding: 7px 9px; font-size: 12px; }
+  #wTitle { display: none; }
+}

@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>身心智慧學院</title><!-- 加入主畫面：名稱、圖示、獨立 App 視窗（PWA / iOS） --><link rel="manifest" href="manifest.webmanifest?v=2"><meta name="application-name" content="身心智慧學院"><meta name="theme-color" content="#0e1838"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="身心智慧學院"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"><link rel="apple-touch-icon" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png?v=2"><link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png?v=2"><link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120.png?v=2"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"><link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"><link rel="icon" href="favicon.ico?v=2" sizes="any"><meta name="app-version" content="20261128-095241"><script src="update.js?v=2"></script></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>身心智慧學院</title><!-- 加入主畫面：名稱、圖示、獨立 App 視窗（PWA / iOS） --><link rel="manifest" href="manifest.webmanifest?v=2"><meta name="application-name" content="身心智慧學院"><meta name="theme-color" content="#0e1838"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="身心智慧學院"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"><link rel="apple-touch-icon" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png?v=2"><link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png?v=2"><link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120.png?v=2"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"><link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"><link rel="icon" href="favicon.ico?v=2" sizes="any"><meta name="app-version" content="20261128-144202"><script src="update.js?v=2"></script></head><body>
 <title>身心智慧學院</title>
 <script src="diag.js?v=4"></script>
 <meta name="description" content="電影質感的身心智慧學院主畫面：光束、柔光暈、飛鳥與櫻花、雲海外圍、明亮的夜晚村莊。">
@@ -3590,6 +3590,13 @@
     if (window.__mfSceneRestore) window.__mfSceneRestore();
   }
   window.addEventListener("message", function (e) { if (e.data && e.data.type === "mfc-lab-close") closeCharLab(); });
+  window.addEventListener("message", function (e) {
+    var m = e.data, box = document.getElementById("mfc-lab"), f = box && box.querySelector("iframe");
+    if (!m || m.type !== "mf-world-enter" || !f || e.source !== f.contentWindow || (e.origin !== location.origin && location.origin !== "null")) return;
+    if (!/^(gate|mind|mentor|chess|life|hallin)$/.test(m.scene || "")) return;
+    closeCharLab(); closeDrawer();
+    setTimeout(function () { if (window.__mfSwitchScene) window.__mfSwitchScene(m.scene); }, 120);
+  });
   window.addEventListener("keydown", function (e) { if (e.key === "Escape" && document.getElementById("mfc-lab")) closeCharLab(); });
   function renderMe(p) {
     var need = needXP(p.level), h = (function () { var ev = rwEvent(); return ev ? '<div class="pd-card pd-ev">🎉 <b>' + esc(ev.name) + "</b> 進行中：經驗值 ×" + ev.xm + "、智慧幣 ×" + ev.cm + (ev.lm > 1 ? "、寵物親密度 ×" + ev.lm : "") + (ev.end ? "（到 " + ev.end + "）" : "") + "</div>" : ""; })(), today = todayStr(), checked = p.checkin.last === today;
@@ -3604,6 +3611,7 @@
     if (window.MFWardrobe) h += MFWardrobe.html();   // 我的穿搭（360° 試衣間，wardrobe/wardrobe.js）
     h += '<div class="pd-card pd-lab"><h3>練習場<small>左手移動、右手技能，實際操作角色</small></h3>' +
       '<div class="pd-row"><button class="pd-btn gold" data-pa="lab-boy-ai">🧑 男生背包客</button><button class="pd-btn gold" data-pa="lab-girl-ai">👩 女生背包客</button></div>' +
+      '<div class="pd-row"><button class="pd-btn gold" data-pa="world3d">🏛️ 3D 學院全景（自由探索）</button></div>' +
       '<p class="pd-muted">可以測試待機、走路、衝刺、跳躍、轉身、抓取／放下、慶祝。手機與平板：左手推搖桿，右手按技能鈕。電腦：WASD／方向鍵移動、Shift 衝刺、Space 跳躍、E 抓取／放下。</p></div>';
     if (p.cert || p.level >= CERT_FROM - 5) h += renderCertCard(p);
     var days = "";
@@ -3826,6 +3834,7 @@
     var act = t.dataset.pa;
     if (/^lab-(boy|girl)-ai$/.test(act)) return openCharLab(act.slice(4));
     if (act === "devpreview") return openCharLab(null, "device-preview.html?embed=1&page=main");
+    if (act === "world3d") return openCharLab(null, "world/index.html?embed=1&char=" + (p.wd && p.wd.g === "f" ? "girl-ai" : "boy-ai"));
     if (act === "checkin") return checkIn(t);
     if (act === "reapply") { var nt = (document.getElementById("cert-note") || {}).value || ""; if (requestCert(p, pid(), nt.trim(), true)) renderDrawer(); return; }
     if (act === "avatar") { pdTab = "me"; pdEdit = "avatar"; return renderDrawer(); }
@@ -6158,6 +6167,7 @@
     }, 550);
   }
   function enterScene(id) { var a = focus; switchScene(id, a ? a.spot : null); }
+  window.__mfSwitchScene = function (id) { if (SCENES[id]) switchScene(id, null); };   // 3D 全景（world/）走進大門時使用
   document.getElementById("back").addEventListener("click", function () { switchScene("main", null); });
   window.addEventListener("keydown", function (e) { if (e.key === "Escape") { if (focus) goHome(); else if (!scene.main) switchScene("main", null); } });
 

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#2a74d8">
+<title>身心智慧學院・3D 全景｜SWT MindFlow</title>
+<link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png?v=2">
+<link rel="stylesheet" href="../character/css/controls.css">
+<link rel="stylesheet" href="css/world.css?v=1">
+</head>
+<body>
+<div id="stage" class="mfc-ui">
+  <canvas id="cv"></canvas>
+  <header class="whud">
+    <button class="wbtn" id="wBack" data-mfc-pass>‹ 返回學院</button>
+    <span class="wchip" id="wTitle">3D 全景</span>
+    <span class="wspacer"></span>
+    <button class="wbtn" id="wChar" data-mfc-pass>🧑 男生背包客</button>
+    <button class="wbtn" id="wCam" data-mfc-pass title="鏡頭遠近">🎥 中</button>
+    <button class="wbtn" id="wHelp" data-mfc-pass title="操作說明">❔</button>
+  </header>
+  <canvas id="wMap" class="wmap" data-mfc-pass title="小地圖（點一下放大）"></canvas>
+  <div id="wPrompt" class="wprompt" data-mfc-pass hidden>
+    <div><b id="wPName"></b><small id="wPSub"></small></div>
+    <button class="wbtn go" id="wGo">🚪 進入</button>
+  </div>
+  <div id="wToast" class="wtoast" aria-live="polite"></div>
+  <div class="wkeys desk-only">W A S D／方向鍵 移動　Shift 跑步　Space 跳躍　E 進入　C 慶祝　滑鼠拖曳 轉鏡頭　滾輪 縮放</div>
+  <div id="wHelpBox" class="whelp" data-mfc-pass hidden>
+    <div class="card">
+      <h3>操作說明</h3>
+      <p><b>手機／平板</b>：左手推搖桿移動，右手按「跳躍」「衝刺」「慶祝」；右半邊畫面拖曳轉動鏡頭，兩指捏合縮放。</p>
+      <p><b>電腦</b>：WASD／方向鍵移動、Shift 跑步、Space 跳躍、C 慶祝；滑鼠拖曳轉動鏡頭、滾輪縮放。</p>
+      <p>走到各學院大門前，按「🚪 進入」（電腦按 E）就會回到學院主畫面並進入該村莊。</p>
+      <p class="small">點一下關閉</p>
+    </div>
+  </div>
+  <div id="wBoot" class="wboot">載入 3D 學院中…</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="../character/js/core.js"></script>
+<script src="../character/js/MultiTouchManager.js"></script>
+<script src="../character/js/VirtualJoystick.js"></script>
+<script src="../character/js/MobileActionController.js"></script>
+<script src="../character/js/InputManager.js"></script>
+<script src="../character/js/CharacterController.js?v=2"></script>
+<script src="../character/js/InteractionManager.js"></script>
+<script src="../character/js/CharacterStateMachine.js"></script>
+<script src="../character/js/ClayCharacterFactory.js"></script>
+<script src="../character/js/AnimationLibrary.js"></script>
+<script src="../character/js/CharacterAnimationManager.js"></script>
+<script src="../character/js/CharacterSystem.js"></script>
+<script src="../character/js/GLBCharacterLoader.js"></script>
+<script src="../character/models/models.js"></script>
+<script src="../character/gl-guard.js?v=1"></script>
+<script src="js/world-kit.js?v=1"></script>
+<script src="js/world-props.js?v=1"></script>
+<script src="js/maps/academy-hub.js?v=1"></script>
+<script src="js/world.js?v=1"></script>
+</body>
+</html>

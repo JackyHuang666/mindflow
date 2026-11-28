@@ -596,7 +596,8 @@
     jumpWindup: 0.1,        // 起跳前下蹲時間（s）
     landRecover: 0.16,      // 落地緩衝（s），期間不能再跳
     radius: 0.24,           // 碰撞半徑
-    bounds: 14              // 場地半徑
+    bounds: 14,             // 場地半徑
+    stepUp: 0.45            // 有地形高度（groundAt）時：一步最多可以跨上的高度（台階）
   };
 
   function CharacterController(opts) {
@@ -615,6 +616,7 @@
     this.inputDir = { x: 0, z: 0, mag: 0 };
     this.faceOverride = null;  // 轉身測試用：指定面向
     this.obstacles = [];       // [{x, z, r}]
+    this.groundAt = null;      // 選用：function (x, z, y) → 該點地面高度（null＝不能走）。沒設定時地面固定在 y = 0（舊遊戲不受影響）
   }
   CharacterController.prototype = Object.create(NS.Emitter.prototype);
 
@@ -672,8 +674,9 @@
     if (!this.grounded) {
       this.pos.y += v.y * dt - 0.5 * p.gravity * dt * dt;          // 等加速度解析積分：任何幀率跳躍高度都一樣
       v.y -= p.gravity * dt;
-      if (this.pos.y <= 0 && v.y <= 0) {
-        this.pos.y = 0; v.y = 0; this.grounded = true;
+      var gy = this.ground();
+      if (this.pos.y <= gy && v.y <= 0) {
+        this.pos.y = gy; v.y = 0; this.grounded = true;
         this.jumpPhase = "land"; this.phaseT = 0;
         this.emit("land");
       }
@@ -685,6 +688,7 @@
     /* --- 位置與碰撞 --- */
     this.pos.x += v.x * dt; this.pos.z += v.z * dt;
     this.resolveCollisions();
+    if (this.groundAt && this.grounded) this.pos.y = this.ground();   // 腳貼地：走樓梯、坡道時跟著地面高度
 
     /* --- 面向：人物朝向與移動方向一致，平滑轉身（不瞬間切換） --- */
     if (this.faceOverride != null) this.targetYaw = this.faceOverride;
@@ -692,6 +696,13 @@
     var rate2 = this.grounded ? p.turnRate : p.turnRate * 0.6;
     if (this.faceOverride != null) rate2 = 5.5;                      // 原地轉身慢一點，方便觀察
     this.yaw = M.dampAngle(this.yaw, this.targetYaw, rate2, dt);
+  };
+
+  /** 目前位置的地面高度（沒有 groundAt 時固定 0） */
+  CharacterController.prototype.ground = function () {
+    if (!this.groundAt) return 0;
+    var g = this.groundAt(this.pos.x, this.pos.z, this.pos.y);
+    return g == null ? this.pos.y : g;
   };
 
   CharacterController.prototype.turnError = function () { return Math.abs(M.angleDiff(this.yaw, this.targetYaw)); };
