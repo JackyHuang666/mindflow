@@ -6,13 +6,13 @@ const fs = require("fs"), path = require("path");
   fs.mkdirSync(out, { recursive: true });
   const browser = await puppeteer.launch({
     executablePath: "/usr/bin/google-chrome", headless: "new",
-    args: ["--no-sandbox", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist", "--enable-webgl", `--window-size=${w},${h}`]
+    args: ["--no-sandbox", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist", "--enable-webgl", "--allow-file-access-from-files", `--window-size=${w},${h}`]
   });
   const page = await browser.newPage();
   page.on("console", m => console.log("[page]", m.text()));
   page.on("pageerror", e => console.log("[err]", e.message));
   await page.setViewport({ width: +w, height: +h });
-  await page.goto("file://" + path.resolve(__dirname, "film.html") + `?w=${w}&h=${h}` + (process.env.NOMSAA ? "&nomsaa=1" : "") + (process.env.QS || ""));
+  await page.goto("file://" + path.resolve(__dirname, "film2.html") + `?w=${w}&h=${h}` + (process.env.NOMSAA ? "&nomsaa=1" : "") + (process.env.QS || ""));
   await page.waitForFunction("window.filmReady", { timeout: 120000 });
   await page.evaluate("window.filmReady");
   let times = [];

@@ -13,7 +13,7 @@
 (function () {
   "use strict";
   var BASE = (function () { var s = document.currentScript && document.currentScript.src; return s ? s.replace(/[^/]*$/, "") : "intro/"; })();
-  var VER = "1";
+  var VER = "2";
   var K_SEEN = "swt-intro-seen", K_VOICE = "swt-intro-voice", K_MUTE = "swt-intro-mute";   // 不以 mf- 開頭：只存在這台裝置，不同步雲端
   var DUR = 15;
   var LINES = [
