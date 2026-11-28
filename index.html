@@ -1,6 +1,6 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>身心智慧學院</title><!-- 加入主畫面：名稱、圖示、獨立 App 視窗（PWA / iOS） --><link rel="manifest" href="manifest.webmanifest?v=2"><meta name="application-name" content="身心智慧學院"><meta name="theme-color" content="#0e1838"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="身心智慧學院"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"><link rel="apple-touch-icon" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png?v=2"><link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png?v=2"><link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120.png?v=2"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"><link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"><link rel="icon" href="favicon.ico?v=2" sizes="any"><meta name="app-version" content="20261123-092600"><script src="update.js?v=1"></script></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>身心智慧學院</title><!-- 加入主畫面：名稱、圖示、獨立 App 視窗（PWA / iOS） --><link rel="manifest" href="manifest.webmanifest?v=2"><meta name="application-name" content="身心智慧學院"><meta name="theme-color" content="#0e1838"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="身心智慧學院"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"><link rel="apple-touch-icon" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=2"><link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png?v=2"><link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png?v=2"><link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120.png?v=2"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2"><link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=2"><link rel="icon" href="favicon.ico?v=2" sizes="any"><meta name="app-version" content="20261128-043206"><script src="update.js?v=1"></script></head><body>
 <title>身心智慧學院</title>
-<script src="diag.js?v=2"></script>
+<script src="diag.js?v=3"></script>
 <meta name="description" content="電影質感的身心智慧學院主畫面：光束、柔光暈、飛鳥與櫻花、雲海外圍、明亮的夜晚村莊。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -4686,6 +4686,7 @@
     var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     var lowEnd = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent), SHELLS = lowEnd ? 9 : 13;
     function load(cb) {
+      if ((window.MF_SAFE || 0) >= 2) return;   // 省電保護第 2 級：寵物用平面圖，不載入 3D
       if (window.THREE) return cb();
       var s = document.createElement("script"); s.src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"; s.async = true;
       s.onload = cb; s.onerror = function () { console.warn("Three.js 載入失敗，使用平面寵物圖"); }; document.head.appendChild(s);
@@ -5174,7 +5175,7 @@
     function play(v, a, t) { v.anim = a; v.t0 = t == null ? now() : t; v.last = now(); wakeView(v, 8); }
     // 手機省電（v113 防閃退）：主畫面小寵物只在剛出現、被點、做動作時動 8 秒，之後停在最後一格（外框的上下浮動動畫照常）；
     // 畫面上沒有需要動的寵物超過 5 秒，就整個釋放寵物 3D 繪圖，需要時再自動建立
-    function isPhone() { return window.MF_TIER === "phone"; }
+    function isPhone() { return window.MF_TIER === "phone" || (window.MF_SAFE || 0) >= 1; }   // 省電保護時所有裝置都用手機的省電方式
     function wakeView(v, sec) { v.wakeUntil = Math.max(v.wakeUntil || 0, now() + sec); v.frozen = false; }
     function now() { return performance.now() / 1000; }
     // ---------- 畫面上的寵物位置 ----------
@@ -5833,7 +5834,7 @@
   var isSafari = /Safari/.test(navigator.userAgent) && !/Chrome|Chromium|Edg/.test(navigator.userAgent);
   var big = maxTex >= 16384 && !isSafari && (navigator.deviceMemory || 8) >= 8 && !(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
   function texSizeFor(sc) {
-    var lowQ = typeof gfx !== "undefined" && gfx && (gfx.quality === "low" || gfx.quality === "mid");
+    var eq = typeof effQ === "function" && typeof gfx !== "undefined" && gfx ? effQ() : "high", lowQ = eq === "low" || eq === "mid";
     var w = TIER === "phone" || lowQ ? 2048 : TIER === "tablet" ? 4096 : sc.main && big ? 8192 : 4096; w = Math.min(w, maxTex); return [w, w / 2]; }
   function sameOrigin(u) { try { return new URL(u, location.href).origin === location.origin; } catch (e) { return true; } }
   var glLost = false, released = false;
@@ -6337,7 +6338,7 @@
     var on = Object.keys(fx).filter(function (k) { return fx[k]; }).length;
     document.getElementById("mi-fx-sub").textContent = "已開啟 " + on + " / " + Object.keys(fx).length + " 項";
     document.getElementById("mi-time-sub").textContent = "目前：" + TIME_NAME[timeMode];
-    document.getElementById("mi-gfx-sub").textContent = "畫質：" + (Q_NAME[gfx.quality] || gfx.quality) + (gfx.quality === Q_REC ? "（推薦）" : "") + "・亮度 " + gfx.bright + "・對比 " + gfx.contrast + "・飽和 " + gfx.sat;
+    document.getElementById("mi-gfx-sub").textContent = "畫質：" + (Q_NAME[gfx.quality] || gfx.quality) + (gfx.quality === Q_REC ? "（推薦）" : "") + ((window.MF_SAFE || 0) ? "・🛡️省電保護" : "") + "・亮度 " + gfx.bright + "・對比 " + gfx.contrast + "・飽和 " + gfx.sat;
   }
   var curPage = "root";
   function goBack() { var pg = tools.querySelector('.menu-page[data-page="' + curPage + '"]'); showPage(pg && pg.dataset.parent ? pg.dataset.parent : "root"); }
@@ -6389,6 +6390,14 @@
   } catch (e) {}
   function saveGfx() { try { localStorage.setItem("mf-gfx", JSON.stringify(gfx)); } catch (e) {} }
   saveGfx();
+  // 實際使用的畫質（v115）：省電保護（diag.js 偵測到開站不久就被系統關閉）會暫時壓低畫質，不改玩家存的設定
+  //   第 1 級最多「中」，第 2 級「低」；正常使用滿 10 分鐘自動降一級
+  var effLow = false;
+  function effQ() {
+    var q = gfx.quality, lv = window.MF_SAFE || 0;
+    if (lv >= 2) q = "low"; else if (lv >= 1 && qRank(q) > qRank("mid")) q = "mid";
+    effLow = q === "low"; return q;
+  }
   var GFX_INPUTS = { bright: "g-bright", contrast: "g-contrast", sat: "g-sat" };
   function syncGfxUI() {
     Object.keys(GFX_INPUTS).forEach(function (k) { var el = document.getElementById(GFX_INPUTS[k]); el.value = gfx[k]; el.nextElementSibling.textContent = gfx[k]; });
@@ -6399,6 +6408,14 @@
     var hi = qRank(gfx.quality) > qRank(Q_REC);
     document.getElementById("g-qhint").innerHTML = QUALITY[gfx.quality].hint + (gfx.quality === Q_REC ? "<br>✅ 這是這台裝置的推薦設定。" : hi ? '<br><span class="qwarn-t">⚠️ 高於這台裝置的推薦設定，如果出現卡頓、發熱或畫面突然關閉，請改回「' + Q_NAME[Q_REC] + "」。</span>" : "");
     var w = document.getElementById("g-qwarn"); if (w) w.hidden = true;
+    var lv = window.MF_SAFE || 0, sp = document.getElementById("g-safe");
+    if (!sp) { sp = document.createElement("div"); sp.id = "g-safe"; sp.className = "qwarn"; document.getElementById("g-qhint").insertAdjacentElement("afterend", sp); }
+    sp.hidden = !lv;
+    if (lv) {
+      sp.innerHTML = "<b>🛡️ 省電保護中（第 " + lv + " 級）</b><p>這台裝置剛剛發生畫面突然關閉，所以暫時把畫質降到「" + Q_NAME[effQ()] + "」" + (lv >= 2 ? "，寵物改用平面圖" : "") +
+        "。正常使用滿 10 分鐘會自動恢復一級。</p><div class=\"qwarn-b\"><button type=\"button\" id=\"g-safe-off\">現在就解除</button></div>";
+      sp.querySelector("#g-safe-off").onclick = function () { if (window.MFDiag) MFDiag.setSafe(0); window.MF_SAFE = 0; if (lv >= 2) location.reload(); else { syncGfxUI(); resize(); toast("已解除省電保護。"); } };
+    }
   }
   // 選比推薦高的畫質：先顯示提醒，按「仍要使用」才套用
   function applyQuality(q) { gfx.quality = q; gfx.qUser = 1; syncGfxUI(); saveGfx(); resize(); }
@@ -6422,16 +6439,23 @@
   });
   document.getElementById("g-reset").addEventListener("click", function () { gfx = Object.assign({}, GFX_DEFAULT); syncGfxUI(); saveGfx(); resize(); if (window.MFFloat) MFFloat.reset(); });   // 也把沉浸模式、全螢幕按鈕放回預設位置
   syncGfxUI();
-  // 上次使用中畫面突然關閉、而且現在的畫質高於推薦：開站後提醒一次
+  // 上次使用中畫面突然關閉：自動進入省電保護時告訴玩家；畫質高於推薦時建議改回
   setTimeout(function () {
-    if (qRank(gfx.quality) > qRank(Q_REC) && window.MFDiag && MFDiag.crashedLastTime && MFDiag.crashedLastTime())
+    if (window.MFDiag && MFDiag.safeRaised && MFDiag.safeRaised())
+      toast("🛡️ 偵測到畫面剛剛突然關閉，已自動切換到省電模式（畫質「" + Q_NAME[effQ()] + "」）。正常使用一段時間後會自動恢復，進度都有保留。");
+    else if (qRank(gfx.quality) > qRank(Q_REC) && window.MFDiag && MFDiag.crashedLastTime && MFDiag.crashedLastTime())
       toast("上次畫面好像突然關閉了。目前是「" + Q_NAME[gfx.quality] + "」畫質，建議到「設定 → 畫面」改回推薦的「" + Q_NAME[Q_REC] + "」。");
   }, 4000);
 
   var W = 1, H = 1;
   function resize() {
-    var dpr = (window.devicePixelRatio || 1) * QUALITY[gfx.quality].scale; dpr = Math.max(0.5, Math.min(dpr, QUALITY[gfx.quality].cap));
-    W = canvas.width = Math.max(1, Math.round(canvas.clientWidth * dpr)); H = canvas.height = Math.max(1, Math.round(canvas.clientHeight * dpr));
+    var Q = QUALITY[effQ()]; window.MF_Q = effQ();
+    var dpr = (window.devicePixelRatio || 1) * Q.scale; dpr = Math.max(0.5, Math.min(dpr, Q.cap));
+    var nw = Math.max(1, Math.round(canvas.clientWidth * dpr)), nh = Math.max(1, Math.round(canvas.clientHeight * dpr));
+    // 尺寸沒變就不重配（v115 防閃退）：iPhone／iPad 常發出 resize 事件，原本每次都重配主畫布和 3 組繪圖緩衝；WebKit 連設定同樣的寬度也會重配
+    if (nw === W && nh === H && RT.scene && !resize.force) return;
+    resize.force = false;
+    if (canvas.width !== nw) canvas.width = nw; if (canvas.height !== nh) canvas.height = nh; W = nw; H = nh;
     aspect = canvas.clientWidth / Math.max(1, canvas.clientHeight);
     var ratio = cam.fov / HOME_FOV; computeHomeFov(); cam.fov = Math.max(MIN_FOV, Math.min(HOME_FOV, HOME_FOV * ratio));
     freeTarget(RT.scene); freeTarget(RT.a); freeTarget(RT.b);
@@ -6485,7 +6509,7 @@
     var f = dirOf(view), r = norm(cross(f, [0, 1, 0])), up = cross(r, f);
     gl.uniform3fv(P.fog.u.uF, f); gl.uniform3fv(P.fog.u.uR, r); gl.uniform3fv(P.fog.u.uU, up);
     gl.uniform1f(P.fog.u.uTh, Math.tan(view.fov / 2)); gl.uniform1f(P.fog.u.uAspect, aspect);
-    gl.uniform1f(P.fog.u.uYaw, view.yaw); gl.uniform1f(P.fog.u.uFQ, gfx.quality === "low" ? 0 : 1); gl.uniform3f(P.fog.u.uHalf, PW * 0.79, PH * 0.79, PD);
+    gl.uniform1f(P.fog.u.uYaw, view.yaw); gl.uniform1f(P.fog.u.uFQ, effLow ? 0 : 1); gl.uniform3f(P.fog.u.uHalf, PW * 0.79, PH * 0.79, PD);
     drawFull(P.fog);
 
     gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -6499,7 +6523,7 @@
     gl.uniform4fv(u.uLamp, scene.lampPos); gl.uniform3fv(u.uLampC, scene.lampCol); gl.uniform4fv(u.uSettle, scene.settleV);
     gl.uniform1f(u.uMain, scene.main); gl.uniform3fv(u.uPulse, scene.pulseV); gl.uniform4fv(u.uPetal, scene.petalV); gl.uniform4fv(u.uCenter, scene.center);
     stepReveal(scene, Math.min((now - lastReveal) / 1000, 0.25)); lastReveal = now; gl.uniform4fv(u.uFow, scene.fowV); gl.uniform1fv(u.uReveal, scene.reveal);
-    gl.uniform1f(u.uYaw, view.yaw); gl.uniform1f(u.uFQ, gfx.quality === "low" ? 0 : 1);
+    gl.uniform1f(u.uYaw, view.yaw); gl.uniform1f(u.uFQ, effLow ? 0 : 1);
     attrib(P.main.p, "aPos", mainPosBuf, 3); attrib(P.main.p, "aImg", mainImgBuf, 2);
     gl.drawArrays(gl.TRIANGLES, 0, 6); resetAttribs();
 
@@ -6527,7 +6551,7 @@
     gl.useProgram(P.comp.p); var cu = P.comp.u;
     gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, RT.scene.tex); gl.uniform1i(cu.uScene, 0);
     gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, RT.a.tex); gl.uniform1i(cu.uBloom, 1);
-    gl.uniform1f(cu.uBloomK, gfx.quality === "low" ? 0 : (0.16 - 0.06 * night) * (0.35 + 0.65 * fxNow.rays));
+    gl.uniform1f(cu.uBloomK, effLow ? 0 : (0.16 - 0.06 * night) * (0.35 + 0.65 * fxNow.rays));
     gl.uniform1f(cu.uBright, gfx.bright / 100); gl.uniform1f(cu.uContrast, gfx.contrast / 100); gl.uniform1f(cu.uSat, gfx.sat / 100);
     gl.uniform1f(cu.uGrade, fxNow.grade); gl.uniform1f(cu.uTime, t); gl.uniform1f(cu.uDusk, dusk); gl.uniform1f(cu.uNight, night);
     var sp = project(VP, scale(SUN_DIR, PD * 3));

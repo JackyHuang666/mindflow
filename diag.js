@@ -6,17 +6,64 @@
  */
 (function () {
   "use strict";
-  var VER = "v112", KEY = "swt-diag-log", HB = "swt-diag-hb", MAX = 60;
+  var VER = "v115", KEY = "swt-diag-log", HB = "swt-diag-hb", MAX = 60;
   var sid = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   var crashedLast = false, crumbs = [], memWarned = false, upState = "idle", upErr = "", upTimer = 0;
   var ls = null; try { ls = window.localStorage; } catch (e) {}
+
+  // ---- 3D 繪圖統計（v115）：心跳時一起記下來，閃退前一刻的狀態就會跟著紀錄上傳 ----
+  //   tex／buf：估計的 3D 貼圖與緩衝記憶體（MB）；ctx：建立過的 WebGL 數，live：還在使用的；rs：WebGL 畫布改尺寸次數；fps：最近 5 秒每秒格數
+  var G = { tex: 0, buf: 0, ctx: 0, rs: 0, fr: 0, fps: 0, cvs: [] };
+  (function hookGL() {
+    function hook(P) {
+      if (!P) return;
+      var tb = new WeakMap(), bb = new WeakMap(), curT = new WeakMap(), curB = new WeakMap();
+      var bindT = P.bindTexture, ti = P.texImage2D, dt = P.deleteTexture, gm = P.generateMipmap, bindB = P.bindBuffer, bd = P.bufferData, db = P.deleteBuffer;
+      P.bindTexture = function (t, x) { curT.set(this, x); return bindT.apply(this, arguments); };
+      P.texImage2D = function () {
+        try {
+          var a = arguments, x = curT.get(this), w, h;
+          if (a.length >= 9) { w = a[3]; h = a[4]; } else { var src = a[5] || {}; w = src.naturalWidth || src.videoWidth || src.width || 0; h = src.naturalHeight || src.videoHeight || src.height || 0; }
+          if (x && a[1] === 0 && a[0] === 3553) { var n = w * h * 4, o = tb.get(x) || 0; G.tex += n - o; tb.set(x, n); }
+        } catch (e) {}
+        return ti.apply(this, arguments);
+      };
+      P.generateMipmap = function () { try { var x = curT.get(this), o = x && tb.get(x); if (o) { G.tex += o / 3; tb.set(x, o * 4 / 3); } } catch (e) {} return gm.apply(this, arguments); };
+      P.deleteTexture = function (x) { try { var o = x && tb.get(x); if (o) { G.tex -= o; tb.delete(x); } } catch (e) {} return dt.apply(this, arguments); };
+      P.bindBuffer = function (t, x) { var m = curB.get(this); if (!m) { m = {}; curB.set(this, m); } m[t] = x; return bindB.apply(this, arguments); };
+      P.bufferData = function (t, d) {
+        try { var m = curB.get(this), x = m && m[t], n = typeof d === "number" ? d : (d && d.byteLength) || 0; if (x) { G.buf += n - (bb.get(x) || 0); bb.set(x, n); } } catch (e) {}
+        return bd.apply(this, arguments);
+      };
+      P.deleteBuffer = function (x) { try { var o = x && bb.get(x); if (o) { G.buf -= o; bb.delete(x); } } catch (e) {} return db.apply(this, arguments); };
+    }
+    try { hook(window.WebGLRenderingContext && WebGLRenderingContext.prototype); hook(window.WebGL2RenderingContext && WebGL2RenderingContext.prototype); } catch (e) {}
+    try {
+      var gc = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function (t) {
+        var r = gc.apply(this, arguments);
+        if (r && /webgl/.test(t) && !this.__mfgl) { this.__mfgl = 1; G.ctx++; G.cvs.push(r); if (G.cvs.length > 12) G.cvs.shift(); }
+        return r;
+      };
+      var wd = Object.getOwnPropertyDescriptor(HTMLCanvasElement.prototype, "width");
+      if (wd && wd.set) Object.defineProperty(HTMLCanvasElement.prototype, "width", { configurable: true, enumerable: wd.enumerable, get: wd.get,
+        set: function (v) { if (this.__mfgl && v !== wd.get.call(this)) G.rs++; return wd.set.call(this, v); } });
+    } catch (e) {}
+    var fr0 = 0; (function fc() { G.fr++; requestAnimationFrame(fc); })();
+    setInterval(function () { G.fps = Math.round((G.fr - fr0) / 5); fr0 = G.fr; }, 5000);
+  })();
+  function glStat() {
+    var live = 0; G.cvs.forEach(function (c) { try { if (!c.isContextLost()) live++; } catch (e) {} });
+    var m = document.getElementById("gl");
+    return { tex: Math.round(G.tex / 1e5) / 10, buf: Math.round(G.buf / 1e5) / 10, ctx: G.ctx, live: live, rs: G.rs, fps: G.fps, cv: m ? m.width + "x" + m.height : "", q: window.MF_Q || "", safe: SAFE ? SAFE.lv || 0 : 0 };
+  }
 
   function env() {
     var m = performance.memory;
     return { ua: navigator.userAgent.slice(0, 200), dm: navigator.deviceMemory || null, scr: screen.width + "x" + screen.height,
       vp: innerWidth + "x" + innerHeight, dpr: Math.round((window.devicePixelRatio || 1) * 100) / 100,
       heap: m ? Math.round(m.usedJSHeapSize / 1e6) : null, heapMax: m ? Math.round(m.jsHeapSizeLimit / 1e6) : null,
-      up: Math.round(performance.now() / 1000), ver: VER, tier: window.MF_TIER || "", touch: navigator.maxTouchPoints || 0 };
+      up: Math.round(performance.now() / 1000), ver: VER, tier: window.MF_TIER || "", touch: navigator.maxTouchPoints || 0, gl: glStat() };
   }
   function player() { try { return (window.MFDiagPlayer && window.MFDiagPlayer()) || (ls && ls.getItem("mf-user")) || ""; } catch (e) { return ""; } }
   function load() { try { return JSON.parse((ls && ls.getItem(KEY)) || "[]") || []; } catch (e) { return []; } }
@@ -42,8 +89,9 @@
     var m = performance.memory;
     if (m && !memWarned && m.usedJSHeapSize > m.jsHeapSizeLimit * 0.8) { memWarned = true; log("mem", "JS 記憶體使用超過 80%（" + Math.round(m.usedJSHeapSize / 1e6) + " / " + Math.round(m.jsHeapSizeLimit / 1e6) + " MB）"); }
   }
+  var prev = null;
   try {
-    var prev = JSON.parse((ls && ls.getItem(HB)) || "null");
+    prev = JSON.parse((ls && ls.getItem(HB)) || "null");
     if (prev && prev.sid && !prev.clean && prev.vis && Date.now() - prev.t < 10 * 60000) {
       crumbs = (prev.crumbs || []).slice();
       var a0 = load(), r0 = { id: prev.sid + "-crash", t: prev.t, sid: prev.sid, kind: "crash", msg: "疑似閃退：上次使用中頁面突然關閉（最後操作後 " + Math.max(0, Math.round((Date.now() - prev.t) / 1000)) + " 秒才重新開啟）",
@@ -53,7 +101,16 @@
       crumbs = [];
     }
   } catch (e) {}
-  crumb("開啟頁面");
+  // ---- 自動保護（v115）：打開沒多久（5 分鐘內）就被系統關掉，下次開啟自動降一級省電；正常用滿 10 分鐘再恢復一級 ----
+  //   第 1 級：畫質最多「中」，寵物 3D 不動時就釋放；第 2 級：畫質「低」，寵物改用平面圖
+  var SAFE_KEY = "swt-safe", SAFE = { lv: 0, up: 0 };
+  try { SAFE = JSON.parse((ls && ls.getItem(SAFE_KEY)) || "null") || SAFE; } catch (e) {}
+  function saveSafe() { try { ls && ls.setItem(SAFE_KEY, JSON.stringify(SAFE)); } catch (e) {} }
+  if (crashedLast && prev && prev.env && prev.env.up < 300) { SAFE.lv = Math.min(2, (SAFE.lv || 0) + 1); SAFE.up = Date.now(); SAFE.raised = 1; saveSafe(); }
+  else if (SAFE.raised) { delete SAFE.raised; saveSafe(); }
+  window.MF_SAFE = SAFE.lv || 0;
+  setTimeout(function () { if (SAFE.lv > 0) { SAFE.lv--; delete SAFE.raised; saveSafe(); crumb("用滿 10 分鐘，省電保護降為第 " + SAFE.lv + " 級"); } }, 600000);
+  crumb("開啟頁面" + (SAFE.lv ? "（省電保護第 " + SAFE.lv + " 級）" : ""));
   beat(); setInterval(beat, 5000);
   addEventListener("pagehide", function () { hb.clean = true; beat(); });
   document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") { hb.clean = false; crumb("回到頁面"); } else crumb("切到背景"); beat(); });
@@ -160,6 +217,7 @@
       return '<details style="margin:6px 0;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.06)"><summary style="cursor:pointer;line-height:1.5">' + k[0] + " <b>" + esc(k[1]) + "</b>" + (r.n > 1 ? " ×" + r.n : "") + '　<span class="muted small">' + fmtT(r.t) + "・" + esc(r.p || "未命名") + "・" + esc(devName(e.ua, e)) + (e.heap ? "・JS " + e.heap + "MB" : "") + (e.dm ? "・記憶體 " + e.dm + "GB" : "") + "</span><br><span class=\"small\">" + esc(r.msg) + "</span></summary>" +
         '<div class="small muted" style="margin-top:6px;white-space:pre-wrap;word-break:break-all">' +
         "版本 " + esc(e.ver || "") + "　畫質分級 " + esc(e.tier || "-") + "　螢幕 " + esc(e.scr || "") + " @" + esc(e.dpr || "") + "x　視窗 " + esc(e.vp || "") + "　開啟 " + (e.up != null ? Math.round(e.up / 60) + " 分鐘" : "-") + "\n" +
+        (e.gl ? "3D：貼圖 " + e.gl.tex + "MB・緩衝 " + e.gl.buf + "MB・WebGL " + e.gl.live + "/" + e.gl.ctx + "・畫布改尺寸 " + e.gl.rs + " 次・每秒 " + e.gl.fps + " 格・主畫布 " + esc(e.gl.cv) + "・畫質 " + esc(e.gl.q) + "・省電保護 " + e.gl.safe + "\n" : "") +
         (r.x && r.x.where ? "位置：" + esc(r.x.where) + "\n" : "") +
         "最後操作：\n" + (r.crumbs && r.crumbs.length ? esc(r.crumbs.join("\n")) : "（無）") +
         (r.x && r.x.stack ? "\n\n" + esc(r.x.stack) : "") + "\n\n" + esc(e.ua || "") + "</div></details>";
@@ -188,5 +246,7 @@
     draw(el); fetchCloud(el);
   }
 
-  window.MFDiag = { crashedLastTime: function () { return crashedLast; }, log: log, crumb: crumb, list: load, renderAdmin: renderAdmin, upload: upload, sql: SQL, state: function () { return { up: upState, err: upErr, sid: sid }; } };
+  window.MFDiag = { crashedLastTime: function () { return crashedLast; },
+    safe: function () { return SAFE.lv || 0; }, safeRaised: function () { return !!SAFE.raised; },
+    setSafe: function (lv) { SAFE.lv = lv; delete SAFE.raised; saveSafe(); window.MF_SAFE = lv; }, log: log, crumb: crumb, list: load, renderAdmin: renderAdmin, upload: upload, sql: SQL, state: function () { return { up: upState, err: upErr, sid: sid }; } };
 })();
