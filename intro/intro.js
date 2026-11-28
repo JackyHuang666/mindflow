@@ -1,8 +1,11 @@
 /*
  * SWT MindFlow 身心智慧學院 — 15 秒開場序章（登入前）
  *
- * 什麼時候播：開場入口（cloud.js 的 #mf-gate：沒登入學員、也沒選訪客）出現時，先蓋上序章；
- *   播完、或按「略過動畫」，淡出後就是原本的登入畫面。網址加 ?intro=1 可強制播放（測試用）。
+ * 什麼時候播：每次進入遊戲都先播（不論是否已登入）：
+ *   ・每開一次遊戲（新的瀏覽器分頁／App 啟動）播一次 → 播完接登入畫面；已登入學員、訪客則接遊戲主畫面
+ *   ・登出後回到登入畫面時再播一次
+ *   ・同一次使用中的自動重新整理（雲端存檔載入、版本更新、畫面恢復）、Google 登入回來或取消時不重播
+ *   網址加 ?intro=1 可強制播放（測試用）。
  * 畫面：預先渲染好的 MP4（intro-1080.mp4 / 手機與省流量用 intro-720.mp4），
  *   上面疊一層很輕的 Three.js 粒子（金色光塵、轉場爆發、品牌段五色光環），省電保護 2 級以上不載入。
  * 聲音：瀏覽器不允許自動有聲播放，所以先出現「開啟序章」按鈕，點一下才開始（同時解鎖聲音與旁白）。
@@ -152,6 +155,7 @@
   }
   function open(autoPlay) {
     if (el) return;
+    markSession();
     closing = false; state = "ready"; spoken = -1; subIdx = -1; lastT = -1; endWait = 0;
     el = document.createElement("div"); el.id = "mf-intro"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "SWT MindFlow 序章動畫");
     el.className = "it-ready";
@@ -269,11 +273,21 @@
   window.addEventListener("resize", layout);
   window.addEventListener("orientationchange", function () { setTimeout(layout, 250); });
 
+  var SS_KEY = "swt-intro-session";   // sessionStorage：這次使用（分頁／App 啟動）是否已播過
+  function sessionPlayed() { try { return sessionStorage.getItem(SS_KEY) === "1"; } catch (e) { return false; } }
+  function markSession() { try { sessionStorage.setItem(SS_KEY, "1"); } catch (e) {} }
+  // 記住上一個畫面是在遊戲裡（in）還是在登入畫面（out）：從 in 變成登入畫面＝登出，要再播
+  var AUTH_KEY = "swt-intro-where";
+  function where() { try { return sessionStorage.getItem(AUTH_KEY) || ""; } catch (e) { return ""; } }
+  function noteWhere() { try { sessionStorage.setItem(AUTH_KEY, gateOpen() ? "out" : "in"); } catch (e) {} }
   function boot() {
     replayBtn();
-    if (forced || gateOpen()) open(false);
-    // 開場入口之後才出現或被移除時（登入、訪客進入、登出），同步「重播序章」按鈕
-    try { new MutationObserver(function () { replayBtn(); }).observe(document.body, { childList: true }); } catch (e) {}
+    var oauth = /access_token=|error=/.test(location.hash);
+    var loggedOut = gateOpen() && where() === "in";
+    if (forced || (!oauth && (!sessionPlayed() || loggedOut))) open(false);
+    noteWhere();
+    // 開場入口之後才出現或被移除時（登入、訪客進入、登出），同步「重播序章」按鈕與目前位置
+    try { new MutationObserver(function () { replayBtn(); noteWhere(); }).observe(document.body, { childList: true }); } catch (e) {}
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () { setTimeout(boot, 0); });
   else setTimeout(boot, 0);
